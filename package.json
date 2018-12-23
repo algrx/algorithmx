@@ -23,7 +23,8 @@
     "karma": "./node_modules/.bin/karma start karma.config.js",
     "lint": "./node_modules/.bin/tslint --project . 'src/**/*.ts'",
     "test": "npm run lint && npm run karma",
-    "prepublish": "npm run test && npm run build"
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run test && npm run build"
   },
   "repository": {
     "type": "git",
