@@ -1,0 +1,28 @@
+language: node_js
+node_js:
+- stable
+
+cache:
+  directories:
+  - node_modules
+
+branches:
+  only:
+  - master
+
+install:
+- npm install
+
+jobs:
+  include:
+  - stage: test
+    script: "npm run test && node_modules/codecov/bin/codecov"
+# waiting for TypeDoc to update to TypeScript 3.2
+#  - stage: docs
+#    script: "npm run docs && node scripts/deployDocs.js"
+
+env:
+  global:
+  - GITHUB_REPO: "algrx/algorithmx"
+  # GITHUB_TOKEN
+  - secure: "Tzc2EJFUO1XudQSTvw7s+1EymXDugDB1qoOI7CYwVhvy3oqsfHcHnd9AAeP1D3+EtuvHRxl+p/YRxc71kruqSZknevFm3W9Jqwv1UWHtQ8cerAidDlfuzm3x+yQ1S5FBUpO389kcLXMHbOn9ad5Q4k4j/EmVdzWcKq4MkDhZF5JVsw7qZhEYXGVics0xjP5PFbWnkBkj67+4gsk6DdzKvyeOt1LQX4BiHYOgUvWO45w1G5eoQmLJ4TxpsCWqH0iPKxpzUtCTHcfDmLdWCyX3T7+SNezk2enzWOX4Bd5M6+BPLpE4hu4k/lGCnu8/IJObpozNREvi/Dq5Bze1saoU4SF0CzTVFaE6K2NbGNVX6cDo+Mo0aPn4f+bfZ3A/0rzl6AxAU8jpqr3Fj+jUaHxQRJQHKrXz+xPWKWkfZ1M/NTL7YoTolkMXsDr2BtNOPPVNR0zLA/8qfADj9NO/FINoTfqTyx/mTsElJTP3HLdQGeGOCixQNHgbUTb6L5SYN4ykpCu2srZCgEVyLgf/bu1xH/FH7H8fUr0h6nNF1DGw2df24vhI3GA1ZcrWSmRTk3k+VxSdwQfwx4G4VktEbiBjQHCEJV5Zep1CsNuHb29M777OpxLDwjG61870XtiFakIFSlxdSTIIxInfV6eT/18UFBdRH0krAWMBW/Jf/eCwwv0="

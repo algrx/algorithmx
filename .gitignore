@@ -1,0 +1,10 @@
+node_modules/
+dist/
+docs/
+public/
+coverage/
+.vscode/
+/*_cache
+package-lock.json
+*.log
+.DS_Store
