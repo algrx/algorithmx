@@ -63,6 +63,11 @@ export interface CanvasSelection extends Selection, EventHandler {
   labels (ids: ReadonlyArray<string | number>): LabelSelection
 
   /**
+   * Resets the canvas to its initial state, clearing all graphics and scheduled events.
+   */
+  reset (): this
+
+  /**
    * Sets the width and height of the canvas. This will only updated the `width` and `height` attributes of the SVG
    * element displaying the canvas, not the enclosing HTML element.
    *
@@ -87,7 +92,7 @@ export interface CanvasSelection extends Selection, EventHandler {
   /**
    * Sets the location of the canvas camera. The canvas uses a Cartesian coordinate system with (0, 0) at the center.
    *
-   * @param location An (x, y) tuple describing the new pan location.
+   * @param location - An (x, y) tuple describing the new pan location.
    */
   pan (location: [NumExpr, NumExpr]): this
 
@@ -95,7 +100,7 @@ export interface CanvasSelection extends Selection, EventHandler {
    * Sets the zoom level of the canvas camera. A zoom level of 2.0 will make objects appear twice as large, 0.5 will
    * make them half as large, etc.
    *
-   * @param zoom The new zoom level.
+   * @param zoom - The new zoom level.
    */
   zoom (zoom: NumExpr): this
 
@@ -104,9 +109,9 @@ export interface CanvasSelection extends Selection, EventHandler {
    * be draggable when the camera is within the bounding box (i.e. the coordinates currently in view are a subset of the
    * bounding box).
    *
-   * By default, the pan limit is (-Infinity, Infinity).
+   * The default pan limit is: (-Infinity, Infinity).
    *
-   * @param box A (width/2, height/2) tuple describing the bounding box.
+   * @param box - A (width/2, height/2) tuple describing the bounding box.
    */
   panLimit (box: [NumExpr, NumExpr]): this
 
@@ -114,9 +119,9 @@ export interface CanvasSelection extends Selection, EventHandler {
    * Restricts the zoom level of the canvas camera to the given range. The lower bound describes how far
    * away the camera can zoom, while the upper bound describes the maximum enlarging zoom.
    *
-   * By default, the zoom limit is (0.1, 10).
+   * The default zoom limit is: (0.1, 10).
    *
-   * @param limit A (min, max) tuple describing the zoom limit.
+   * @param limit - A (min, max) tuple describing the zoom limit.
    */
   zoomLimit (limit: [NumExpr, NumExpr]): this
 }

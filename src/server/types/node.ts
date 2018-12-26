@@ -5,6 +5,11 @@ import { Shape } from '../../client/attributes/definitions/node'
 
 export interface NodeSelection extends Selection {
   /**
+   * Removes all nodes in the current selection from the canvas. Additionally, removes any edges connected to the nodes.
+   */
+  remove (): this
+
+  /**
    * Selects a single label, attached to the node, by its ID.
    *
    * By default, each node is initialized with a "value" label, located at the center of the node and displaying its ID.

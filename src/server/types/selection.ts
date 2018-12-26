@@ -2,28 +2,37 @@ import { AnimationType, AnimationEase } from '../../client/attributes/definition
 import { ElementFn, ElementArg } from './types'
 
 export interface Selection {
-  visible (visible: ElementArg<boolean>): this
-
   /**
-   * Adds all elements in the current selection to the actual canvas. This should be called immediately after a
-   * selection of new elements is created.
+   * Adds all elements in the current selection to the canvas. This should be called immediately after a
+   * selection of new elements is created. Additionally, this will disable all subsequent animations, allowing initial
+   * attributes to be set.
+   *
+   * @return A new instance of the current selection with animations disabled.
    */
   add (): this
 
   /**
-   * Removes all elements in the current selection from the actual canvas.
+   * Removes all elements in the current selection from the canvas.
    */
   remove (): this
+
+  /**
+   * Sets whether or not the elements in the current selection should be visible. This can be animated in the same way
+   * as additions and removals. However, in contrast to removing, disabling visibility will not clear attributes or
+   * affect layout.
+   *
+   * @param visible - Whether or not the elements should be visible.
+   */
+  visible (visible: ElementArg<boolean>): this
 
   /**
    * Sets the queue onto which all events triggered by the selection should be added. Each queue handles events
    * independently, and all queues execute in parallel. Since queues can be delayed (see [[Selection.pause]]), this
    * effectively enables multiple animations to run simultaneously.
    *
-   * The null queue is special; all events added to it will execute immediately.
+   * The `null` queue is special; all events added to it will execute immediately. The default queue is named "default".
    *
-   * @param queue - The name of the queue. This can be any string or integer, or null for the immediate queue.
-   * If omitted, the default queue will be used.
+   * @param queue - The name of the queue. This can be any string or integer, or `null` for the immediate queue.
    *
    * @return A new instance of the current selection using the specified event queue.
    */
@@ -60,16 +69,16 @@ export interface Selection {
    *
    * @param ease - The name of the ease function, based on the functions found in D3. The full list is below:
    *
-   * `linear`,
-   * `poly`, `polyIn`, `polyOut`, `polyInOut`,
-   * `quad`, `quadIn`, `quadOut`, `quadInOut`,
-   * `cubic`, `cubicIn`, `cubicOut`, `cubicInOut`,
-   * `sin`, `sinIn`, `sinOut`, `sinInOut`,
-   * `exp`, `expIn`, `expOut`, `expInOut`,
-   * `circle`, `circleIn`, `circleOut`, `circleInOut`,
-   * `elastic`, `elasticIn`, `elasticOut`, `elasticOut`,
-   * `back`, `backIn`, `backOut`, `backInOut`,
-   * `bounce`, `bounceIn`, `bounceOut`, `bounceOut`.
+   * "linear",
+   * "poly", "polyIn", "polyOut", "polyInOut",
+   * "quad", "quadIn", "quadOut", "quadInOut",
+   * "cubic", "cubicIn", "cubicOut", "cubicInOut",
+   * "sin", "sinIn", "sinOut", "sinInOut",
+   * "exp", "expIn", "expOut", "expInOut",
+   * "circle", "circleIn", "circleOut", "circleInOut",
+   * "elastic", "elasticIn", "elasticOut", "elasticOut",
+   * "back", "backIn", "backOut", "backInOut",
+   * "bounce", "bounceIn", "bounceOut", "bounceInOut".
    *
    * @return A new instance of the current selection using the specified animation ease.
    */
@@ -79,8 +88,8 @@ export interface Selection {
    * Returns a new selection through which all attribute changes are temporary. This is typically used to draw attention
    * to a certain element without permanently changing its attributes.
    *
-   * @param milliseconds (Optional) - The amount of time attributes should remain 'highlighted', before changing back to
-   * their original values.
+   * @param milliseconds - (Optional) The amount of time attributes should remain 'highlighted', in milliseconds, before
+   * changing back to their original values.
    *
    * @return A new instance of the current selection, where all attribute changes are temporary.
    */
@@ -97,12 +106,29 @@ export interface Selection {
    */
   data (data: ReadonlyArray<unknown> | ElementFn<unknown>): this
 
+  /**
+   * Adds a pause to the event queue, delaying the next event by the given number of milliseconds.
+   *
+   * @param milliseconds - The duration of the pause, in milliseconds.
+   */
   pause (milliseconds: number): this
 
+  /**
+   * Stops the execution of all scheduled events on the current event queue
+   * (or on every queue if the current queue is `null`).
+   */
   stop (): this
 
+  /**
+   * Starts/resumes the execution of all scheduled events on the current event queue
+   * (or on every queue if the current queue is `null`).
+   */
   start (): this
 
+  /**
+   * Cancels all scheduled events on the current event queue
+   * (or on every queue if the current queue is `null`).
+   */
   cancel (): this
 
   /**
@@ -117,7 +143,7 @@ export interface Selection {
   /**
    * Registers a function to listen for a specific broadcast message (see [[Selection.broadcast]]). The function will
    * be called when the corresponding broadcast event is processed by the event queue. If the same message is broadcast
-   * multiple times, the function will be triggered each time.
+   * multiple times, the function will be called each time.
    *
    * @param message - The message to listen for.
    * @param onReceive - The function to call when the message is received.

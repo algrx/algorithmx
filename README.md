@@ -9,14 +9,15 @@
 <br><br>
 
 ## Installing
+
 **Browser:**
+
 ```html
 <script src="https://d3js.org/d3.v5.min.js"></script>
-<script src="http://marvl.infotech.monash.edu/webcola/cola.min.js"></script>
+<script src="https://ialab.it.monash.edu/webcola/cola.min.js"></script>
 <script src="https://unpkg.com/algorithmx"></script>
 ```
 This will expose a global `algorithmx` variable.
-
 
 **Module:**
 
@@ -26,6 +27,7 @@ import * as algorithmx from 'algorithmx'
 ```
 
 ## Example Usage
+
 ```js
 // select a div with id 'output' for rendering the network
 const canvas = algorithmx.canvas('output')
@@ -43,4 +45,4 @@ canvas.pause(500)
 canvas.node('B').highlight().size('1.5x')
 ```
 
-Refer to the <a href="https://algrx.github.io/algorithmx/docs/js">docs</a> for more information.
+Refer to the <a href="https://algrx.github.io/algorithmx/docs/js">docs</a> for the full API.

@@ -32,13 +32,13 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
   node: id => {
     return self().nodes([id])
   },
-  nodes: (ids) => {
+  nodes: ids => {
     return nodeSelection({...context, parent: context, ids: ids, data: ids, initAttr: undefined })
   },
   edge: edge => {
     return self().edges([edge])
   },
-  edges: (edges) => {
+  edges: edges => {
     const ids = edges.map(([source, target, edgeId]) => {
       const orderedNodes = [source, target].sort()
       return `${orderedNodes[0]}-${orderedNodes[1]}${edgeId !== undefined ? '-' + edgeId : ''}`
@@ -52,15 +52,19 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
   label: (id = 'title') => {
     return self().labels([id])
   },
-  labels: (ids) => {
+  labels: ids => {
     return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
+  },
+  reset: () => {
+    // not implemented
+    return self()
   },
   size: size => {
     context.client.dispatch(utils.createUpdateEvent(context, size, d => ({ size: d })))
     return self()
   },
-  edgeLengths: type => {
-    context.client.dispatch(utils.createUpdateEvent(context, type, d =>
+  edgeLengths: lengthInfo => {
+    context.client.dispatch(utils.createUpdateEvent(context, lengthInfo, d =>
       ({ edgeLengths: d }) as InputAttr<ICanvasAttr>))
     return self()
   },
@@ -80,7 +84,6 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
     context.client.dispatch(utils.createUpdateEvent(context, limit, d => ({ zoomLimit: d })))
     return self()
   },
-
   dispatch: event => {
     context.client.dispatch(event)
     return self()

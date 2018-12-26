@@ -36,7 +36,7 @@ echo '${htmlRedirect}' > docs/js/index.html
 
 # deploy
 git add .
-git commit -m "Deploy to GitHub Pages"
+git commit -m "Deploy docs"
 git push -u origin master:gh-pages 
 `
 
