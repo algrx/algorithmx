@@ -2,7 +2,7 @@ import { InputAttr, PartialAttr } from '../attributes/types'
 import { ICanvasAttr } from '../attributes/definitions/canvas'
 import { IAnimation } from '../attributes/definitions/animation'
 
-export type Canvas = string | SVGSVGElement
+export type Canvas = string | Element
 
 export enum DispatchEventType {
   Update = 'update',

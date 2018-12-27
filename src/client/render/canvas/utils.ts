@@ -35,19 +35,15 @@ export const selectCanvas = (canvas: Canvas): D3Selection => {
 export const canvasSize = (canvas: Canvas): [number, number] => {
   const svgBase = selectCanvasContainer(canvas)
 
-  if (svgBase !== null && svgBase.attr('width') === null) svgBase.attr('width', '100%')
-  if (svgBase !== null && svgBase.attr('height') === null) svgBase.attr('height', '100%')
-
-  const svgSize: [number, number] = svgBase !== null ? [
-    (svgBase.node() as Element).getBoundingClientRect().width,
-    (svgBase.node() as Element).getBoundingClientRect().height
-  ] : null
-
-  const docSize: [number, number] = renderUtils.isInBrowser() && typeof canvas === 'string'
-    && document.getElementById(canvas) !== null ? [
-    document.getElementById(canvas).clientWidth,
-    document.getElementById(canvas).clientHeight
-  ] : null
-
-  return svgSize !== null ? svgSize : docSize !== null ? docSize : [100, 100]
+  if (svgBase !== null) {
+    return [
+      (svgBase.node() as Element).getBoundingClientRect().width,
+      (svgBase.node() as Element).getBoundingClientRect().height
+    ]
+  } else if (renderUtils.isInBrowser() && typeof canvas === 'string' && document.getElementById(canvas) !== null) {
+    return [
+      document.getElementById(canvas).clientWidth,
+      document.getElementById(canvas).clientHeight
+    ]
+  } else return [100, 100]
 }

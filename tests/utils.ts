@@ -3,11 +3,10 @@ import { Canvas } from '../src/client/types/events'
 import * as d3 from '../src/client/render/d3.modules'
 import * as renderUtils from '../src/client/render/canvas/utils'
 
-export const createSvg = (width = 200, height = 200): SVGSVGElement => {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.setAttributeNS(null, 'width', `${width}px`)
-  svg.setAttributeNS(null, 'height', `${height}px`)
-  return svg
+export const createSvg = (width = 200, height = 200): HTMLDivElement => {
+  const container = document.createElement('div')
+  container.setAttribute('style', `width: ${width}px; height: ${height}px;`)
+  return container
 }
 
 export const selectCanvas = (svg: Canvas): D3Selection =>
