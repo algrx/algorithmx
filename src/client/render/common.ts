@@ -19,7 +19,7 @@ export function renderSvgAttr<T extends Attr> (selection: D3Selection, key: stri
 
 export const renderCustomSvg: renderFns.RenderAttrFn<ICommonAttr> = (selection, renderData) => {
   const precessKey = (sel, key) => [
-    key.includes('@') ? selection.selectAll(key.split('@')[1]) : selection,
+    key.includes('@') ? sel.selectAll(key.split('@')[1]) : sel,
     key.includes('@') ? key.split('@')[0] : key
   ]
   renderFns.renderLookup(getEntry(renderData, 'svg'), (_, d: RenderEndpoint<string>) => {
@@ -82,6 +82,15 @@ export const markCommonForUpdate = <T extends ICommonAttr>(renderData: RenderAtt
     ? renderProcess.markForUpdate(renderData) : renderData
 }
 
+export const renderCommonRemove = <T extends ICommonAttr>(selection: D3Selection, renderData: RenderAttr<T>,
+                                                          renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
+  const newVisible = { attr: { visible: false }, changes: { visible: false } } as RenderAttr<PartialAttr<ICommonAttr>>
+  const visibleData = getEntry({...renderData, ...newVisible }, 'visible')
+
+  renderVisibleFn(selection, visibleData)
+  renderRemove(selection, visibleData)
+}
+
 export const renderCommonLookup = <T extends ICommonAttr> (selector: (k: string) => D3Selection,
                                                            renderData: RenderAttr<AttrLookup<T>>,
                                                            renderFn: renderFns.RenderAttrFn<T>,
@@ -103,15 +112,6 @@ export const renderCommon = <T extends ICommonAttr>(selector: () => D3Selection,
   const selection = selector()
 
   renderFn(selection, renderDataFull)
-  renderVisibleFn(selection, visibleData)
-  renderRemove(selection, visibleData)
-}
-
-export const renderCommonRemove = <T extends ICommonAttr>(selection: D3Selection, renderData: RenderAttr<T>,
-                                                          renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
-  const newVisible = { attr: { visible: false }, changes: { visible: false } } as RenderAttr<PartialAttr<ICommonAttr>>
-  const visibleData = getEntry({...renderData, ...newVisible }, 'visible')
-
   renderVisibleFn(selection, visibleData)
   renderRemove(selection, visibleData)
 }

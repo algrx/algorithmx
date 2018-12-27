@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import { Canvas } from '../../src/client/types/events'
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
-import 'mocha'
 
 const getTranslation = (transform: string): [number, number] => {
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')

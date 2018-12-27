@@ -9,6 +9,7 @@ import * as d3 from '../render/d3.modules'
 
 export interface ILayoutState {
   readonly cola: webcola.Layout
+  readonly tick: () => void
   readonly nodes: Lookup<webcola.Node> // fast retrieval of node positions
   readonly adjacentNodes: Lookup<ReadonlyArray<string>> // fast adjacency lookup
 }
@@ -18,16 +19,21 @@ export const initCola = (tick: (() => void)): webcola.Layout => {
     .nodes([]).links([])
     .handleDisconnected(false)
     .avoidOverlaps(true)
-    .size([200, 200])
     .on('tick', tick)
 }
 
 export const init = (tick: (() => void)): ILayoutState => {
   return {
     cola: initCola(tick),
+    tick: tick,
     nodes: {},
     adjacentNodes: {}
   }
+}
+
+export const reset = (layoutState: ILayoutState): ILayoutState => {
+  layoutState.cola.links([]).nodes([]).stop().on('tick', () => { /**/ })
+  return init(layoutState.tick)
 }
 
 export const update = (layoutState: ILayoutState, attr: AttrEval<ICanvasAttr>,

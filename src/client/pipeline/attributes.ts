@@ -1,6 +1,6 @@
 import { Canvas } from '../types/events'
 import { ICanvasAttr, definition as canvasDef } from '../attributes/definitions/canvas'
-import { PartialAttr, AttrEval, AttrEvalPartial, AttrEntry, AttrEntryPartial } from '../attributes/types'
+import { PartialAttr, AttrEval, AttrEvalPartial } from '../attributes/types'
 import * as renderCanvasUtils from '../render/canvas/utils'
 import * as attrCanvas from '../attributes/definitions/canvas'
 import * as attrExpr from '../attributes/expressions'

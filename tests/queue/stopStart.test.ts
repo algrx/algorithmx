@@ -1,6 +1,5 @@
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
-import 'mocha'
 
 it('Queue start', () => {
   const canvas = algorithmx.canvas(utils.createSvg())

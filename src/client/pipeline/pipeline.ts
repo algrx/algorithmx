@@ -1,6 +1,7 @@
 import { AnimationFull, IAnimation } from '../attributes/definitions/animation'
 import { ICanvasAttr, definition as canvasDef } from '../attributes/definitions/canvas'
 import { PartialAttr, AttrEval, AttrEvalPartial } from '../attributes/types'
+import { RenderAttr } from '../render/process'
 import { Canvas } from '../types/events'
 import * as events from '../types/events'
 import * as processAttr from './attributes'
@@ -13,19 +14,19 @@ import * as attrUtils from '../attributes/utils'
 
 interface IAttrPreprocessed {
   readonly attributes: PartialAttr<ICanvasAttr>
-  readonly animation?: PartialAttr<IAnimation>
+  readonly animation: PartialAttr<IAnimation>
 }
 
 export interface IAttrProcessed {
-  readonly expressions: PartialAttr<ICanvasAttr>
   readonly attributes: AttrEval<ICanvasAttr>
   readonly changes: AttrEvalPartial<ICanvasAttr>
+  readonly expressions: PartialAttr<ICanvasAttr>
   readonly animation: AnimationFull<ICanvasAttr>
 }
 
 const preprocess = (attr: unknown, animation: unknown): IAttrPreprocessed | Error => {
   const preAttr = preprocessFns.preprocess(attr, canvasDef)
-  const preAnimation = animation !== undefined ? preprocessFns.preprocess(animation, attrAnim.definition) : undefined
+  const preAnimation = preprocessFns.preprocess(animation, attrAnim.definition)
 
   if (preAttr instanceof Error) return preAttr
   if (preAnimation instanceof Error) return preAnimation
@@ -36,15 +37,14 @@ const preprocess = (attr: unknown, animation: unknown): IAttrPreprocessed | Erro
   }
 }
 
-export const processUpdate = (canvas: Canvas,
-                              prevAttr: AttrEval<ICanvasAttr> | undefined,
+export const processUpdate = (canvas: Canvas, prevAttr: AttrEval<ICanvasAttr> | undefined,
                               prevExpr: PartialAttr<ICanvasAttr> | undefined,
                               attrData: events.IDispatchEventUpdate['data']):
-                              Pick<IAttrProcessed, 'attributes' | 'changes' | 'expressions' | 'animation'> | Error => {
+                              IAttrProcessed | Error => {
   const preprocessed = preprocess(attrData.attributes, attrData.animation)
   if (preprocessed instanceof Error) return preprocessed
 
-  const changesForced = preprocessed.attributes || {}
+  const changesForced = preprocessed.attributes
 
   const changesInit = processAttr.initialize(canvas, prevAttr, changesForced)
   const changesEval = processAttr.evaluate(prevAttr, prevExpr, changesInit)
@@ -59,7 +59,7 @@ export const processUpdate = (canvas: Canvas,
   const prevExprCleared = attrUtils.subtractChanges(prevExpr || {}, changesInit, canvasDef)
   const expressions = attrUtils.merge(prevExprCleared, exprChanged, canvasDef)
 
-  const animation = processAnim.process(attrData.animation || {}, prevAttr, changes, changesForced)
+  const animation = processAnim.process(attrData.animation, prevAttr, changes, changesForced)
 
   return {
     attributes: attributes,
@@ -82,5 +82,28 @@ export const processHighlight = (prevState: AttrEval<ICanvasAttr> | undefined,
   return {
     animation: animation,
     changes: changes
+  }
+}
+
+export const processReset = (prevAttr: AttrEval<ICanvasAttr> | undefined,
+                             attrData: events.IDispatchEventUpdate['data']): IAttrProcessed | Error => {
+  const preAnimation = preprocessFns.preprocess(attrData.animation, attrAnim.definition)
+  if (preAnimation instanceof Error) return preAnimation
+
+  const changes = { visible: false }
+  return {
+    attributes: {...prevAttr, ...changes },
+    changes: changes,
+    expressions: {},
+    animation: processAnim.process(preAnimation, prevAttr, changes, changes)
+  }
+}
+
+export const getRenderData = (processed: IAttrProcessed): RenderAttr<ICanvasAttr> => {
+  return {
+    name: 'canvas',
+    attr: processed.attributes,
+    animation: processed.animation,
+    changes: processed.changes
   }
 }

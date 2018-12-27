@@ -55,10 +55,6 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
   labels: ids => {
     return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
   },
-  reset: () => {
-    // not implemented
-    return self()
-  },
   size: size => {
     context.client.dispatch(utils.createUpdateEvent(context, size, d => ({ size: d })))
     return self()

@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import { D3Selection } from '../../src/client/render/utils'
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
-import 'mocha'
 
 it('Node add', () => {
   const svg = utils.createSvg()

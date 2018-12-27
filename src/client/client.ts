@@ -2,7 +2,7 @@ import { ICanvasAttr } from './attributes/definitions/canvas'
 import { PartialAttr, AttrEval } from './attributes/types'
 import { RenderBehavior } from './render/canvas/behavior'
 import { ISchedulerState, ISchedulerTask } from './scheduler'
-import { Canvas, ReceiveEvent, DispatchEvent, DispatchEventType, ErrorType } from './types/events'
+import { Canvas, ReceiveEvent, DispatchEvent, DispatchEventType } from './types/events'
 import * as scheduler from './scheduler'
 import * as renderCanvasLive from './render/canvas/live'
 import * as layout from './layout/layout'
@@ -38,10 +38,10 @@ interface Client extends ClientEventHandler {
   executeEvent (event: DispatchEvent): void
 }
 
-const initState = (canvas: Canvas, receiveEvent: Client['receiveEvent'], tick: Client['tick']): IClientState => {
+const init = (canvas: Canvas, receiveEvent: Client['receiveEvent'], tick: Client['tick']): IClientState => {
   return {
     canvas: canvas,
-    scheduler: scheduler.initScheduler(receiveEvent),
+    scheduler: scheduler.init(receiveEvent),
     expressions: undefined,
     attributes: undefined,
     layout: layout.init(tick),
@@ -50,11 +50,10 @@ const initState = (canvas: Canvas, receiveEvent: Client['receiveEvent'], tick: C
 }
 
 const scheduleEvent = (schedulerState: ISchedulerState, event: DispatchEvent): ISchedulerTask => {
-  const queue = event.queue === undefined ? null : event.queue
-  return event.type === DispatchEventType.Start ? scheduler.start(schedulerState, queue)
-    : event.type === DispatchEventType.Stop ? scheduler.stop(schedulerState, queue)
-    : event.type === DispatchEventType.Cancel ? scheduler.cancel(schedulerState, queue)
-    : scheduler.schedule(schedulerState, queue, event)
+  return event.type === DispatchEventType.Start ? scheduler.start(schedulerState, event.queue)
+    : event.type === DispatchEventType.Stop ? scheduler.stop(schedulerState, event.queue)
+    : event.type === DispatchEventType.Cancel ? scheduler.cancel(schedulerState, event.queue)
+    : scheduler.schedule(schedulerState, event.queue, event)
 }
 
 export const createClient = (canvas: Canvas): Client => {
@@ -62,7 +61,7 @@ export const createClient = (canvas: Canvas): Client => {
     state: undefined,
     listener: undefined,
 
-    setState: (state) => {
+    setState: state => {
       /* tslint:disable */
       self().state = state
       /* tslint:enable */
@@ -73,7 +72,7 @@ export const createClient = (canvas: Canvas): Client => {
       /* tslint:enable */
     },
 
-    dispatch: (event) => {
+    dispatch: event => {
       const task = scheduleEvent(self().state.scheduler, event)
       self().setState({...self().state, scheduler: task.state })
       task.execute()
@@ -85,7 +84,7 @@ export const createClient = (canvas: Canvas): Client => {
       self().setState({...self().state, scheduler: task.state })
       task.execute()
     },
-    executeEvent: (event) => {
+    executeEvent: event => {
       const state = clientEvents.executeEvent(self().state, self().listener, event)
       self().setState(state)
     },
@@ -97,6 +96,6 @@ export const createClient = (canvas: Canvas): Client => {
   })
 
   const client = buildClient(() => client)
-  client.setState(initState(canvas, client.receiveEvent, client.tick))
+  client.setState(init(canvas, client.receiveEvent, client.tick))
   return client
 }

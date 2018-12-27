@@ -1,7 +1,6 @@
 import { expect } from 'chai'
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
-import 'mocha'
 
 const DELAY = 50
 const DELTA = 10

@@ -39,7 +39,7 @@ export function renderCanvas (canvas: Canvas, renderData: RenderAttr<ICanvasAttr
   renderCommon.renderCommon(() => canvasUtils.selectCanvas(canvas), renderData, render, renderVisible)
 }
 
-export function renderLayout (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>, layoutState: ILayoutState): void {
+export const renderLayout = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>, layoutState: ILayoutState): void => {
   const canvasSel = canvasUtils.selectCanvas(canvas)
   const nodeGroup = canvasUtils.selectNodeGroup(canvasUtils.selectCanvasInner(canvasSel))
 

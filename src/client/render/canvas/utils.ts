@@ -24,17 +24,16 @@ export const selectEdge = (sel: D3Selection, id: string): D3Selection =>
 export const selectLabel = (sel: D3Selection, id: string): D3Selection =>
   renderUtils.selectOrAdd(sel, `#label-${id}`, s => s.append('g').attr('id', `label-${id}`))
 
+export const selectCanvasContainer = (canvas: Canvas): D3Selection => {
+  return typeof canvas === 'string' ? d3.select(`#${canvas}`) : d3.select(canvas)
+}
 export const selectCanvas = (canvas: Canvas): D3Selection => {
-  if (typeof canvas === 'string') {
-    const container = d3.select(`#${canvas}`)
-    if (container.select('svg').empty()) return container.append('svg')
-    else return container.select('svg')
-  }
-  return d3.select(canvas)
+  const container = selectCanvasContainer(canvas)
+  return renderUtils.selectOrAdd(container, '.algorithmx', s => s.append('svg').classed('algorithmx', true))
 }
 
 export const canvasSize = (canvas: Canvas): [number, number] => {
-  const svgBase = selectCanvas(canvas)
+  const svgBase = selectCanvasContainer(canvas)
 
   if (svgBase !== null && svgBase.attr('width') === null) svgBase.attr('width', '100%')
   if (svgBase !== null && svgBase.attr('height') === null) svgBase.attr('height', '100%')
@@ -43,6 +42,7 @@ export const canvasSize = (canvas: Canvas): [number, number] => {
     (svgBase.node() as Element).getBoundingClientRect().width,
     (svgBase.node() as Element).getBoundingClientRect().height
   ] : null
+
   const docSize: [number, number] = renderUtils.isInBrowser() && typeof canvas === 'string'
     && document.getElementById(canvas) !== null ? [
     document.getElementById(canvas).clientWidth,

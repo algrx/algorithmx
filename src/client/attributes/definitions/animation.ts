@@ -46,7 +46,7 @@ export const definition: IAttrDefRecord<IAnimation> = {
 
 export const defaults: IAnimation = {
   type: AnimationType.Normal,
-  duration: 400,
+  duration: 350,
   ease: AnimationEase.Poly,
   linger: 1000
 }

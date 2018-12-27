@@ -36,6 +36,16 @@ export const getElementData = <T extends Attr>(selection: ISelContext<T>, index:
 type AttrFromArgFn<T extends Attr, A> = ((d: A) => InputAttr<T>)
 type AttrFromArg<T extends Attr, A> = InputAttr<T> | AttrFromArgFn<T, A>
 
+const getAttrEntry = <T extends Attr, A> (sel: ISelContext<T>, arg: ElementArg<A>, attr: AttrFromArg<T, A>,
+                                          index: number): InputAttr<T> => {
+  if (typeof attr === 'function') {
+    const evalArg = typeof arg === 'function'
+      ? ((arg as ElementFn<A>)(getElementData(sel, index), index))
+      : arg
+    return (attr as AttrFromArgFn<T, A>)(evalArg)
+  } else return attr
+}
+
 const createParentAttr = <T extends Attr, P extends Attr, A>
   (sel: ISelContext<T>, arg: ElementArg<A>, attr: AttrFromArg<T, A>): AttrFromArg<P, A> => {
 
@@ -46,28 +56,18 @@ const createParentAttr = <T extends Attr, P extends Attr, A>
       })) as AttrFromArgFn<P, A>
 
   } else {
-    const getEntry = (i: number): InputAttr<T> => {
-      if (typeof attr === 'function') {
-        const evalArg = typeof arg === 'function' ? ((arg as ElementFn<A>)(getElementData(sel, i), i)) : arg
-        return (attr as AttrFromArgFn<T, A>)(evalArg)
-      } else return attr
-    }
     return ({
       [sel.name]: sel.ids.reduce((result, id, i) =>
-        ({...result, [id]: getEntry(i) }), {})
+        ({...result, [id]: getAttrEntry(sel, arg, attr, i) }), {})
       }) as InputAttr<P>
   }
 }
 
-export const getFullAttributes = <T extends Attr, R extends Attr, A>
+const getFullAttributes = <T extends Attr, R extends Attr, A>
   (sel: ISelContext<T>, arg: ElementArg<A>, attr: AttrFromArg<T, A>): InputAttr<R> => {
 
-  if (sel.parent === undefined) {
-    if (typeof attr !== 'function') return attr as unknown as InputAttr<R>
-    else if (typeof arg !== 'function') return (attr as AttrFromArgFn<T, A>)(arg) as unknown as InputAttr<R>
-    else return {} as unknown as InputAttr<R>
-
-  } else return getFullAttributes(sel.parent, arg, createParentAttr(sel, arg, attr))
+  if (sel.parent === undefined) return getAttrEntry(sel, arg, attr, 0) as unknown as InputAttr<R>
+  else return getFullAttributes(sel.parent, arg, createParentAttr(sel, arg, attr))
 }
 
 export const createUpdateEvent = <T extends Attr, A> (sel: ISelContext<T>, arg: ElementArg<A>,

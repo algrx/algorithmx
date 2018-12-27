@@ -20,16 +20,20 @@ export interface ISchedulerTask {
   readonly execute: () => void
 }
 
-const initQueue = (): IQueueState => ({
-  events: [],
-  busy: false,
-  stopped: false
-})
-export const initScheduler = (callback: SchedulerCallback): ISchedulerState => ({
-  callback: callback,
-  queues: {},
-  stopped: false
-})
+const initQueue = (): IQueueState => {
+  return {
+    events: [],
+    busy: false,
+    stopped: false
+  }
+}
+export const init = (callback: SchedulerCallback): ISchedulerState => {
+  return {
+    callback: callback,
+    queues: {},
+    stopped: false
+  }
+}
 
 const getQueueState = (state: ISchedulerState, queue: string): IQueueState => {
   return state.queues.hasOwnProperty(queue) ? state.queues[queue] : initQueue()

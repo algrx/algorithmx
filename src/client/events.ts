@@ -18,21 +18,38 @@ const dispatchClick = (nodeId: string): events.IReceiveEventClick =>
 const dispatchHover = (nodeId: string, entered: boolean): events.IReceiveEventHover =>
   ({ type: events.ReceiveEventType.Hover, data: { id: nodeId, entered: entered } })
 
+const executeReset = (state: IClientState, listener: ClientListener,
+                      event: events.IDispatchEventUpdate): IClientState => {
+  if (state.attributes === undefined) return state
+
+  const processed = pipeline.processReset(state.attributes, event.data)
+  if (processed instanceof Error) {
+    listener(dispatchError(processed.message, events.ErrorType.Attribute))
+    return state
+  }
+
+  const renderData = pipeline.getRenderData(processed)
+  renderCanvas.renderCanvas(state.canvas, renderData)
+
+  return {...state,
+    expressions: undefined,
+    attributes: undefined,
+    layout: layout.reset(state.layout),
+    renderBehavior: undefined
+  }
+}
+
 const executeUpdate = (state: IClientState, listener: ClientListener,
                        event: events.IDispatchEventUpdate): IClientState => {
+  if (event.data.attributes === null) return executeReset(state, listener, event)
+
   const processed = pipeline.processUpdate(state.canvas, state.attributes, state.expressions, event.data)
   if (processed instanceof Error) {
     listener(dispatchError(processed.message, events.ErrorType.Attribute))
     return state
   }
 
-  const renderData: RenderAttr<ICanvasAttr> = {
-    name: 'canvas',
-    attr: processed.attributes,
-    animation: processed.animation,
-    changes: processed.changes
-  }
-
+  const renderData = pipeline.getRenderData(processed)
   const layoutState = layout.update(state.layout, processed.attributes, processed.changes)
 
   renderCanvas.renderCanvas(state.canvas, renderData)

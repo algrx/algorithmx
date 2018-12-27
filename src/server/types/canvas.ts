@@ -63,11 +63,6 @@ export interface CanvasSelection extends Selection, EventHandler {
   labels (ids: ReadonlyArray<string | number>): LabelSelection
 
   /**
-   * Resets the canvas to its initial state, clearing all graphics and scheduled events.
-   */
-  reset (): this
-
-  /**
    * Sets the width and height of the canvas. This will only updated the `width` and `height` attributes of the SVG
    * element displaying the canvas, not the enclosing HTML element.
    *

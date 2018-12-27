@@ -10,12 +10,15 @@ export const createSvg = (width = 200, height = 200): SVGSVGElement => {
   return svg
 }
 
+export const selectCanvas = (svg: Canvas): D3Selection =>
+  renderUtils.selectCanvas(svg).select('g')
+
 export const selectNode = (svg: Canvas, id: string | number): D3Selection =>
-  renderUtils.selectCanvas(svg).select('g').select('.nodes').select(`[id="node-${id}"]`)
+  selectCanvas(svg).select('.nodes').select(`[id="node-${id}"]`)
 
 export const selectEdge = (svg: Canvas, source: string | number, target: string | number,
                            id?: string | number): D3Selection =>
-  renderUtils.selectCanvas(svg).select('g').select('.edges')
+ selectCanvas(svg).select('.edges')
     .select(`[id="edge-${source}-${target}${id !== undefined ? '-' + id : ''}"]`)
 
 export const getNodeAttr = (svg: Canvas, id: string | number, attr: string) =>
