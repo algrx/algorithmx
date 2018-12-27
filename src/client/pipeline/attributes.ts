@@ -17,13 +17,19 @@ export const initialize = (canvas: Canvas, prevState: ICanvasAttr | undefined,
 
 export const evaluate = (prevState: AttrEval<ICanvasAttr> | undefined, prevExpr: PartialAttr<ICanvasAttr> | undefined,
                          changes: PartialAttr<ICanvasAttr>): AttrEvalPartial<ICanvasAttr> => {
+  // find non-expressions attributes
   const changedNonExpr = attrExpr.getNonExpr(changes, canvasDef)
-  const fullNonExpr = attrUtils.merge(prevState || {}, changedNonExpr, canvasDef) as AttrEvalPartial<ICanvasAttr>
+  const fullNonExprInit = attrUtils.merge(prevState || {}, changedNonExpr, canvasDef) as AttrEvalPartial<ICanvasAttr>
 
+  // evaluate changed expressions
   const changedExpr = attrExpr.getExpr(changes, canvasDef)
-  const changedExprEval = attrCanvas.evaluate(fullNonExpr, changedExpr, changes)
+  const changedExprEval = attrCanvas.evaluate(fullNonExprInit, changedExpr, changes)
+
+  // evaluate permanent expressions
+  const fullNonExpr = attrUtils.merge(fullNonExprInit, changedExprEval, canvasDef) as AttrEvalPartial<ICanvasAttr>
   const permanentExprEval = attrCanvas.evaluate(fullNonExpr, prevExpr || {}, changes)
 
+  // combine all changes
   const changesEval = attrUtils.merge(changes, changedExprEval, canvasDef)
   const allChangesEval = attrUtils.merge(permanentExprEval, changesEval, canvasDef) as AttrEvalPartial<ICanvasAttr>
 

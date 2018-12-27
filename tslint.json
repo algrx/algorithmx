@@ -6,10 +6,11 @@
       // code style
       "semicolon": [true, "never"],
       "quotemark": [true, "single"],
-      "max-line-length": [true, {"limit": 120, "ignore-pattern": "^import | // | \\*"}],
+      "max-line-length": [true, { "limit": 120, "ignore-pattern": "^import | // | \\*" }],
+      "no-consecutive-blank-lines": [true, 2],
       "curly": false,
       "variable-name": [false, "allow-leading-underscore"],
-      "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
+      "trailing-comma": [true, { "multiline": "never", "singleline": "never" }],
       "object-literal-shorthand": false,
       "object-literal-key-quotes": [false, "always"],
       "space-before-function-paren": [true, "always"],

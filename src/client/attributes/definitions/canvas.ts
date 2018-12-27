@@ -24,7 +24,7 @@ export interface ICanvasAttr extends ICommonAttr {
     readonly height: AttrNum
   }
   readonly edgeLengths: {
-    readonly type: AttrString & EdgeLengthType
+    readonly type: AttrString & LengthType
     readonly length: AttrNum
   }
   readonly pan: {
@@ -42,11 +42,12 @@ export interface ICanvasAttr extends ICommonAttr {
   }
 }
 
-export enum EdgeLengthType {
+export enum LengthType {
   Individual = 'individual',
   Symmetric = 'symmetric',
   Jaccard = 'jaccard'
 }
+export type LengthTypeValue = 'individual' | 'symmetric' | 'jaccard'
 
 export const definition = attrDef.extendRecordDef<ICanvasAttr, ICommonAttr>({
   type: AttrType.Record,
@@ -59,7 +60,7 @@ export const definition = attrDef.extendRecordDef<ICanvasAttr, ICommonAttr>({
       height: { type: AttrType.Number, symbol: VarSymbol.CanvasHeight }
     }, keyOrder: ['width', 'height'] },
     edgeLengths: { type: AttrType.Record, entries: {
-      type: { type: AttrType.String, validValues: utils.enumValues(EdgeLengthType) },
+      type: { type: AttrType.String, validValues: utils.enumValues(LengthType) },
       length: { type: AttrType.Number }
     }, keyOrder: ['type', 'length'] },
     pan: { type: AttrType.Record, entries: {
@@ -87,7 +88,7 @@ export const defaults: ICanvasAttr = {
   labels: {} as AttrLookup<ILabelAttr>,
   size: { width: 100, height: 100 },
   edgeLengths: {
-    type: EdgeLengthType.Jaccard,
+    type: LengthType.Jaccard,
     length: 70
   },
   pan: { x: 0, y: 0 },

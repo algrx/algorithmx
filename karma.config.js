@@ -44,7 +44,7 @@ module.exports = config => {
         },
         html: {
           directory: 'coverage',
-          subdirectory: 'html'
+          subdirectory: '.'
         }
       },
       compilerOptions: {

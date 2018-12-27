@@ -34,6 +34,8 @@ export enum Align {
   BottomRight = 'bottom-right',
   Radial = 'radial'
 }
+export type AlignValue = 'top-left' | 'top-center' | 'top-right' | 'center-left' | 'center' | 'center-right'
+  | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'radial'
 
 export const ALIGN_ANGLES: { [k in Align]: number } = {
   [Align.TopLeft]: Math.PI * 3 / 4,

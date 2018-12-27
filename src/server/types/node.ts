@@ -1,7 +1,7 @@
 import { Selection } from './selection'
 import { LabelSelection } from './label'
 import { ElementArg, NumExpr, ElementFn } from './types'
-import { Shape } from '../../client/attributes/definitions/node'
+import { ShapeValue } from '../../client/attributes/definitions/node'
 
 export interface NodeSelection extends Selection {
   /**
@@ -38,7 +38,7 @@ export interface NodeSelection extends Selection {
    * - "rect": Rectangular node with separate width and height dimensions, and corner rounding.
    * - "ellipse": Elliptical node with width and height dimensions.
    */
-  shape (type: ElementArg<Shape>): this
+  shape (type: ElementArg<ShapeValue>): this
 
   /**
    * Sets the rounding of the node's corners. This only applies to rectangular nodes.

@@ -1,6 +1,6 @@
 import { Selection } from './selection'
 import { ElementArg, NumExpr } from './types'
-import { Align } from '../../client/attributes/definitions/label'
+import { AlignValue } from '../../client/attributes/definitions/label'
 
 export interface LabelSelection extends Selection {
   /**
@@ -24,7 +24,7 @@ export interface LabelSelection extends Selection {
    * "bottom-left", "bottom-center", "bottom-right",
    * "radial".
    */
-  align (align: ElementArg<Align>): this
+  align (align: ElementArg<AlignValue>): this
 
   /**
    * Sets the position of the the label relative to its parent element. This will always involve a Cartesian coordinate

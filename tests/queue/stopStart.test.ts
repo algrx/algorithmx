@@ -1,7 +1,7 @@
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
 
-it('Queue start', () => {
+it('Queue | start', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.eventQ(1).pause(10).callback(resolve).stop()
@@ -10,7 +10,7 @@ it('Queue start', () => {
   })
 })
 
-it('Queue stop', () => {
+it('Queue | stop', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.pause(10).callback(() => reject(new Error('queue didn\'t stop')))
@@ -19,7 +19,7 @@ it('Queue stop', () => {
   })
 })
 
-it('Queue cancel simple', () => {
+it('Queue | Cancel', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.eventQ('q1').pause(10).callback(() => reject(new Error('queue didn\'t cancel')))
@@ -28,18 +28,21 @@ it('Queue cancel simple', () => {
   })
 })
 
-it('Queue cancel complex', () => {
+it('Queue | Cancel then start', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.pause(10).callback(() => reject(new Error('queue didn\'t cancel'))).stop()
-    canvas.pause(100).cancel()
+    canvas.pause(100)
+
+    canvas.cancel()
+
     canvas.pause(10).callback(resolve)
     canvas.start()
     setTimeout(() => reject(new Error('queue didn\'t start')), 20)
   })
 })
 
-it('Queue pause interrupt', () => {
+it('Queue | Interrupt pause', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.pause(10).pause(100).callback(() =>
@@ -48,7 +51,7 @@ it('Queue pause interrupt', () => {
 
     canvas.pause(10)
     canvas.cancel().pause(100).callback(() =>
-      reject(new Error('clearing the queue didn\'t invalidate the current pause')))
+      reject(new Error('cancelling the queue didn\'t invalidate the current pause')))
     setTimeout(resolve, 20)
   })
 })

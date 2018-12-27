@@ -3,7 +3,7 @@ import { NumExpr } from './types'
 import { NodeSelection } from './node'
 import { EdgeSelection } from './edge'
 import { LabelSelection } from './label'
-import { EdgeLengthType } from '../../client/attributes/definitions/canvas'
+import { LengthTypeValue } from '../../client/attributes/definitions/canvas'
 import { EventHandler } from './events'
 
 export interface CanvasSelection extends Selection, EventHandler {
@@ -82,7 +82,7 @@ export interface CanvasSelection extends Selection, EventHandler {
    * - "individual": Uses each edge's length attribute individually.
    * - "jaccard", "symmetric": Dynamic calculation using an 'average length' value.
    */
-  edgeLengths (lengthInfo: EdgeLengthType): this
+  edgeLengths (lengthInfo: LengthTypeValue | [LengthTypeValue, NumExpr]): this
 
   /**
    * Sets the location of the canvas camera. The canvas uses a Cartesian coordinate system with (0, 0) at the center.

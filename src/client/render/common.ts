@@ -1,13 +1,19 @@
 import { RenderEndpoint, RenderAttr, IRenderEndpoint } from './process'
-import { D3Selection, D3Transition, D3SelTrans } from './utils'
+import { D3Selection, D3SelTrans } from './utils'
 import { ICommonAttr } from '../attributes/definitions/common'
 import { IAnimation, AnimationType, AnimationFull } from '../attributes/definitions/animation'
 import { getEntry } from './process'
 import { Attr, AttrEval, PartialAttr, AttrLookup } from '../attributes/types'
 import { Primitive } from '../utils'
-import { AttrDef } from '../attributes/definitions'
 import * as renderProcess from './process'
 import * as renderFns from './render'
+
+export const renderVisibleLookup = <T extends ICommonAttr> (renderData: RenderAttr<AttrLookup<T>>,
+                                                            renderFn: renderFns.RenderLookupFn<T>): void => {
+  return renderFns.renderLookup(renderData, (k, data) => {
+    if (data.attr.visible) renderFn(k, data)
+  })
+}
 
 export function renderSvgAttr<T extends Attr> (selection: D3Selection, key: string,
                                                valueFn: ((v: AttrEval<T>) => Primitive),
@@ -70,7 +76,7 @@ export const renderVisible: renderFns.RenderAttrFn<ICommonAttr['visible']> = (se
 export const renderRemove: renderFns.RenderAttrFn<ICommonAttr['visible']> = (selection, renderData) => {
   renderFns.onChanged(selection, renderData, (sel, visible) => {
     if (visible.attr === false) {
-      if (renderFns.isAnimationImmediate(visible.animation)) selection.remove()
+      if (renderFns.isAnimationImmediate(visible.animation)) sel.remove()
       else renderFns.transition(sel, 'remove', t => t.delay(visible.animation.duration)).remove()
     }
   })
@@ -91,17 +97,6 @@ export const renderCommonRemove = <T extends ICommonAttr>(selection: D3Selection
   renderRemove(selection, visibleData)
 }
 
-export const renderCommonLookup = <T extends ICommonAttr> (selector: (k: string) => D3Selection,
-                                                           renderData: RenderAttr<AttrLookup<T>>,
-                                                           renderFn: renderFns.RenderAttrFn<T>,
-                                                           renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
-  renderFns.renderLookup(renderData, (k, data) =>
-    renderCommon(() => selector(k), data, renderFn, renderVisibleFn))
-
-  renderFns.renderLookupRemovals(renderData, (k, data) =>
-    renderCommonRemove(selector(k), data, renderVisibleFn))
-}
-
 export const renderCommon = <T extends ICommonAttr>(selector: () => D3Selection, renderData: RenderAttr<T>,
                                                     renderFn: renderFns.RenderAttrFn<T>,
                                                     renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
@@ -114,4 +109,15 @@ export const renderCommon = <T extends ICommonAttr>(selector: () => D3Selection,
   renderFn(selection, renderDataFull)
   renderVisibleFn(selection, visibleData)
   renderRemove(selection, visibleData)
+}
+
+export const renderCommonLookup = <T extends ICommonAttr> (selector: (k: string) => D3Selection,
+                                                           renderData: RenderAttr<AttrLookup<T>>,
+                                                           renderFn: renderFns.RenderAttrFn<T>,
+                                                           renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
+  renderFns.renderLookup(renderData, (k, data) =>
+    renderCommon(() => selector(k), data, renderFn, renderVisibleFn))
+
+  renderFns.renderLookupRemovals(renderData, (k, data) =>
+    renderCommonRemove(selector(k), data, renderVisibleFn))
 }

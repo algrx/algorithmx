@@ -35,6 +35,7 @@ export enum Shape {
   Rect = 'rect',
   Ellipse = 'ellipse'
 }
+export type ShapeValue = 'circle' | 'rect' | 'ellipse'
 
 export const VALUE_LABEL = 'value'
 
@@ -147,9 +148,12 @@ export const evaluate = (evaluated: AttrEvalPartial<INodeAttr>, expr: PartialAtt
 }
 
 export const getVariables = (attr: AttrEvalPartial<INodeAttr>): attrExpr.VarLookup => {
+  const hasWidth = attr.size && attr.size.width !== undefined
+  const hasHeight = attr.size && attr.size.height !== undefined
   return {
-    ...(attr.size && attr.size.width !== undefined ? { [VarSymbol.Width]: attr.size.width } : {}),
-    ...(attr.size && attr.size.height !== undefined ? { [VarSymbol.Height]: attr.size.height } : {})
+    ...(hasWidth ? { [VarSymbol.Width]: attr.size.width } : {}),
+    ...(attr.shape !== undefined && attr.shape === Shape.Circle && hasWidth ? { [VarSymbol.Height]: attr.size.width }
+      : hasHeight ? { [VarSymbol.Height]: attr.size.width } : {})
   }
 }
 

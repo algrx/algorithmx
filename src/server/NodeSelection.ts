@@ -3,7 +3,7 @@ import { NodeSelection } from './types/node'
 import { Selection } from './types/selection'
 import { labelSelection } from './LabelSelection'
 import { ClassBuilder } from './utils'
-import { INodeAttr } from '../client/attributes/definitions/node'
+import { INodeAttr, Shape } from '../client/attributes/definitions/node'
 import { InputAttr } from '../client/attributes/types'
 import * as selection from './Selection'
 import * as utils from './utils'
@@ -18,7 +18,7 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
     return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
   },
   shape: type => {
-    context.client.dispatch(utils.createUpdateEvent(context, type, d => ({ shape: d })))
+    context.client.dispatch(utils.createUpdateEvent(context, type, d => ({ shape: d as Shape })))
     return self()
   },
   corners: radius => {

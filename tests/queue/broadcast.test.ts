@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
 
-it('Callback late', () => {
+it('Callback | Late', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.pause(50).callback(resolve)
@@ -10,7 +10,7 @@ it('Callback late', () => {
   })
 })
 
-it('Callback early', () => {
+it('Callback | Early', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.pause(20).callback(() => reject(new Error('callback was too early')))
@@ -18,7 +18,7 @@ it('Callback early', () => {
   })
 })
 
-it('Callback mutation', () => {
+it('Callback | Variable mutation', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     /* tslint:disable */

@@ -21,7 +21,6 @@ export const easeFn = (name: AnimationEase): ((t: number) => number) => {
   return d3.ease['ease' + name.charAt(0).toUpperCase() + name.substr(1)] // e.g. convert 'linear' to 'easeLinear'
 }
 
-export const isInBrowser = () => {
-  if (typeof module !== 'undefined' && module.exports) return false
-  return true
+export const isInBrowser = (): boolean => {
+  return typeof window !== undefined
 }

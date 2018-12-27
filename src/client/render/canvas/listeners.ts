@@ -13,7 +13,7 @@ export const registerNodeHover = (canvas: Canvas, renderData: RenderAttr<ICanvas
   const canvasSel = canvasUtils.selectCanvas(canvas)
   const nodeGroup = selectNodeGroup(selectCanvasInner(canvasSel))
 
-  renderFns.renderLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
+  renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
     const sel = selectNode(nodeGroup, k)
     const nodeData = renderCommon.markCommonForUpdate(nodeDataInit)
     renderFns.onChanged(sel, getEntry(nodeData, 'hover'), (s, nodeHover) => {
@@ -29,7 +29,7 @@ export const registerNodeClick = (canvas: Canvas, renderData: RenderAttr<ICanvas
                                   onClick: (id: string) => void) => {
   const nodeGroup = selectNodeGroup(selectCanvasInner(canvasUtils.selectCanvas(canvas)))
 
-  renderFns.renderLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
+  renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
     const sel = selectNode(nodeGroup, k)
     const nodeData = renderCommon.markCommonForUpdate(nodeDataInit)
     renderFns.onChanged(sel, getEntry(nodeData, 'click'), (s, nodeClick) => {

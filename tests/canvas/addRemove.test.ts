@@ -3,7 +3,7 @@ import { D3Selection } from '../../src/client/render/utils'
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
 
-it('Canvas add and remove', () => {
+it('Canvas | Add and remove', () => {
   const svg = utils.createSvg()
   const canvas = algorithmx.canvas(svg)
 
@@ -19,7 +19,7 @@ it('Canvas add and remove', () => {
   expect(utils.selectCanvas(svg)).to.satisfy((s: D3Selection) => !s.empty())
 })
 
-it('Canvas remove multiple times', () => {
+it('Canvas | Remove multiple times', () => {
   const svg = utils.createSvg()
   const canvas = algorithmx.canvas(svg)
 

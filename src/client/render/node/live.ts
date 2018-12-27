@@ -29,6 +29,7 @@ export const getPointAtNodeBoundary = (node: IRenderLiveNode, angle: number): [n
   ]
 }
 
+/*
 export const getActualSize = (selection: D3Selection, attr: INodeAttr): [number, number] => {
   const shapeSel = renderNode.selectNodeInner(selection).select('.shape')
   if (attr.shape === Shape.Circle) {
@@ -46,3 +47,4 @@ export const getActualPos = (selection: D3Selection): [number, number] => {
   const pos = transform.substr(10, transform.length - 11).split(',')
   return [parseFloat(pos[0]), -parseFloat(pos[1])]
 }
+*/

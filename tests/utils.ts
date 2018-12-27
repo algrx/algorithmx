@@ -1,26 +1,49 @@
 import { D3Selection } from '../src/client/render/utils'
 import { Canvas } from '../src/client/types/events'
-import * as d3 from '../src/client/render/d3.modules'
 import * as renderUtils from '../src/client/render/canvas/utils'
+import * as d3 from '../src/client/render/d3.modules'
 
-export const createSvg = (width = 200, height = 200): HTMLDivElement => {
+export const GREEN = 'rgb(0,255,0)'
+export const RED = 'rgb(255,0,0)'
+
+export const createSvg = (width = 100, height = 100): HTMLDivElement => {
   const container = document.createElement('div')
   container.setAttribute('style', `width: ${width}px; height: ${height}px;`)
   return container
 }
 
-export const selectCanvas = (svg: Canvas): D3Selection =>
-  renderUtils.selectCanvas(svg).select('g')
+export const selectCanvas = (canvas: Canvas): D3Selection =>
+  renderUtils.selectCanvas(canvas).select('g')
 
-export const selectNode = (svg: Canvas, id: string | number): D3Selection =>
-  selectCanvas(svg).select('.nodes').select(`[id="node-${id}"]`)
 
-export const selectEdge = (svg: Canvas, source: string | number, target: string | number,
+export const selectNode = (canvas: Canvas, id: string | number): D3Selection =>
+  selectCanvas(canvas).select('.nodes').select(`[id="node-${id}"]`)
+
+export const selectNodeLabel = (node: D3Selection, id: string | number): D3Selection =>
+  node.select('.node-labels').select(`[id="label-${id}"]`)
+
+export const getNodeAttr = (canvas: Canvas, id: string | number, attr: string) =>
+  selectNode(canvas, id).select('.shape').attr(attr)
+
+export const getNodeColor = (canvas: Canvas, id: string | number) =>
+  getNodeAttr(canvas, id, 'fill').replace(/\s/g, '')
+
+
+export const selectEdge = (canvas: Canvas, source: string | number, target: string | number,
                            id?: string | number): D3Selection =>
- selectCanvas(svg).select('.edges')
+ selectCanvas(canvas).select('.edges')
     .select(`[id="edge-${source}-${target}${id !== undefined ? '-' + id : ''}"]`)
 
-export const getNodeAttr = (svg: Canvas, id: string | number, attr: string) =>
-  selectNode(svg, id).select('.shape').attr(attr)
+
+export const getLabelAttr = (label: D3Selection, attr: string) =>
+  label.select('text').attr(attr)
+
+
+export const getTranslation = (transform: string): [number, number] => {
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+  g.setAttributeNS(null, 'transform', transform)
+  const matrix = g.transform.baseVal.consolidate().matrix
+  return [matrix.e, -matrix.f]
+}
 
 export const getD3 = () => d3

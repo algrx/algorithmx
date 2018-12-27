@@ -43,7 +43,7 @@ export const renderLayout = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>
   const canvasSel = canvasUtils.selectCanvas(canvas)
   const nodeGroup = canvasUtils.selectNodeGroup(canvasUtils.selectCanvasInner(canvasSel))
 
-  renderFns.renderLookup(getEntry(renderData, 'nodes'), (k, nodeData) => {
+  renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeData) => {
     const sel = canvasUtils.selectNode(nodeGroup, k)
     const draggable = getEntry(nodeData, 'draggable').attr
     if (draggable) renderDrag.enableDrag(canvasSel, sel, layoutState.cola, layoutState.nodes[k])

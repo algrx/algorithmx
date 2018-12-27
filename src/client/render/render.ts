@@ -1,14 +1,17 @@
 import { RenderAttr, RenderEndpoint } from './process'
 import { D3Selection, D3Transition, D3SelTrans } from './utils'
 import { IAnimation } from '../attributes/definitions/animation'
+import { Attr, AttrEval, AttrLookup } from '../attributes/types'
 import * as renderProcess from './process'
 import * as renderUtils from './utils'
-import { Attr, AttrEval, AttrLookup } from '../attributes/types'
 
 export type RenderFn<T extends Attr> = (selection: D3SelTrans, value: AttrEval<T>) => D3SelTrans
 export type RenderAttrFn<T extends Attr> = (selection: D3Selection, renderData: RenderAttr<T>) => void
 
-export const canAnimate = () => renderUtils.isInBrowser()
+export const canAnimate = () => {
+  // only browsers support animations
+  return renderUtils.isInBrowser()
+}
 
 type TransCallback = (trans: D3Transition) => D3Transition
 export const transition = (selection: D3Selection, name: string, callback: TransCallback): D3SelTrans => {
@@ -23,6 +26,10 @@ export const newTransition = (selection: D3SelTrans, callback: TransCallback): D
 export const isAnimationImmediate = (animation: IAnimation | undefined) =>
   animation === undefined || animation.duration === 0
 
+export const transAnimate = (trans: D3Transition, animation: IAnimation): D3Transition => {
+  if (isAnimationImmediate(animation)) return trans.duration(0)
+  else return trans.duration(animation.duration).ease(renderUtils.easeFn(animation.ease))
+}
 export const animate = (selection: D3Selection, name: string, animation: IAnimation): D3SelTrans => {
   if (isAnimationImmediate(animation)) {
     selection.interrupt(name) // cancel previous transition
@@ -30,10 +37,6 @@ export const animate = (selection: D3Selection, name: string, animation: IAnimat
   } else {
     return transition(selection, name, t => transAnimate(t, animation))
   }
-}
-export const transAnimate = (trans: D3Transition, animation: IAnimation): D3Transition => {
-  if (isAnimationImmediate(animation)) return trans
-  else return trans.duration(animation.duration).ease(renderUtils.easeFn(animation.ease))
 }
 
 export function onChanged<T extends Attr> (selection: D3Selection, renderData: RenderEndpoint<T>,
@@ -62,7 +65,7 @@ export function renderNoHighlight<T extends Attr> (selection: D3Selection, rende
   } else return selection
 }
 
-type RenderLookupFn<T> = (k: string, renderData: RenderAttr<T>) => void
+export type RenderLookupFn<T> = (k: string, renderData: RenderAttr<T>) => void
 export const renderLookup = <T extends Attr>(renderData: RenderAttr<AttrLookup<T>>,
                                              renderFn: RenderLookupFn<T>): void => {
   Object.entries(renderData.attr).forEach(([k, v]) => {
