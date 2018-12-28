@@ -41,12 +41,12 @@ export const renderCustomSvg: renderFns.RenderAttrFn<ICommonAttr> = (selection, 
 }
 
 function animateAdd (selection: D3Selection, animation: IAnimation): void {
-  if (animation.type === AnimationType.Scale || animation.type === AnimationType.ScaleFade) {
+  if (animation.type === 'scale' || animation.type === 'scale-fade') {
     selection.attr('transform', 'scale(0,0)')
     const transition = renderFns.animate(selection, 'visible-scale', animation).attr('transform', 'scale(1,1)')
     renderFns.newTransition(transition, t => t).attr('transform', null)
   }
-  if (animation.type === AnimationType.Fade || animation.type === AnimationType.ScaleFade) {
+  if (animation.type === 'fade' || animation.type === 'scale-fade') {
     selection.attr('opacity', '0')
     const transition = renderFns.animate(selection, 'visible-fade', animation).attr('opacity', '1')
     renderFns.newTransition(transition, t => t).attr('opacity', null)
@@ -54,11 +54,11 @@ function animateAdd (selection: D3Selection, animation: IAnimation): void {
 }
 
 function animateRemove (selection: D3Selection, animation: IAnimation): void {
-  if (animation.type === AnimationType.Scale || animation.type === AnimationType.ScaleFade) {
+  if (animation.type === 'scale' || animation.type === 'scale-fade') {
     selection.attr('transform', 'scale(1,1)')
     renderFns.animate(selection, 'visible-scale', animation).attr('transform', 'scale(0,0)')
   }
-  if (animation.type === AnimationType.Fade || animation.type === AnimationType.ScaleFade) {
+  if (animation.type === 'fade' || animation.type === 'scale-fade') {
     selection.attr('opacity', '1')
     renderFns.animate(selection, 'visible-fade', animation).attr('opacity', '0')
   }

@@ -27,16 +27,16 @@ const renderSize = (selection: D3Selection, sizeData: RenderAttr<INodeAttr['size
   const width = getEntry(sizeData, 'width')
   const height = getEntry(sizeData, 'height')
   switch (shape) {
-    case Shape.Circle:
+    case 'circle':
       renderCommon.renderSvgAttr(selection, 'r', v => v, width)
       break
-    case Shape.Rect:
+    case 'rect':
       renderCommon.renderSvgAttr(selection, 'width', v => v * 2, width)
       renderCommon.renderSvgAttr(selection, 'height', v => v * 2, height)
       renderCommon.renderSvgAttr(selection, 'x', v => -v, {...width, name: width.name + '-pos' })
       renderCommon.renderSvgAttr(selection, 'y', v => -v, {...height, name: height.name + '-pos' })
       break
-    case Shape.Ellipse:
+    case 'ellipse':
       renderCommon.renderSvgAttr(selection, 'rx', v => v, width)
       renderCommon.renderSvgAttr(selection, 'ry', v => v, height)
       break
@@ -64,15 +64,10 @@ export const render: renderFns.RenderAttrFn<INodeAttr> = (selection, renderDataI
 
   renderCommon.renderCustomSvg(shapeSelection, renderData)
   renderCommon.renderSvgAttr(shapeSelection, 'fill', v => v, getEntry(renderData, 'color'))
-  /*
-  if (renderData.attr.fixed && !renderData.attr.draggable) {
-    renderCommon.renderSvgAttr(nodeSel, 'transform', pos => `translate(${pos.x},${-pos.y})`,
-    renderProcess.flatten(getEntry(renderData, 'pos')))
-  }
-  */
+
   renderSize(shapeSelection, getEntry(renderData, 'size'), getEntry(renderData, 'shape').attr)
 
-  if (renderData.attr.shape === Shape.Rect) {
+  if (renderData.attr.shape === 'rect') {
     const cornerData = getEntry(renderData, 'corners')
     renderCommon.renderSvgAttr(shapeSelection, 'rx', v => v, {...cornerData, name: cornerData.name + '-x' })
     renderCommon.renderSvgAttr(shapeSelection, 'ry', v => v, {...cornerData, name: cornerData.name + '-y' })

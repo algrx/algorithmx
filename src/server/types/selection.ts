@@ -76,7 +76,7 @@ export interface Selection {
    * "sin", "sinIn", "sinOut", "sinInOut",
    * "exp", "expIn", "expOut", "expInOut",
    * "circle", "circleIn", "circleOut", "circleInOut",
-   * "elastic", "elasticIn", "elasticOut", "elasticOut",
+   * "elastic", "elasticIn", "elasticOut", "elasticInOut",
    * "back", "backIn", "backOut", "backInOut",
    * "bounce", "bounceIn", "bounceOut", "bounceInOut".
    *

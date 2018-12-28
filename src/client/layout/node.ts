@@ -6,14 +6,14 @@ import * as utils from '../utils'
 import * as webcola from 'webcola'
 
 const fromAttrChanges = (attr: AttrEval<INodeAttr>, changes: AttrEvalPartial<INodeAttr>): Partial<webcola.Node> => {
-  const height = attr.shape === Shape.Circle ? attr.size.width * 2 : attr.size.height * 2
+  const height = attr.shape === 'circle' ? attr.size.width * 2 : attr.size.height * 2
   const changedHeight = changes.size && (
-    attr.shape === Shape.Circle ? changes.size.width !== undefined
+    attr.shape === 'circle' ? changes.size.width !== undefined
     : changes.size.height !== undefined)
 
   return {
     ...(changes.size && changes.size.width !== undefined ? { width: attr.size.width * 2 } : {}),
-    ...(changes.size && changedHeight ? { height: height } : {}),
+    ...(changedHeight ? { height: height } : {}),
     ...(changes.pos && changes.pos.x !== undefined ? { x: attr.pos.x } : {}),
     ...(changes.pos && changes.pos.y !== undefined ? { y: attr.pos.y } : {}),
     ...(changes.fixed !== undefined ? { fixed: attr.fixed ? 1 : 0 } : {})

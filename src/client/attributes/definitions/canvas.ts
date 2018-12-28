@@ -1,19 +1,25 @@
+import { PartialAttr, AttrLookup, AttrNum, AttrString, EnumVarSymbol, AttrEvalPartial } from '../types'
 import { AnimationFull } from './animation'
 import { ICommonAttr } from './common'
-import { ILabelAttr, Align } from './label'
+import { ILabelAttr } from './label'
 import { INodeAttr } from './node'
 import { IEdgeAttr } from './edge'
 import { AttrType } from '../definitions'
-import { PartialAttr, AttrLookup, AttrNum, AttrString, VarSymbol, AttrEvalPartial } from '../types'
 import * as attrNode from './node'
 import * as attrEdge from './edge'
 import * as attrLabel from './label'
-import * as attrAnim from './animation'
 import * as attrCommon from './common'
 import * as attrDef from '../definitions'
 import * as attrExpr from '../expressions'
 import * as attrUtils from '../utils'
 import * as utils from '../../utils'
+
+export enum EnumEdgeLengthType {
+  individual = 'individual',
+  symmetric = 'symmetric',
+  jaccard = 'jaccard'
+}
+export type EdgeLengthType = keyof typeof EnumEdgeLengthType
 
 export interface ICanvasAttr extends ICommonAttr {
   readonly nodes: AttrLookup<INodeAttr>
@@ -24,7 +30,7 @@ export interface ICanvasAttr extends ICommonAttr {
     readonly height: AttrNum
   }
   readonly edgeLengths: {
-    readonly type: AttrString & LengthType
+    readonly type: AttrString & EdgeLengthType
     readonly length: AttrNum
   }
   readonly pan: {
@@ -42,13 +48,6 @@ export interface ICanvasAttr extends ICommonAttr {
   }
 }
 
-export enum LengthType {
-  Individual = 'individual',
-  Symmetric = 'symmetric',
-  Jaccard = 'jaccard'
-}
-export type LengthTypeValue = 'individual' | 'symmetric' | 'jaccard'
-
 export const definition = attrDef.extendRecordDef<ICanvasAttr, ICommonAttr>({
   type: AttrType.Record,
   entries: {
@@ -56,11 +55,11 @@ export const definition = attrDef.extendRecordDef<ICanvasAttr, ICommonAttr>({
     edges: { type: AttrType.Lookup, entry: attrEdge.definition },
     labels: { type: AttrType.Lookup, entry: attrLabel.definition },
     size: { type: AttrType.Record, entries: {
-      width: { type: AttrType.Number, symbol: VarSymbol.CanvasWidth },
-      height: { type: AttrType.Number, symbol: VarSymbol.CanvasHeight }
+      width: { type: AttrType.Number, symbol: EnumVarSymbol.CanvasWidth },
+      height: { type: AttrType.Number, symbol: EnumVarSymbol.CanvasHeight }
     }, keyOrder: ['width', 'height'] },
     edgeLengths: { type: AttrType.Record, entries: {
-      type: { type: AttrType.String, validValues: utils.enumValues(LengthType) },
+      type: { type: AttrType.String, validValues: utils.enumValues(EnumEdgeLengthType) },
       length: { type: AttrType.Number }
     }, keyOrder: ['type', 'length'] },
     pan: { type: AttrType.Record, entries: {
@@ -78,7 +77,7 @@ export const definition = attrDef.extendRecordDef<ICanvasAttr, ICommonAttr>({
     }, keyOrder: ['min', 'max'] }
   },
   keyOrder: ['nodes', 'edges', 'labels', 'size', 'edgeLengths', 'pan', 'zoom', 'panLimit', 'zoomLimit'],
-  validVars: [VarSymbol.CanvasWidth, VarSymbol.CanvasHeight]
+  validVars: [EnumVarSymbol.CanvasWidth, EnumVarSymbol.CanvasHeight]
 }, attrCommon.definition)
 
 export const defaults: ICanvasAttr = {
@@ -88,7 +87,7 @@ export const defaults: ICanvasAttr = {
   labels: {} as AttrLookup<ILabelAttr>,
   size: { width: 100, height: 100 },
   edgeLengths: {
-    type: LengthType.Jaccard,
+    type: 'jaccard',
     length: 70
   },
   pan: { x: 0, y: 0 },
@@ -98,8 +97,8 @@ export const defaults: ICanvasAttr = {
 }
 
 const labelDefaults: PartialAttr<ILabelAttr> = {
-  align: Align.Center,
-  pos: { x: 0, y: { m: 0.5, x: VarSymbol.CanvasHeight, c: 0 } },
+  align: 'middle',
+  pos: { x: 0, y: { m: 0.5, x: EnumVarSymbol.CanvasHeight, c: 0 } },
   rotate: true,
   color: 'rgb(50,50,50)',
   size: 20
@@ -109,11 +108,7 @@ export const animationDefaults: PartialAttr<AnimationFull<ICanvasAttr>> = {
   ...attrCommon.animationDefaults,
   nodes: { '*': attrNode.animationDefaults },
   edges: { '*': attrEdge.animationDefaults },
-  labels: { '*': attrLabel.animationDefaults },
-  size: {
-    width: { duration: 0 },
-    height: { duration: 0 }
-  }
+  labels: { '*': attrLabel.animationDefaults }
 }
 
 export const init = (canvasSize: [number, number]): ICanvasAttr => {
@@ -161,8 +156,8 @@ export const evaluate = (evaluated: AttrEvalPartial<ICanvasAttr>, expr: PartialA
 
 export const getVariables = (attr: AttrEvalPartial<ICanvasAttr>): attrExpr.VarLookup => {
   return {
-    ...(attr.size && attr.size.width !== undefined ? { [VarSymbol.CanvasWidth]: attr.size.width / 2 } : {}),
-    ...(attr.size && attr.size.height !== undefined ? { [VarSymbol.CanvasHeight]: attr.size.height / 2 } : {})
+    ...(attr.size && attr.size.width !== undefined ? { [EnumVarSymbol.CanvasWidth]: attr.size.width / 2 } : {}),
+    ...(attr.size && attr.size.height !== undefined ? { [EnumVarSymbol.CanvasHeight]: attr.size.height / 2 } : {})
   }
 }
 

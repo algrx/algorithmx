@@ -61,7 +61,7 @@ export const defaults: IEdgeAttr = {
 }
 
 const labelDefaults: PartialAttr<ILabelAttr> = {
-  align: attrLabel.Align.Radial,
+  align: 'radial',
   rotate: true,
   radius: 3
 }

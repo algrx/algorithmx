@@ -5,7 +5,7 @@ import * as utils from '../utils'
 const DELAY = 50
 const DELTA = 10
 
-it('Queue | Pause In series', () => {
+it('Queue | Pause in series', () => {
   const svg = utils.createSvg()
   const canvas = algorithmx.canvas(svg)
 
@@ -25,7 +25,7 @@ it('Queue | Pause In series', () => {
   })
 })
 
-it('Pause | In parallel', () => {
+it('Queue | Pause in parallel', () => {
   const svg = utils.createSvg()
   const canvas = algorithmx.canvas(svg)
 

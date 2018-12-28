@@ -2,7 +2,7 @@ import { ISelContext } from './Selection'
 import { Selection } from './types/selection'
 import { LabelSelection } from './types/label'
 import { ClassBuilder } from './utils'
-import { ILabelAttr, Align } from '../client/attributes/definitions/label'
+import { ILabelAttr } from '../client/attributes/definitions/label'
 import * as selection from './Selection'
 import * as utils from './utils'
 
@@ -14,7 +14,7 @@ const builder: ClassBuilder<LabelSelection, ISelContext<ILabelAttr>> = (context,
     return self()
   },
   align: align => {
-    context.client.dispatch(utils.createUpdateEvent(context, align, d => ({ align: d as Align })))
+    context.client.dispatch(utils.createUpdateEvent(context, align, d => ({ align: d })))
     return self()
   },
   pos: pos => {

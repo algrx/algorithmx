@@ -25,5 +25,5 @@ export const definition: AttrDef<ICommonAttr> = {
 }
 
 export const animationDefaults: PartialAttr<AnimationFull<ICommonAttr>> = {
-  visible: { type: AnimationType.Fade }
+  visible: { type: 'fade' }
 }

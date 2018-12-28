@@ -4,25 +4,27 @@ import { Attr, AttrRecord, AttrEntry } from '../types'
 import * as attrUtils from '../utils'
 import * as utils from '../../utils'
 
-export enum AnimationType {
-  Normal = 'normal',
-  Scale = 'scale',
-  Fade = 'fade',
-  ScaleFade = 'scale-fade'
+export enum EnumAnimationType {
+  normal = 'normal',
+  scale = 'scale',
+  fade = 'fade',
+  'scale-fade' = 'scale-fade'
 }
+export type AnimationType = keyof typeof EnumAnimationType
 
-export enum AnimationEase {
-  Linear = 'linear',
-  Poly = 'poly', PolyIn = 'polyIn', PolyOut = 'polyOut', PolyInOut = 'polyInOut',
-  Quad = 'quad', QuadIn = 'quadIn', QuadOut = 'quadOut', QuadInOut = 'quadInOut',
-  Cubic = 'cubic', CubicIn = 'cubicIn', CubicOut = 'cubicOut', CubicInOut = 'cubicInOut',
-  Sin = 'sin', SinIn = 'sinIn', SinOut = 'sinOut', SinInOut = 'sinInOut',
-  Exp = 'exp', ExpIn = 'expIn', ExpOut = 'expOut', ExpInOut = 'expInOut',
-  Circle = 'circle', CircleIn = 'circleIn', CircleOut = 'circleOut', CircleInOut = 'circleInOut',
-  Elastic = 'elastic', ElasticIn = 'elasticIn', ElasticOut = 'elasticOut', ElasticInOut = 'elasticOut',
-  Back = 'back', BackIn = 'backIn', BackOut = 'backOut', BackInOut = 'backInOut',
-  Bounce = 'bounce', BounceIn = 'bounceIn', BounceOut = 'bounceOut', BounceInOut = 'bounceOut'
+export enum EnumAnimationEase {
+  linear = 'linear',
+  poly = 'poly', polyIn = 'polyIn', polyOut = 'polyOut', polyInOut = 'polyInOut',
+  quad = 'quad', quadIn = 'quadIn', quadOut = 'quadOut', quadInOut = 'quadInOut',
+  cubic = 'cubic', cubicIn = 'cubicIn', cubicOut = 'cubicOut', cubicInOut = 'cubicInOut',
+  sin = 'sin', sinIn = 'sinIn', sinOut = 'sinOut', sinInOut = 'sinInOut',
+  exp = 'exp', expIn = 'expIn', expOut = 'expOut', expInOut = 'expInOut',
+  circle = 'circle', circleIn = 'CircleOut', circleOut = 'circleOut', circleInOut = 'circleInOut',
+  elastic = 'elastic', elasticIn = 'elasticIn', elasticOut = 'elasticOut', elasticInOut = 'elasticInOut',
+  back = 'back', backIn = 'backIn', backOut = 'backOut', backInOut = 'backInOut',
+  bounce = 'bounce', bounceIn = 'bounceIn', bounceOut = 'bounceOut', bounceInOut = 'bounceInOut'
 }
+export type AnimationEase = keyof typeof EnumAnimationEase
 
 export interface IAnimation extends AttrRecord {
   readonly type: AnimationType
@@ -36,18 +38,18 @@ export type AnimationFull<T extends Attr> = attrUtils.MapEndpoints<T, IAnimation
 export const definition: IAttrDefRecord<IAnimation> = {
   type: AttrType.Record,
   entries: {
-    type: { type: AttrType.String, validValues: utils.enumValues(AnimationType) },
+    type: { type: AttrType.String, validValues: utils.enumValues(EnumAnimationType) },
     duration: { type: AttrType.Number },
-    ease: { type: AttrType.String, validValues: utils.enumValues(AnimationEase) },
+    ease: { type: AttrType.String, validValues: utils.enumValues(EnumAnimationEase) },
     linger: { type: AttrType.Number }
   },
   keyOrder: ['type', 'duration', 'ease', 'linger']
 }
 
 export const defaults: IAnimation = {
-  type: AnimationType.Normal,
+  type: 'normal',
   duration: 350,
-  ease: AnimationEase.Poly,
+  ease: 'poly',
   linger: 1000
 }
 

@@ -7,6 +7,20 @@ import * as attrDef from '../definitions'
 import * as math from '../../math'
 import * as utils from '../../utils'
 
+export enum EnumAlign {
+  'top-left' = 'top-left',
+  'top-middle' = 'top-middle',
+  'top-right' = 'top-right',
+  'middle-left' = 'middle-left',
+  'middle' = 'middle',
+  'middle-right' = 'middle-right',
+  'bottom-left' = 'bottom-left',
+  'bottom-middle' = 'bottom-middle',
+  'bottom-right' = 'bottom-right',
+  'radial' = 'radial'
+}
+export type Align = keyof typeof EnumAlign
+
 export interface ILabelAttr extends ICommonAttr {
   readonly text: AttrString
   readonly align: AttrString & Align
@@ -22,38 +36,23 @@ export interface ILabelAttr extends ICommonAttr {
   readonly size: AttrNum
 }
 
-export enum Align {
-  TopLeft = 'top-left',
-  TopCenter = 'top-center',
-  TopRight = 'top-right',
-  CenterLeft = 'center-left',
-  Center = 'center',
-  CenterRight = 'center-right',
-  BottomLeft = 'bottom-left',
-  BottomCenter = 'bottom-center',
-  BottomRight = 'bottom-right',
-  Radial = 'radial'
-}
-export type AlignValue = 'top-left' | 'top-center' | 'top-right' | 'center-left' | 'center' | 'center-right'
-  | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'radial'
-
 export const ALIGN_ANGLES: { [k in Align]: number } = {
-  [Align.TopLeft]: Math.PI * 3 / 4,
-  [Align.TopCenter]: Math.PI * 1 / 2,
-  [Align.TopRight]: Math.PI * 1 / 4,
-  [Align.CenterLeft]: Math.PI,
-  [Align.Center]: Math.PI * 3 / 2,
-  [Align.CenterRight]: 0,
-  [Align.BottomLeft]: Math.PI * 5 / 4,
-  [Align.BottomCenter]: Math.PI * 3 / 2,
-  [Align.BottomRight]: Math.PI * 7 / 4,
-  [Align.Radial]: 0
+  'top-left': Math.PI * 3 / 4,
+  'top-middle': Math.PI * 1 / 2,
+  'top-right': Math.PI * 1 / 4,
+  'middle-left': Math.PI,
+  'middle': Math.PI * 3 / 2,
+  'middle-right': 0,
+  'bottom-left': Math.PI * 5 / 4,
+  'bottom-middle': Math.PI * 3 / 2,
+  'bottom-right': Math.PI * 7 / 4,
+  'radial': 0
 }
 
 export const definition = attrDef.extendRecordDef<ILabelAttr, ICommonAttr>({
   entries: {
     text: { type: AttrType.String },
-    align: { type: AttrType.String, validValues: utils.enumValues(Align) },
+    align: { type: AttrType.String, validValues: utils.enumValues(EnumAlign) },
     pos: { type: AttrType.Record, entries: {
       x: { type: AttrType.Number },
       y: { type: AttrType.Number }
@@ -72,7 +71,7 @@ export const definition = attrDef.extendRecordDef<ILabelAttr, ICommonAttr>({
 export const defaults: ILabelAttr = {
   ...attrCommon.defaults,
   text: '',
-  align: Align.BottomCenter,
+  align: 'bottom-middle',
   pos: { x: 0, y: 0 },
   radius: 0,
   angle: 90,
@@ -87,11 +86,11 @@ export const animationDefaults: PartialAttr<AnimationFull<ILabelAttr>> = {
 }
 
 export const alignFromAngle = (angle: number, rotate: boolean): Align => {
-  if (rotate) return math.restrictAngle(angle) < Math.PI ? Align.BottomCenter : Align.TopCenter
+  if (rotate) return math.restrictAngle(angle) < Math.PI ? 'bottom-middle' : 'top-middle'
 
   const testAngle = math.restrictAngle(angle + Math.PI)
   const radialAligns = Object.keys(ALIGN_ANGLES)
-    .filter(v => v !== Align.Center && v !== Align.Radial)
+    .filter((v: Align) => v !== 'middle' && v !== 'radial')
     .sort((a, b) => ALIGN_ANGLES[a] < ALIGN_ANGLES[b] ? -1 : 0) as ReadonlyArray<Align>
 
   return radialAligns.find((align, i) => {

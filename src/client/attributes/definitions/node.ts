@@ -1,7 +1,7 @@
-import { PartialAttr, AttrLookup, AttrString, AttrNum, VarSymbol, AttrEvalPartial } from '../types'
+import { PartialAttr, AttrLookup, AttrString, AttrNum, EnumVarSymbol, AttrEvalPartial } from '../types'
 import { AnimationFull } from './animation'
 import { ICommonAttr } from './common'
-import { ILabelAttr, Align } from './label'
+import { ILabelAttr } from './label'
 import { AttrType } from '../definitions'
 import * as attrLabel from './label'
 import * as attrCommon from './common'
@@ -31,18 +31,18 @@ export interface INodeAttr extends ICommonAttr {
 }
 
 export enum Shape {
-  Circle = 'circle',
-  Rect = 'rect',
-  Ellipse = 'ellipse'
+  circle = 'circle',
+  rect = 'rect',
+  ellipse = 'ellipse'
 }
-export type ShapeValue = 'circle' | 'rect' | 'ellipse'
+export type ShapeValue = keyof typeof Shape
 
 export const VALUE_LABEL = 'value'
 
 export const defaults: INodeAttr = {
   ...attrCommon.defaults,
   labels: {} as AttrLookup<ILabelAttr>,
-  shape: Shape.Circle,
+  shape: Shape.circle,
   corners: 4,
   color: 'rgb(50,50,50)',
   size: {
@@ -61,14 +61,14 @@ export const definition = attrDef.extendRecordDef<INodeAttr, ICommonAttr>({
     labels: {
       type: AttrType.Lookup,
       entry: attrLabel.definition,
-      validVars: [VarSymbol.Radius]
+      validVars: [EnumVarSymbol.Radius]
     },
     shape: { type: AttrType.String, validValues: utils.enumValues(Shape) },
     corners: { type: AttrType.Number },
     color: { type: AttrType.String },
     size: { type: AttrType.Record, entries: {
-      width: { type: AttrType.Number, symbol: VarSymbol.Width },
-      height: { type: AttrType.Number, symbol: VarSymbol.Height }
+      width: { type: AttrType.Number, symbol: EnumVarSymbol.Width },
+      height: { type: AttrType.Number, symbol: EnumVarSymbol.Height }
     }, keyOrder: ['width', 'height'] },
     pos: { type: AttrType.Record, entries: {
       x: { type: AttrType.Number },
@@ -81,7 +81,7 @@ export const definition = attrDef.extendRecordDef<INodeAttr, ICommonAttr>({
   },
   type: AttrType.Record,
   keyOrder: ['labels', 'shape', 'color', 'size', 'corners', 'pos', 'fixed', 'draggable', 'hover', 'click'],
-  validVars: [VarSymbol.Width, VarSymbol.Height]
+  validVars: [EnumVarSymbol.Width, EnumVarSymbol.Height]
 }, attrCommon.definition)
 
 export const animationDefaults: PartialAttr<AnimationFull<INodeAttr>> = {
@@ -89,15 +89,15 @@ export const animationDefaults: PartialAttr<AnimationFull<INodeAttr>> = {
   labels: { '*': attrLabel.animationDefaults }
 }
 
-export const radiusAtAngle = (angle: number, rx: number, ry: number, shape: Shape) => {
-  if (shape === Shape.Rect || shape === Shape.Ellipse) return math.radiusAtAngleRect(angle, rx, ry)
+export const radiusAtAngle = (angle: number, rx: number, ry: number, shape: Shape): number => {
+  if (shape === 'rect' || shape === 'ellipse') return math.radiusAtAngleRect(angle, rx, ry)
   else return rx
 }
 
 export const init = (name: string, index: number): INodeAttr => {
   const defaultLabel: ILabelAttr = {
     ...attrLabel.init(name),
-    align: Align.Center,
+    align: 'middle',
     pos: { x: 0, y: -1 },
     radius: 0,
     angle: 90,
@@ -113,16 +113,19 @@ export const init = (name: string, index: number): INodeAttr => {
 
 export const initChildren = (prevAttr: INodeAttr, changes: PartialAttr<INodeAttr>): PartialAttr<INodeAttr> => {
   const newLabels = attrUtils.newLookupEntries(prevAttr.labels, changes.labels)
+
+  const prevRadialLabels = utils.filterDict(prevAttr.labels, k => k !== VALUE_LABEL)
   const newRadialLabelChanges = utils.filterDict(newLabels, k => k !== VALUE_LABEL)
   const newOtherLabelChanges = utils.filterDict(newLabels, k => newRadialLabelChanges[k] === undefined)
 
   const newRadialLabels = utils.mapDict(newRadialLabelChanges, (k, v, i): PartialAttr<ILabelAttr> => {
-    const defaultAngle = (Math.PI * 3 / 4) - ((Math.PI / 2) * (i % 4)) - (Math.floor(i / 4) * (Math.PI / 4))
+    const index = Object.keys(prevRadialLabels).length + i
+    const defaultAngle = (Math.PI * 3 / 4) - ((Math.PI / 2) * (index % 4)) - (Math.floor(index / 4) * (Math.PI / 4))
     return {
       ...attrLabel.init(k as string),
-      radius: { m: 1, x: VarSymbol.Radius, c: 5 },
+      radius: { m: 1, x: EnumVarSymbol.Radius, c: 5 },
       angle: math.angleToDeg(defaultAngle),
-      align: Align.Radial
+      align: 'radial'
     }
   })
 
@@ -151,18 +154,17 @@ export const getVariables = (attr: AttrEvalPartial<INodeAttr>): attrExpr.VarLook
   const hasWidth = attr.size && attr.size.width !== undefined
   const hasHeight = attr.size && attr.size.height !== undefined
   return {
-    ...(hasWidth ? { [VarSymbol.Width]: attr.size.width } : {}),
-    ...(attr.shape !== undefined && attr.shape === Shape.Circle && hasWidth ? { [VarSymbol.Height]: attr.size.width }
-      : hasHeight ? { [VarSymbol.Height]: attr.size.width } : {})
+    ...(hasWidth ? { [EnumVarSymbol.Width]: attr.size.width } : {}),
+    ...(attr.shape !== undefined && attr.shape === 'circle' && hasWidth ? { [EnumVarSymbol.Height]: attr.size.width }
+      : hasHeight ? { [EnumVarSymbol.Height]: attr.size.height } : {})
   }
 }
 
 export const getLabelVariables = (node: AttrEvalPartial<INodeAttr>,
                                   label: AttrEvalPartial<ILabelAttr>): attrExpr.VarLookup => {
-  if (node.size && node.size.width !== undefined && node.size && node.size.height !== undefined
-      && label.angle !== undefined) {
+  if (node.size && node.size.width !== undefined && node.size.height !== undefined && label.angle !== undefined) {
     const radius = radiusAtAngle(math.angleToRad(label.angle), node.size.width, node.size.height, node.shape)
-    return  { [VarSymbol.Radius]: radius }
+    return  { [EnumVarSymbol.Radius]: radius }
   } else return {}
 }
 

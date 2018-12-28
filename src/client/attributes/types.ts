@@ -1,6 +1,6 @@
 import { Lookup } from '../utils'
 
-export enum VarSymbol {
+export enum EnumVarSymbol {
   Width = 'x',
   Height = 'y',
   Radius = 'r',
@@ -8,6 +8,7 @@ export enum VarSymbol {
   CanvasWidth = 'cx',
   CanvasHeight = 'cy'
 }
+export type VarSymbol = 'x' | 'y' | 'r' | 'a' | 'cx' | 'cy'
 
 export interface INumExpr {
   readonly m: number,

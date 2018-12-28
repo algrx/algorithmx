@@ -22,7 +22,7 @@ it('Node | Position relative to canvas size', () => {
   const svg = utils.createSvg()
   const canvas = algorithmx.canvas(svg)
 
-  canvas.size([100, 100])
+  canvas.duration(0).size([100, 100])
 
   canvas.node(1).add().pos(['-0.5cx', '0.5cy + 7'])
   expect(getPos(svg, 1)).to.eql([-25, 32])

@@ -1,4 +1,3 @@
-import { INodeAttr, Shape } from '../../attributes/definitions/node'
 import { ILabelAttr, Align, ALIGN_ANGLES } from '../../attributes/definitions/label'
 import { RenderAttr } from '../process'
 import { D3Selection, D3SelTrans } from '../utils'
@@ -10,26 +9,33 @@ import * as renderCommon from '../common'
 import * as renderUtils from '../utils'
 import * as math from '../../math'
 
-const renderPolarPos = (selection: D3SelTrans, [x, y]: [number, number], [radius, angle]: [number, number],
-                        [rotate, align]: [boolean, Align]): D3SelTrans => {
-  const polarX = radius * Math.cos(angle)
-  const polarY = radius * Math.sin(angle)
+interface LabelPosData {
+  readonly x: number
+  readonly y: number
+  readonly radius: number
+  readonly angle: number
+  readonly rotate: boolean
+  readonly align: Align
+}
+const renderPos = (selection: D3SelTrans, posData: LabelPosData): D3SelTrans => {
+  const polarX = posData.radius * Math.cos(posData.angle)
+  const polarY = posData.radius * Math.sin(posData.angle)
 
-  const rotation = math.restrictAngle(-angle + ALIGN_ANGLES[align] + Math.PI)
-  const rotateStr = rotate ? `rotate(${math.angleToDeg(rotation)})` : ''
+  const rotation = math.restrictAngle(-posData.angle + ALIGN_ANGLES[posData.align] + Math.PI)
+  const rotateStr = posData.rotate ? `rotate(${math.angleToDeg(rotation)})` : ''
 
-  return selection.attr('transform', `translate(${x + polarX},${-(y + polarY)})${rotateStr}`)
+  return selection.attr('transform', `translate(${posData.x + polarX},${-(posData.y + polarY)})${rotateStr}`)
 }
 
 export const renderAlign = (selection: D3Selection, alignData: RenderAttr<ILabelAttr['align']>): void => {
   renderCommon.renderSvgAttr(selection, 'dominant-baseline', v =>
-    v === Align.TopLeft || v === Align.TopCenter || v === Align.TopRight ? 'hanging'
-    : v === Align.CenterLeft || v === Align.Center || v === Align.CenterRight ? 'middle'
+    v === 'top-left' || v === 'top-middle' || v === 'top-right' ? 'hanging'
+    : v === 'middle-left' || v === 'middle' || v === 'middle-right' ? 'middle'
     : 'baseline', {...alignData, name: alignData.name + '-y' })
 
   renderCommon.renderSvgAttr(selection, 'text-anchor', v =>
-    v === Align.TopLeft || v === Align.CenterLeft || v === Align.BottomLeft ? 'start'
-    : v === Align.TopCenter || v === Align.Center || v === Align.BottomCenter ? 'middle'
+    v === 'top-left' || v === 'middle-left' || v === 'bottom-left' ? 'start'
+    : v === 'top-middle' || v === 'middle' || v === 'bottom-middle' ? 'middle'
     : 'end', {...alignData, name: alignData.name + '-x' })
 }
 
@@ -46,13 +52,15 @@ export const render: renderFns.RenderAttrFn<ILabelAttr> = (selection, renderData
     sel.append('tspan').text(textData.attr)
   })
 
-  // renderCommon.renderSvgAttr(textSel, 'x', v => v, getEntry(getEntry(renderData, 'pos'), 'x'))
-  // renderCommon.renderSvgAttr(textSel, 'y', v => -v, getEntry(getEntry(renderData, 'pos'), 'y'))
   const align = renderData.attr.align
+  const changedRadialAlign = renderData.changes && (renderData.changes.align !== undefined
+    || renderData.changes.angle !== undefined || renderData.changes.rotate !== undefined)
+
   const alignData = {...getEntry(renderData, 'align'),
-    attr: align === Align.Radial ? attrLabel.alignFromAngle(renderData.attr.angle, renderData.attr.rotate) : align,
-    changes: renderData.changes && (renderData.changes.angle !== undefined || renderData.changes.rotate !== undefined)
-      ? align : (renderData.changes ? renderData.changes.align : undefined)
+    attr: align === 'radial' ? attrLabel.alignFromAngle(math.angleToRad(renderData.attr.angle), renderData.attr.rotate)
+      : align,
+    changes: align === 'radial' && changedRadialAlign ? align
+      : (renderData.changes ? renderData.changes.align : undefined)
   }
 
   const combinedPos = renderProcess.combine({
@@ -64,10 +72,9 @@ export const render: renderFns.RenderAttrFn<ILabelAttr> = (selection, renderData
     align: alignData
   })
   renderFns.render(textSel, combinedPos, (sel, posData) => {
-    return renderPolarPos(sel,
-      [posData.x, posData.y],
-      [posData.radius, math.angleToRad(posData.angle)],
-      [posData.rotate, posData.align])
+    return renderPos(sel, {...posData,
+      angle: math.angleToRad(posData.angle)
+    })
   })
 
   renderAlign(textSel, alignData)

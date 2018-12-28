@@ -1,7 +1,8 @@
 import { Lookup } from '../utils'
-import { ICanvasAttr, LengthType } from '../attributes/definitions/canvas'
 import { AttrEval, AttrEvalPartial } from '../attributes/types'
+import { ICanvasAttr } from '../attributes/definitions/canvas'
 import * as webcola from 'webcola'
+
 
 export const didUpdateLayout = (changes: AttrEvalPartial<ICanvasAttr>): boolean => {
   return changes.size !== undefined || changes.edgeLengths !== undefined
@@ -10,11 +11,11 @@ export const didUpdateLayout = (changes: AttrEvalPartial<ICanvasAttr>): boolean 
 export const updateCola = (cola: webcola.Layout, attr: AttrEval<ICanvasAttr>): void => {
   cola.size([attr.size.width, attr.size.height])
 
-  if (attr.edgeLengths.type === LengthType.Individual)
+  if (attr.edgeLengths.type === 'individual')
     cola.linkDistance(edge => edge.length)
-  else if (attr.edgeLengths.type === LengthType.Jaccard)
+  else if (attr.edgeLengths.type === 'jaccard')
     cola.jaccardLinkLengths(attr.edgeLengths.length, 1)
-  else if (attr.edgeLengths.type === LengthType.Symmetric)
+  else if (attr.edgeLengths.type === 'symmetric')
     cola.symmetricDiffLinkLengths(attr.edgeLengths.length, 0.1)
 }
 
