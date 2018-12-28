@@ -3,6 +3,7 @@ import { AnimationFull } from './animation'
 import { ICommonAttr } from './common'
 import { ILabelAttr } from './label'
 import { AttrType } from '../definitions'
+import { COLORS } from '../../render/utils'
 import * as attrLabel from './label'
 import * as attrCommon from './common'
 import * as attrDef from '../definitions'
@@ -44,7 +45,7 @@ export const defaults: INodeAttr = {
   labels: {} as AttrLookup<ILabelAttr>,
   shape: Shape.circle,
   corners: 4,
-  color: 'rgb(50,50,50)',
+  color: COLORS.gray,
   size: {
     width: 12,
     height: 12

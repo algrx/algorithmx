@@ -63,7 +63,7 @@ export const render: renderFns.RenderAttrFn<INodeAttr> = (selection, renderDataI
     renderLabel.render, renderLabel.renderVisible)
 
   renderCommon.renderCustomSvg(shapeSelection, renderData)
-  renderCommon.renderSvgAttr(shapeSelection, 'fill', v => v, getEntry(renderData, 'color'))
+  renderCommon.renderSvgAttr(shapeSelection, 'fill', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
 
   renderSize(shapeSelection, getEntry(renderData, 'size'), getEntry(renderData, 'shape').attr)
 

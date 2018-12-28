@@ -10,6 +10,33 @@ export type D3Transition = import ('d3-transition').Transition
 export type D3SelTrans = D3Selection | D3Transition
 export type D3Zoom = import ('d3-zoom').ZoomBehavior<Element, unknown>
 
+export const COLORS = {
+  navy: '#00229e',
+  blue: '#2957c4',
+  aqua: '#19c3d6',
+  teal: '#05827d',
+  olive: '#006333',
+  green: '#05914d',
+  lime: '#12bc6b',
+  yellow: '#cc9918',
+  orange: '#dd7d0f',
+  red: '#cc3535',
+  pink: '#d14db0',
+  fuchsia: '#bc2990',
+  purple: '#a31578',
+  maroon: '#a31111',
+  white: '#e5e5e5',
+  silver: '#c4c4c4',
+  gray: '#323232',
+  grey: '#323232',
+  black: '#111111'
+}
+
+export const parseColor = (color: string): string => {
+  if (Object.keys(COLORS).includes(color.trim())) return COLORS[color]
+  else return color
+}
+
 export const selectOrAdd = (selection: D3Selection, selector: string,
                             addFn: ((s: D3Selection) => D3Selection)): D3Selection => {
   const selected = selection.select(selector)

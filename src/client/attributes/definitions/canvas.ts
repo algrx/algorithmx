@@ -5,6 +5,7 @@ import { ILabelAttr } from './label'
 import { INodeAttr } from './node'
 import { IEdgeAttr } from './edge'
 import { AttrType } from '../definitions'
+import { COLORS } from '../../render/utils'
 import * as attrNode from './node'
 import * as attrEdge from './edge'
 import * as attrLabel from './label'
@@ -100,7 +101,7 @@ const labelDefaults: PartialAttr<ILabelAttr> = {
   align: 'middle',
   pos: { x: 0, y: { m: 0.5, x: EnumVarSymbol.CanvasHeight, c: 0 } },
   rotate: true,
-  color: 'rgb(50,50,50)',
+  color: COLORS.gray,
   size: 20
 }
 

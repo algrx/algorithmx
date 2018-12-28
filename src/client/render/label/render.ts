@@ -80,7 +80,7 @@ export const render: renderFns.RenderAttrFn<ILabelAttr> = (selection, renderData
   renderAlign(textSel, alignData)
 
   renderCommon.renderCustomSvg(textSel, renderData)
-  renderCommon.renderSvgAttr(textSel, 'fill', v => v, getEntry(renderData, 'color'))
+  renderCommon.renderSvgAttr(textSel, 'fill', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
   renderCommon.renderSvgAttr(textSel, 'font-family', v => v, getEntry(renderData, 'font'))
   renderCommon.renderSvgAttr(textSel, 'font-size', v => v, getEntry(renderData, 'size'))
 }
