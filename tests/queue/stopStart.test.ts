@@ -1,7 +1,7 @@
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
 
-it('Queue | start', () => {
+it('Queue | Start', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.eventQ(1).pause(10).callback(resolve).stop()
@@ -10,7 +10,7 @@ it('Queue | start', () => {
   })
 })
 
-it('Queue | stop', () => {
+it('Queue | Stop', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.pause(10).callback(() => reject(new Error('queue didn\'t stop')))

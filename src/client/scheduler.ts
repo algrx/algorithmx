@@ -44,16 +44,17 @@ const updateQueue = (state: ISchedulerState, queue: string,
 }
 
 const startAllQueues = (state: ISchedulerState): ISchedulerTask => {
-  return Object.keys(state.queues).reduce((resultTask, id) => {
-    const task = executeNext(resultTask.state, id)
-    return { state: task.state, execute: () => { task.execute(); resultTask.execute() } }
+  return Object.keys(state.queues).reduce((resultTask, queue) => {
+    const task = executeNext(resultTask.state, queue)
+    const newState = updateQueue(task.state, queue, { stopped: false })
+    return { state: newState, execute: () => { task.execute(); resultTask.execute() } }
   }, { state: state, execute: () => { /**/ } })
 }
 
 export const start = (state: ISchedulerState, queue: EventQueue): ISchedulerTask => {
   const newState: ISchedulerState = queue === null ? {...state, stopped: false }
     : updateQueue(state, queue, { stopped: false })
-  if (queue === null) return startAllQueues(state)
+  if (queue === null) return startAllQueues(newState)
   else return executeNext(newState, queue)
 }
 
