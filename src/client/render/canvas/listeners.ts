@@ -15,7 +15,7 @@ export const registerNodeHover = (canvas: Canvas, renderData: RenderAttr<ICanvas
 
   renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
     const sel = selectNode(nodeGroup, k)
-    const nodeData = renderCommon.markCommonForUpdate(nodeDataInit)
+    const nodeData = renderCommon.preprocessRenderData(nodeDataInit)
     renderFns.onChanged(sel, getEntry(nodeData, 'hover'), (s, nodeHover) => {
       const hoverFn = nodeHover.attr
         ? (entered: boolean) => onHover(k, entered)
@@ -31,7 +31,7 @@ export const registerNodeClick = (canvas: Canvas, renderData: RenderAttr<ICanvas
 
   renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
     const sel = selectNode(nodeGroup, k)
-    const nodeData = renderCommon.markCommonForUpdate(nodeDataInit)
+    const nodeData = renderCommon.preprocessRenderData(nodeDataInit)
     renderFns.onChanged(sel, getEntry(nodeData, 'click'), (s, nodeClick) => {
       const clickFn = nodeClick.attr
         ? () => onClick(k)

@@ -1,7 +1,7 @@
-import { RenderEndpoint, RenderAttr, IRenderEndpoint } from './process'
+import { RenderEndpoint, RenderAttr } from './process'
 import { D3Selection, D3SelTrans } from './utils'
 import { ICommonAttr } from '../attributes/definitions/common'
-import { IAnimation, AnimationType, AnimationFull } from '../attributes/definitions/animation'
+import { IAnimation } from '../attributes/definitions/animation'
 import { getEntry } from './process'
 import { Attr, AttrEval, PartialAttr, AttrLookup } from '../attributes/types'
 import { Primitive } from '../utils'
@@ -82,7 +82,7 @@ export const renderRemove: renderFns.RenderAttrFn<ICommonAttr['visible']> = (sel
   })
 }
 
-export const markCommonForUpdate = <T extends ICommonAttr>(renderData: RenderAttr<T>): RenderAttr<T> => {
+export const preprocessRenderData = <T extends ICommonAttr>(renderData: RenderAttr<T>): RenderAttr<T> => {
   const visibleData = getEntry(renderData, 'visible')
   return renderProcess.hasChanged(visibleData) && visibleData.attr === true
     ? renderProcess.markForUpdate(renderData) : renderData
@@ -100,8 +100,8 @@ export const renderCommonRemove = <T extends ICommonAttr>(selection: D3Selection
 export const renderCommon = <T extends ICommonAttr>(selector: () => D3Selection, renderData: RenderAttr<T>,
                                                     renderFn: renderFns.RenderAttrFn<T>,
                                                     renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
+  const renderDataFull = preprocessRenderData(renderData)
   const visibleData = getEntry(renderData, 'visible')
-  const renderDataFull = markCommonForUpdate(renderData)
 
   if (renderProcess.hasChanged(visibleData) && visibleData.attr === true) selector().remove()
   const selection = selector()

@@ -1,8 +1,10 @@
 import { ICanvasAttr } from './attributes/definitions/canvas'
 import { RenderAttr } from './render/process'
 import { IClientState, ClientListener } from './client'
+import { RenderBehavior } from './render/canvas/behavior'
 import * as events from './types/events'
 import * as pipeline from './pipeline/pipeline'
+import * as renderCommon from './render/common'
 import * as renderCanvas from './render/canvas/render'
 import * as renderCanvasBehavior from './render/canvas/behavior'
 import * as renderCanvasListeners from './render/canvas/listeners'
@@ -39,6 +41,28 @@ const executeReset = (state: IClientState, listener: ClientListener,
   }
 }
 
+const render = (canvas: events.Canvas, renderData: RenderAttr<ICanvasAttr>,
+                layoutState: layout.ILayoutState): void => {
+  renderCanvas.renderCanvas(canvas, renderData)
+  if (renderData.attr.visible === false) return
+
+  renderCanvas.renderLayout(canvas, renderData, layoutState)
+
+  const updateLiveFn = () => renderCanvasLive.updateCanvas(canvas, renderData.attr, layoutState)
+  renderCanvas.renderWithLiveUpdate(canvas, renderData, updateLiveFn)
+  updateLiveFn()
+}
+
+const renderBehavior = (canvas: events.Canvas, renderData: RenderAttr<ICanvasAttr>,
+                        behavior: RenderBehavior): RenderBehavior => {
+  if (renderData.attr.visible === false) return behavior
+
+  const newBehavior = renderCanvasBehavior.update(canvas, renderData, behavior)
+  renderCanvasBehavior.render(canvas, renderData, newBehavior)
+
+  return newBehavior
+}
+
 const executeUpdate = (state: IClientState, listener: ClientListener,
                        event: events.IDispatchEventUpdate): IClientState => {
   if (event.data.attributes === null) return executeReset(state, listener, event)
@@ -49,30 +73,24 @@ const executeUpdate = (state: IClientState, listener: ClientListener,
     return state
   }
 
-  const renderData = pipeline.getRenderData(processed)
+  const renderData = renderCommon.preprocessRenderData(pipeline.getRenderData(processed))
   const layoutState = layout.update(state.layout, processed.attributes, processed.changes)
 
-  renderCanvas.renderCanvas(state.canvas, renderData)
-  renderCanvas.renderLayout(state.canvas, renderData, layoutState)
+  render(state.canvas, renderData, layoutState)
+  const newBehavior = renderBehavior(state.canvas, renderData, state.renderBehavior)
 
-  const updateLiveFn = () => renderCanvasLive.updateCanvas(state.canvas, processed.attributes, layoutState)
-  renderCanvas.renderWithLiveUpdate(state.canvas, renderData, updateLiveFn)
-  updateLiveFn()
-
-  const clickFn = (n: string) => listener(dispatchClick(n))
-  const hoverFn = (n: string, h: boolean) => listener(dispatchHover(n, h))
-
-  renderCanvasListeners.registerNodeClick(state.canvas, renderData, clickFn)
-  renderCanvasListeners.registerNodeHover(state.canvas, renderData, hoverFn)
-
-  const renderBehavior = renderCanvasBehavior.update(state.canvas, renderData, state.renderBehavior)
-  renderCanvasBehavior.render(state.canvas, renderData, renderBehavior)
+  if (processed.attributes.visible) {
+    const clickFn = (n: string) => listener(dispatchClick(n))
+    const hoverFn = (n: string, h: boolean) => listener(dispatchHover(n, h))
+    renderCanvasListeners.registerNodeClick(state.canvas, renderData, clickFn)
+    renderCanvasListeners.registerNodeHover(state.canvas, renderData, hoverFn)
+  }
 
   return {...state,
     expressions: processed.expressions,
     attributes: processed.attributes,
     layout: layoutState,
-    renderBehavior: renderBehavior
+    renderBehavior: newBehavior
   }
 }
 
@@ -84,20 +102,16 @@ const executeHighlight = (state: IClientState, listener: ClientListener,
     return
   }
 
-  const renderData: RenderAttr<ICanvasAttr> = {
+  const renderDataInit: RenderAttr<ICanvasAttr> = {
     name: 'canvas',
     attr: state.attributes,
     animation: processed.animation,
     highlight: processed.changes
   }
+  const renderData = renderCommon.preprocessRenderData(renderDataInit)
 
-  renderCanvas.renderCanvas(state.canvas, renderData)
-
-  const updateLiveFn = () => renderCanvasLive.updateCanvas(state.canvas, state.attributes, state.layout)
-  renderCanvas.renderWithLiveUpdate(state.canvas, renderData, updateLiveFn)
-  updateLiveFn()
-
-  renderCanvasBehavior.render(state.canvas, renderData, state.renderBehavior)
+  render(state.canvas, renderData, state.layout)
+  renderBehavior(state.canvas, renderData, state.renderBehavior)
 }
 
 export const executeEvent = (state: IClientState, listener: ClientListener,

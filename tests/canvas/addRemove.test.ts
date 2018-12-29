@@ -32,3 +32,18 @@ it('Canvas | Remove multiple times', () => {
   canvas.duration(0).remove()
   expect(utils.selectCanvas(svg)).to.satisfy((s: D3Selection) => s.empty())
 })
+
+it('Canvas | Visibility', () => {
+  const svg = utils.createSvg()
+  const canvas = algorithmx.canvas(svg)
+
+  canvas.duration(0).remove()
+  canvas.duration(0).nodes([1, 2, 3, 4]).add()
+  canvas.duration(0).edges([[1, 3], [1, 4], [2, 4], [2, 3]]).add()
+
+  canvas.duration(0).visible(false)
+  expect(utils.selectCanvas(svg)).to.satisfy((s: D3Selection) => s.empty())
+
+  canvas.visible(true)
+  expect(utils.selectCanvas(svg)).to.satisfy((s: D3Selection) => !s.empty())
+})
