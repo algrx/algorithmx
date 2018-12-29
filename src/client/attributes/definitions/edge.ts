@@ -1,4 +1,4 @@
-import { PartialAttr, AttrLookup, AttrString, AttrNum, AttrArray } from '../types'
+import { PartialAttr, AttrLookup, AttrString, AttrNum, AttrArray, AttrBool } from '../types'
 import { AnimationFull } from './animation'
 import { ICommonAttr } from './common'
 import { ILabelAttr } from './label'
@@ -17,15 +17,15 @@ export interface IEdgeAttr extends ICommonAttr {
   readonly length: AttrNum
   readonly width: AttrNum
   readonly color: AttrString
+  readonly flip: AttrBool
   readonly curve: AttrString & Curve
   readonly path: AttrArray<{ readonly x: AttrNum, readonly y: AttrNum }>
 }
 
-export enum Curve {
-  Linear = 'linear',
-  Rect = 'rect',
-  Ellipse = 'ellipse'
+export enum EnumCurve {
+  linear = 'linear'
 }
+export type Curve = keyof typeof EnumCurve
 
 export const definition = attrDef.extendRecordDef<IEdgeAttr, ICommonAttr>({
   entries: {
@@ -35,7 +35,8 @@ export const definition = attrDef.extendRecordDef<IEdgeAttr, ICommonAttr>({
     length: { type: AttrType.Number },
     width: { type: AttrType.Number },
     color: { type: AttrType.String },
-    curve: { type: AttrType.String, validValues: utils.enumValues(Curve) },
+    flip: { type: AttrType.Boolean },
+    curve: { type: AttrType.String, validValues: utils.enumValues(EnumCurve) },
     path: { type: AttrType.Array, entry: {
       type: AttrType.Record, entries: {
         x: { type: AttrType.Number },
@@ -44,7 +45,7 @@ export const definition = attrDef.extendRecordDef<IEdgeAttr, ICommonAttr>({
     }
   },
   type: AttrType.Record,
-  keyOrder: ['labels', 'source', 'target', 'length', 'width', 'color', 'curve', 'path'],
+  keyOrder: ['labels', 'source', 'target', 'length', 'width', 'color', 'flip', 'curve', 'path'],
   validVars: []
 }, attrCommon.definition)
 
@@ -56,7 +57,8 @@ export const defaults: IEdgeAttr = {
   length: 70,
   width: 2,
   color: 'rgb(150,150,150)',
-  curve: Curve.Linear,
+  flip: true,
+  curve: 'linear',
   path: []
 }
 

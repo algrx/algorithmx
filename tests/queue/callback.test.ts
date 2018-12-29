@@ -18,7 +18,7 @@ it('Callback | Early', () => {
   })
 })
 
-it('Callback | Variable mutation', () => {
+it('Callback | Parallel', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     /* tslint:disable */

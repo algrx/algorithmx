@@ -32,7 +32,8 @@ export interface Selection {
    *
    * The `null` queue is special; all events added to it will execute immediately. The default queue is named "default".
    *
-   * @param queue - The name of the queue. This can be any string or integer, or `null` for the immediate queue.
+   * @param queue - (Optional) The name of the queue. This can be any string or integer, or `null` for the immediate
+   * queue. Defaults to "default".
    *
    * @return A new instance of the current selection using the specified event queue.
    */

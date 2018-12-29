@@ -61,7 +61,8 @@ export const renderWithLiveUpdate = (canvas: Canvas, renderData: RenderAttr<ICan
   const canvasSel = canvasUtils.selectCanvas(canvas)
   const nodeGroup = canvasUtils.selectNodeGroup(canvasUtils.selectCanvasInner(canvasSel))
 
-  renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeData) => {
+  renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
+    const nodeData = renderNode.preprocessRenderData(nodeDataInit)
     const selection = canvasUtils.selectNode(nodeGroup, k)
 
     const width = getEntry(getEntry(nodeData, 'size'), 'width')

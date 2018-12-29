@@ -1,6 +1,9 @@
-import { INodeAttr, Shape } from '../../attributes/definitions/node'
+import { ICanvasAttr } from '../../attributes/definitions/canvas'
+import { Shape } from '../../attributes/definitions/node'
+import { ILayoutState } from '../../layout/layout'
 import { D3Selection } from '../utils'
-import { NodeLayout } from '../../layout/node'
+import { AttrEval } from '../../attributes/types'
+import * as renderCanvasUtils from '../canvas/utils'
 import * as attrNode from '../../attributes/definitions/node'
 
 export interface IRenderLiveNode {
@@ -9,26 +12,34 @@ export interface IRenderLiveNode {
   readonly pos: [number, number]
 }
 
-export const getLiveNodeData = (layout: NodeLayout, attr: INodeAttr): IRenderLiveNode => {
-  return {
-    shape: attr.shape,
-    size: [layout.width / 2, layout.height / 2],
-    pos: [layout.x, layout.y]
-  }
-}
+export const getLiveNodeData = (canvasSel: D3Selection, layoutState: ILayoutState,
+                                canvasAttr: AttrEval<ICanvasAttr>, nodeId: string): IRenderLiveNode => {
+  const nodeGroup = renderCanvasUtils.selectNodeGroup(canvasSel)
 
-export const getLiveNodeDataWithSel = (sel: D3Selection, layout: NodeLayout, attr: INodeAttr): IRenderLiveNode => {
-  const selWidth = sel.attr('_width')
-  const selHeight = sel.attr('_height')
+  const nodeAttr = canvasAttr.nodes[nodeId]
+  const nodeLayout = layoutState.nodes[nodeId]
 
-  const size: [number, number] = selWidth !== null && selHeight !== null
-    ? [parseFloat(selWidth), parseFloat(selHeight)]
-    : [layout.width / 2, layout.height / 2]
+  if (nodeAttr.visible) {
+    const nodeSel = renderCanvasUtils.selectNode(nodeGroup, nodeId)
+    const selWidth = nodeSel.attr('_width')
+    const selHeight = nodeSel.attr('_height')
 
-  return {
-    shape: attr.shape,
-    size: size,
-    pos: [layout.x, layout.y]
+    const size: [number, number] = selWidth !== null && selHeight !== null
+      ? [parseFloat(selWidth), parseFloat(selHeight)]
+      : [nodeLayout.width / 2, nodeLayout.height / 2]
+
+    return {
+      shape: nodeAttr.shape,
+      size: size,
+      pos: [nodeLayout.x, nodeLayout.y]
+    }
+
+  } else {
+    return {
+      shape: nodeAttr.shape,
+      size: [nodeLayout.width / 2, nodeLayout.height / 2],
+      pos: [nodeLayout.x, nodeLayout.y]
+    }
   }
 }
 

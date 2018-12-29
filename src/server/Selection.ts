@@ -62,7 +62,7 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
     return self()
   },
 
-  eventQ: queue => construct({...context,
+  eventQ: (queue = 'default') => construct({...context,
     queue: queue === null ? null : String(queue)
   }),
   animate: type => construct({...context,

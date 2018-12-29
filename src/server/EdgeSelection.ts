@@ -19,6 +19,10 @@ const builder: ClassBuilder<EdgeSelection, ISelContext<IEdgeAttr>> = (context, s
   length: length => {
     context.client.dispatch(utils.createUpdateEvent(context, length, d => ({ length: d })))
     return self()
+  },
+   flip: flip => {
+    context.client.dispatch(utils.createUpdateEvent(context, flip, d => ({ flip: d })))
+    return self()
   }
 }, selection.builder(context, self, construct))
 

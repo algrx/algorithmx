@@ -31,19 +31,19 @@ export interface INodeAttr extends ICommonAttr {
   readonly click: boolean
 }
 
-export enum Shape {
+export enum EnumShape {
   circle = 'circle',
   rect = 'rect',
   ellipse = 'ellipse'
 }
-export type ShapeValue = keyof typeof Shape
+export type Shape = keyof typeof EnumShape
 
 export const VALUE_LABEL = 'value'
 
 export const defaults: INodeAttr = {
   ...attrCommon.defaults,
   labels: {} as AttrLookup<ILabelAttr>,
-  shape: Shape.circle,
+  shape: 'circle',
   corners: 4,
   color: COLORS.gray,
   size: {
@@ -64,7 +64,7 @@ export const definition = attrDef.extendRecordDef<INodeAttr, ICommonAttr>({
       entry: attrLabel.definition,
       validVars: [EnumVarSymbol.Radius]
     },
-    shape: { type: AttrType.String, validValues: utils.enumValues(Shape) },
+    shape: { type: AttrType.String, validValues: utils.enumValues(EnumShape) },
     corners: { type: AttrType.Number },
     color: { type: AttrType.String },
     size: { type: AttrType.Record, entries: {
@@ -152,7 +152,7 @@ export const evaluate = (evaluated: AttrEvalPartial<INodeAttr>, expr: PartialAtt
 }
 
 export const getVariables = (attr: AttrEvalPartial<INodeAttr>): attrExpr.VarLookup => {
-  const hasWidth = attr.size && attr.size.width !== undefined
+  const hasWidth = attr.size!.width && attr.size.width !== undefined
   const hasHeight = attr.size && attr.size.height !== undefined
   return {
     ...(hasWidth ? { [EnumVarSymbol.Width]: attr.size.width } : {}),

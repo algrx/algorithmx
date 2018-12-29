@@ -27,4 +27,12 @@ export interface EdgeSelection extends Selection {
    * @param length - The length of the edge.
    */
   length (length: ElementArg<NumExpr>): this
+
+  /**
+   * Sets whether or not the edge should be 'flipped' after exceeding a certain angle, such that it is never rendered
+   * upside-down. This only applies to edges connecting two nodes.
+   *
+   * @param flip - True if the edge should flip automatically, false otherwise.
+   */
+  flip (flip: ElementArg<boolean>): this
 }
