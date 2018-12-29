@@ -92,20 +92,6 @@ export const evaluate = <T extends Attr>(attr: T, vars: VarLookup, definition: A
   else return attrUtils.map(attr, definition, (k, v, def) => evaluate(v, vars, def))
 }
 
-export const evaluateChanges = <T extends Attr>(prevAttr: T | undefined, attr: T, def: AttrDef<T>,
-                                                varsFn: (a: T) => VarLookup): PartialAttr<T> => {
-  return evaluateIfChanged(attr, prevAttr === undefined ? {} : varsFn(prevAttr), varsFn(attr), def)
-}
-
-export const evaluateIfChanged = <T extends Attr>(attr: T, varsPrev: VarLookup, vars: VarLookup,
-                                                  def: AttrDef<T>): PartialAttr<T> => {
-  const didChange = Object.keys(varsPrev).length !== Object.keys(vars).length
-    || Object.keys(vars).findIndex(k => varsPrev[k] !== vars[k]) >= 0
-
-  if (!didChange) return undefined
-  else return getEvaluatedChanges(attr as null, {...varsPrev, ...vars }, def)
-}
-
 export function getEvaluatedChanges<T extends Attr> (attr: PartialAttr<T>, vars: VarLookup,
                                                      def: AttrDef<T>): PartialAttr<T> {
   if (def.type === AttrType.Number && isExpressionNum(attr as AttrNum)) {

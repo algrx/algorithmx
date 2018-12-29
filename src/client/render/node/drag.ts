@@ -1,6 +1,8 @@
+import { Layout } from '../../layout/layout'
+import { NodeLayout } from '../../layout/node'
 import { D3Selection } from '../utils'
-import * as d3 from '../d3.modules'
 import * as webcola from 'webcola'
+import * as d3 from '../d3.modules'
 
 /* tslint:disable */
 let _dragging = false
@@ -26,7 +28,7 @@ export const enableHover = (canvasSel: D3Selection, selection: D3Selection,
 }
 
 export const enableDrag = (canvasSel: D3Selection, nodeSel: D3Selection,
-                           colaLayout: webcola.Layout, nodeLayout: webcola.Node): void => {
+                           colaLayout: Layout, nodeLayout: NodeLayout): void => {
   nodeSel.call(d3.drag().subject(d => webcola.Layout.dragOrigin(nodeLayout))
     .on('start', () => {
       _dragging = true

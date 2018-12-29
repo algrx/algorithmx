@@ -17,6 +17,7 @@ const updatePanZoomLimit = (selection: D3Selection, renderData: RenderAttr<ICanv
   // TODO: renderProcess.hasChanged(renderData)
   if (renderProcess.hasChanged(getEntry(renderData, 'zoomLimit'))
       || renderProcess.hasChanged(getEntry(renderData, 'panLimit'))
+      || renderProcess.hasChanged(getEntry(renderData, 'visible'))
       || behavior === undefined) {
 
     const onZoom = () => canvasUtils.selectCanvasInner(selection)

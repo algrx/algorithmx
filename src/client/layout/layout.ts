@@ -1,4 +1,4 @@
-import { AttrEvalPartial, AttrEval, AttrLookup } from '../attributes/types'
+import { AttrEvalPartial, AttrEval } from '../attributes/types'
 import { ICanvasAttr } from '../attributes/definitions/canvas'
 import { Lookup } from '../utils'
 import * as layoutCanvas from './canvas'
@@ -7,14 +7,16 @@ import * as layoutEdge from './edge'
 import * as webcola from 'webcola'
 import * as d3 from '../render/d3.modules'
 
+export type Layout = webcola.Layout
+
 export interface ILayoutState {
-  readonly cola: webcola.Layout
+  readonly cola: Layout
   readonly tick: () => void
-  readonly nodes: Lookup<webcola.Node> // fast retrieval of node positions
+  readonly nodes: Lookup<layoutNode.NodeLayout> // fast retrieval of node positions
   readonly adjacentNodes: Lookup<ReadonlyArray<string>> // fast adjacency lookup
 }
 
-export const initCola = (tick: (() => void)): webcola.Layout => {
+export const initCola = (tick: (() => void)): Layout => {
   return webcola.d3adaptor(d3)
     .nodes([]).links([])
     .handleDisconnected(false)

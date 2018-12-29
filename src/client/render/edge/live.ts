@@ -3,6 +3,7 @@ import { IEdgeAttr, Curve } from '../../attributes/definitions/edge'
 import { IRenderLiveNode } from '../node/live'
 import { ILayoutState } from '../../layout/layout'
 import { ICanvasAttr } from '../../attributes/definitions/canvas'
+import * as renderCanvasUtils from '../canvas/utils'
 import * as liveNode from '../node/live'
 import * as math from '../../math'
 import * as d3 from '../d3.modules'
@@ -13,19 +14,48 @@ interface IRenderLiveEdge {
   readonly path: ReadonlyArray<[number, number]>
   readonly source: IRenderLiveNode
   readonly target: IRenderLiveNode
+  readonly sourceId: string
+  readonly targetId: string
 }
 
-export const getLiveEdgeData = (layout: ILayoutState, canvasAttr: ICanvasAttr, id: string): IRenderLiveEdge => {
-  const edgeAttr = canvasAttr.edges[id]
-  const sourceData = liveNode.getLiveNodeData(layout, canvasAttr.nodes[edgeAttr.source], edgeAttr.source)
-  const targetData = liveNode.getLiveNodeData(layout, canvasAttr.nodes[edgeAttr.target], edgeAttr.target)
+export const getLiveSourceTargetData = (canvasSel: D3Selection, layoutState: ILayoutState,
+                                        canvasAttr: ICanvasAttr, edgeAttr: IEdgeAttr):
+                                        [IRenderLiveNode, IRenderLiveNode] => {
+  const nodeGroup = renderCanvasUtils.selectNodeGroup(canvasSel)
+
+  const sourceAttr = canvasAttr.nodes[edgeAttr.source]
+  const targetAttr = canvasAttr.nodes[edgeAttr.target]
+
+  const sourceLayout = layoutState.nodes[edgeAttr.source]
+  const targetLayout = layoutState.nodes[edgeAttr.target]
+
+  if (sourceAttr.visible && targetAttr.visible) {
+    const sourceSel = renderCanvasUtils.selectNode(nodeGroup, edgeAttr.source)
+    const targetSel = renderCanvasUtils.selectNode(nodeGroup, edgeAttr.target)
+    return [
+      liveNode.getLiveNodeDataWithSel(sourceSel, sourceLayout, sourceAttr),
+      liveNode.getLiveNodeDataWithSel(targetSel, targetLayout, targetAttr)
+    ]
+  } else {
+    return [
+      liveNode.getLiveNodeData(sourceLayout, sourceAttr),
+      liveNode.getLiveNodeData(targetLayout, targetAttr)
+    ]
+  }
+}
+
+export const getLiveEdgeData = (canvasSel: D3Selection, layoutState: ILayoutState,
+                                canvasAttr: ICanvasAttr, edgeAttr: IEdgeAttr): IRenderLiveEdge => {
+  const [sourceData, targetData] = getLiveSourceTargetData(canvasSel, layoutState, canvasAttr, edgeAttr)
   const angle = Math.atan2(targetData.pos[1] - sourceData.pos[1], targetData.pos[0] - sourceData.pos[0])
   return {
     angle: angle,
     curve: edgeAttr.curve,
     path: edgeAttr.path.map(p => [p.x, p.y] as [number, number]),
     source: sourceData,
-    target: targetData
+    target: targetData,
+    sourceId: edgeAttr.source,
+    targetId: edgeAttr.target
   }
 }
 
@@ -43,7 +73,7 @@ export const getEdgeOriginLoop = (edge: IRenderLiveEdge): [number, number]  => {
 }
 
 export const getEdgeOrigin = (edge: IRenderLiveEdge): [number, number]  => {
-  if (edge.source.id === edge.target.id) return getEdgeOriginLoop(edge)
+  if (edge.sourceId === edge.targetId) return getEdgeOriginLoop(edge)
   else return getEdgeOriginRegular(edge)
 }
 

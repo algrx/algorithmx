@@ -10,6 +10,9 @@ export type D3Transition = import ('d3-transition').Transition
 export type D3SelTrans = D3Selection | D3Transition
 export type D3Zoom = import ('d3-zoom').ZoomBehavior<Element, unknown>
 
+export const isTransition = (sel: D3SelTrans): sel is D3Transition =>
+  (sel as D3Transition).duration !== undefined
+
 export const COLORS = {
   navy: '#00229e',
   blue: '#2957c4',

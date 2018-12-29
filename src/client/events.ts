@@ -54,7 +54,10 @@ const executeUpdate = (state: IClientState, listener: ClientListener,
 
   renderCanvas.renderCanvas(state.canvas, renderData)
   renderCanvas.renderLayout(state.canvas, renderData, layoutState)
-  renderCanvasLive.updateCanvas(state.canvas, processed.attributes, layoutState)
+
+  const updateLiveFn = () => renderCanvasLive.updateCanvas(state.canvas, processed.attributes, layoutState)
+  renderCanvas.renderWithLiveUpdate(state.canvas, renderData, updateLiveFn)
+  updateLiveFn()
 
   const clickFn = (n: string) => listener(dispatchClick(n))
   const hoverFn = (n: string, h: boolean) => listener(dispatchHover(n, h))
@@ -89,7 +92,11 @@ const executeHighlight = (state: IClientState, listener: ClientListener,
   }
 
   renderCanvas.renderCanvas(state.canvas, renderData)
-  renderCanvasLive.updateCanvas(state.canvas, state.attributes, state.layout)
+
+  const updateLiveFn = () => renderCanvasLive.updateCanvas(state.canvas, state.attributes, state.layout)
+  renderCanvas.renderWithLiveUpdate(state.canvas, renderData, updateLiveFn)
+  updateLiveFn()
+
   renderCanvasBehavior.render(state.canvas, renderData, state.renderBehavior)
 }
 
