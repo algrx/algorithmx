@@ -70,9 +70,9 @@ const getFullAttributes = <T extends Attr, R extends Attr, A>
   else return getFullAttributes(sel.parent, arg, createParentAttr(sel, arg, attr))
 }
 
-export const createUpdateEvent = <T extends Attr, A> (sel: ISelContext<T>, arg: ElementArg<A>,
-                                                      attr: (a: A) => InputAttr<T>):
-                                                      events.IDispatchEventUpdate | events.IDispatchEventHighlight => {
+export const createUpdateEvent = <T extends Attr, A>(sel: ISelContext<T>, arg: ElementArg<A>,
+                                                     attr: (a: A) => InputAttr<T>):
+                                                     events.IDispatchEventUpdate | events.IDispatchEventHighlight => {
   const eventData = {
     attributes: getFullAttributes<T, ICanvasAttr, A>(sel, arg, attr),
     animation: sel.animation
