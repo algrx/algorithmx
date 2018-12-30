@@ -27,16 +27,45 @@ const renderPos = (selection: D3SelTrans, posData: LabelPosData): D3SelTrans => 
   return selection.attr('transform', `translate(${posData.x + polarX},${-(posData.y + polarY)})${rotateStr}`)
 }
 
-export const renderAlign = (selection: D3Selection, alignData: RenderAttr<ILabelAttr['align']>): void => {
+const isAlignTop = (a: Align): boolean => a === 'top-left' || a === 'top-middle' || a === 'top-right'
+const isAlignBottom = (a: Align): boolean => a === 'bottom-left' || a === 'bottom-middle' || a === 'bottom-right'
+
+export const renderAlign = (selection: D3Selection, renderData: RenderAttr<ILabelAttr['align']>): void => {
   renderCommon.renderSvgAttr(selection, 'dominant-baseline', v =>
-    v === 'top-left' || v === 'top-middle' || v === 'top-right' ? 'hanging'
-    : v === 'middle-left' || v === 'middle' || v === 'middle-right' ? 'middle'
-    : 'baseline', {...alignData, name: alignData.name + '-y' })
+    isAlignTop(v) ? 'hanging' : isAlignBottom(v) ? 'baseline' : 'middle',
+    {...renderData, name: renderData.name + '-y' })
 
   renderCommon.renderSvgAttr(selection, 'text-anchor', v =>
     v === 'top-left' || v === 'middle-left' || v === 'bottom-left' ? 'start'
-    : v === 'top-middle' || v === 'middle' || v === 'bottom-middle' ? 'middle'
-    : 'end', {...alignData, name: alignData.name + '-x' })
+    : v === 'top-right' || v === 'middle-right' || v === 'bottom-right' ? 'end'
+    : 'middle', {...renderData, name: renderData.name + '-x' })
+}
+
+export const renderText = (textSel: D3Selection, text: string, align: Align): void => {
+  const splitText = text.split('\n')
+  textSel.selectAll('tspan').remove()
+
+  splitText.forEach((line, i) => {
+    const lineHeight = 1.0
+    const initOffset = isAlignTop(align) ? 0
+      : isAlignBottom(align) ? (splitText.length - 1) * lineHeight
+      : ((splitText.length - 1) / 2) * lineHeight
+
+    textSel.append('tspan').attr('x', 0).attr('dy', i === 0 ? `-${initOffset}em` : `${lineHeight}em`).text(line)
+  })
+}
+
+export const preprocessAlign = (labelData: RenderAttr<ILabelAttr>): RenderAttr<ILabelAttr['align']> => {
+  const align = labelData.attr.align
+  const changedRadialAlign = labelData.changes && (labelData.changes.align !== undefined
+    || labelData.changes.angle !== undefined || labelData.changes.rotate !== undefined)
+
+  return {...getEntry(labelData, 'align'),
+    attr: align === 'radial' ? attrLabel.alignFromAngle(math.angleToRad(labelData.attr.angle), labelData.attr.rotate)
+      : align,
+    changes: align === 'radial' && changedRadialAlign ? align
+      : (labelData.changes ? labelData.changes.align : undefined)
+  }
 }
 
 export const renderVisible: renderFns.RenderAttrFn<ILabelAttr['visible']> = (selection, renderData) => {
@@ -44,24 +73,16 @@ export const renderVisible: renderFns.RenderAttrFn<ILabelAttr['visible']> = (sel
 }
 
 export const render: renderFns.RenderAttrFn<ILabelAttr> = (selection, renderData) => {
+  const alignData = preprocessAlign(renderData)
+
   const textSel = renderUtils.selectOrAdd(selection, 'text', s =>
     s.append('text').attr('pointer-events', 'none'))
 
-  renderFns.onChanged(textSel, getEntry(renderData, 'text'), (sel, textData) => {
-    sel.selectAll('tspan').remove()
-    sel.append('tspan').text(textData.attr)
+  const combinedTextAlign = renderProcess.combine({ text: getEntry(renderData, 'text'), align: alignData })
+  renderFns.render(textSel, combinedTextAlign, (sel, textData) => {
+    renderText(textSel, textData.text, textData.align)
+    return sel
   })
-
-  const align = renderData.attr.align
-  const changedRadialAlign = renderData.changes && (renderData.changes.align !== undefined
-    || renderData.changes.angle !== undefined || renderData.changes.rotate !== undefined)
-
-  const alignData = {...getEntry(renderData, 'align'),
-    attr: align === 'radial' ? attrLabel.alignFromAngle(math.angleToRad(renderData.attr.angle), renderData.attr.rotate)
-      : align,
-    changes: align === 'radial' && changedRadialAlign ? align
-      : (renderData.changes ? renderData.changes.align : undefined)
-  }
 
   const combinedPos = renderProcess.combine({
     x: getEntry(getEntry(renderData, 'pos'), 'x'),

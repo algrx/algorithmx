@@ -102,7 +102,7 @@ export const init = (name: string, index: number): INodeAttr => {
     pos: { x: 0, y: -1 },
     radius: 0,
     angle: 90,
-    rotate: true,
+    rotate: false,
     color: 'rgb(220,220,220)',
     size: 13
   }
@@ -178,17 +178,17 @@ const initPos = (index: number, offset: number): INodeAttr['pos'] => {
 
   const rawPos =
     difference <= size ? {
-      x: -halfSize,
-      y: -halfSize + (size - difference)
-    } : difference <= (size * 2) - 1 ? {
-      x: -halfSize + (difference - size),
+      x: -halfSize + (size - difference),
       y: -halfSize
+    } : difference <= (size * 2) - 1 ? {
+      x: -halfSize,
+      y: -halfSize + (difference - size)
     } : difference <= (size * 3) - 2 ? {
-      x: halfSize,
-      y: -halfSize + (difference - (size * 2)) + 1
-    } : {
-      x: -halfSize + (size - (difference - (size * 3) + 3)),
+      x: -halfSize + (difference - (size * 2)) + 1,
       y: halfSize
+    } : {
+      x: halfSize,
+      y: -halfSize + (size - (difference - (size * 3) + 3))
     }
   return {
     x: rawPos.x * (offset + 1),

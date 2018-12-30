@@ -5,6 +5,7 @@ import { Align } from '../../client/attributes/definitions/label'
 export interface LabelSelection extends Selection {
   /**
    * Sets the text displayed by the label. The newline character ("\n") can be used to break the text into multiple lines.
+   * Note that text cannot be animated or highlighted.
    *
    * @param text - The text displayed by the label.
    */

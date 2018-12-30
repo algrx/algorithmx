@@ -17,8 +17,8 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
   labels: (ids = ['*'] as ReadonlyArray<string>) => {
     return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
   },
-  shape: type => {
-    context.client.dispatch(utils.createUpdateEvent(context, type, d => ({ shape: d })))
+  shape: shape => {
+    context.client.dispatch(utils.createUpdateEvent(context, shape, d => ({ shape: d })))
     return self()
   },
   corners: radius => {

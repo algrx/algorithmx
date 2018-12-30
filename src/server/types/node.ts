@@ -31,14 +31,14 @@ export interface NodeSelection extends Selection {
   labels (ids: ReadonlyArray<string | number>): LabelSelection
 
   /**
-   * Sets the shape of the node.
+   * Sets the shape of the node. Note that shape cannot be animated or highlighted.
    *
-   * @param type - One of the following strings:
+   * @param shape - One of the following strings:
    * - "circle": Standard circular node with a single radius dimension.
    * - "rect": Rectangular node with separate width and height dimensions, and corner rounding.
    * - "ellipse": Elliptical node with width and height dimensions.
    */
-  shape (type: ElementArg<Shape>): this
+  shape (shape: ElementArg<Shape>): this
 
   /**
    * Sets the rounding of the node's corners. This only applies to rectangular nodes.
