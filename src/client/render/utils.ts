@@ -29,7 +29,9 @@ export const COLORS = {
   purple: '#a31578',
   maroon: '#7c0606',
   white: '#e5e5e5',
-  silver: '#c4c4c4',
+  silver: '#969696',
+  lightGray: '#808080',
+  lightGrey: '#808080',
   gray: '#323232',
   grey: '#323232',
   black: '#111111'
@@ -47,8 +49,12 @@ export const selectOrAdd = (selection: D3Selection, selector: string,
   else return selected as D3Selection
 }
 
+export const dashToUpperCamel = (str: string) =>
+  str.split('-').map(s => s.charAt(0).toUpperCase() + s.substr(1)).join('')
+
 export const easeFn = (name: AnimationEase): ((t: number) => number) => {
-  return d3.ease['ease' + name.charAt(0).toUpperCase() + name.substr(1)] // e.g. convert 'linear' to 'easeLinear'
+  // e.g. convert 'linear' to 'easeLinear'
+  return d3.ease['ease' + dashToUpperCamel(name)]
 }
 
 export const isInBrowser = (): boolean => {

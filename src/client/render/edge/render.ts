@@ -16,15 +16,19 @@ export const renderVisible: renderFns.RenderAttrFn<IEdgeAttr['visible']> = (sele
   renderCommon.renderVisible(selection.select('path'), renderData)
 }
 
+export const renderColor: renderFns.RenderAttrFn<IEdgeAttr['color']> = (pathSel, renderData) => {
+  renderCommon.renderSvgAttr(pathSel, 'stroke', v => v, renderData)
+}
+
 export const render: renderFns.RenderAttrFn<IEdgeAttr> = (selection, renderData) => {
+  const pathSel = renderUtils.selectOrAdd(selection, 'path', s => s.append('path').attr('fill', 'none'))
   const labelGroup = selectLabelGroup(selection)
-  const pathSelection = renderUtils.selectOrAdd(selection, 'path', s =>
-    s.append('path').attr('fill', 'none'))
 
   renderCommon.renderCommonLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
     renderLabel.render, renderLabel.renderVisible)
 
-  renderCommon.renderCustomSvg(pathSelection, renderData)
-  renderCommon.renderSvgAttr(pathSelection, 'stroke', v => v, getEntry(renderData, 'color'))
-  renderCommon.renderSvgAttr(pathSelection, 'stroke-width', v => v, getEntry(renderData, 'width'))
+  renderCommon.renderCustomSvg(pathSel, renderData)
+  renderCommon.renderSvgAttr(pathSel, 'stroke-width', v => v, getEntry(renderData, 'thickness'))
+
+  renderColor(pathSel, getEntry(renderData, 'color'))
 }

@@ -14,15 +14,15 @@ export type AnimationType = keyof typeof EnumAnimationType
 
 export enum EnumAnimationEase {
   linear = 'linear',
-  poly = 'poly', polyIn = 'polyIn', polyOut = 'polyOut', polyInOut = 'polyInOut',
-  quad = 'quad', quadIn = 'quadIn', quadOut = 'quadOut', quadInOut = 'quadInOut',
-  cubic = 'cubic', cubicIn = 'cubicIn', cubicOut = 'cubicOut', cubicInOut = 'cubicInOut',
-  sin = 'sin', sinIn = 'sinIn', sinOut = 'sinOut', sinInOut = 'sinInOut',
-  exp = 'exp', expIn = 'expIn', expOut = 'expOut', expInOut = 'expInOut',
-  circle = 'circle', circleIn = 'CircleOut', circleOut = 'circleOut', circleInOut = 'circleInOut',
-  elastic = 'elastic', elasticIn = 'elasticIn', elasticOut = 'elasticOut', elasticInOut = 'elasticInOut',
-  back = 'back', backIn = 'backIn', backOut = 'backOut', backInOut = 'backInOut',
-  bounce = 'bounce', bounceIn = 'bounceIn', bounceOut = 'bounceOut', bounceInOut = 'bounceInOut'
+  poly = 'poly', 'poly-in' = 'poly-in', 'poly-out' = 'poly-out', 'poly-in-out' = 'poly-in-out',
+  quad = 'quad', 'quad-in' = 'quad-in', 'quad-out' = 'quad-out', 'quad-in-out' = 'quad-in-out',
+  cubic = 'cubic', 'cubic-in' = 'cubic-in', 'cubic-out' = 'cubic-out', 'cubic-in-out' = 'cubic-in-out',
+  sin = 'sin', 'sin-in' = 'sin-in', 'sin-out' = 'sin-out', 'sin-in-out' = 'sin-in-out',
+  exp = 'exp', 'exp-in' = 'exp-in', 'exp-out' = 'exp-out', 'exp-in-out' = 'exp-in-out',
+  circle = 'circle', 'circle-in' = 'Circle-out', 'circle-out' = 'circle-out', 'circle-in-out' = 'circle-in-out',
+  elastic = 'elastic', 'elastic-in' = 'elastic-in', 'elastic-out' = 'elastic-out', 'elastic-in-out' = 'elastic-in-out',
+  back = 'back', 'back-in' = 'back-in', 'back-out' = 'back-out', 'back-in-out' = 'back-in-out',
+  bounce = 'bounce', 'bounce-in' = 'bounce-in', 'bounce-out' = 'bounce-out', 'bounce-in-out' = 'bounce-in-out'
 }
 export type AnimationEase = keyof typeof EnumAnimationEase
 

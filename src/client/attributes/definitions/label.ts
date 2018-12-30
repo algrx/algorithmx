@@ -3,6 +3,7 @@ import { AttrNum, AttrString, AttrBool, PartialAttr } from '../types'
 import { AnimationFull } from './animation'
 import { ICommonAttr } from './common'
 import * as attrCommon from './common'
+import { COLORS } from '../../render/utils'
 import * as attrDef from '../definitions'
 import * as math from '../../math'
 import * as utils from '../../utils'
@@ -76,7 +77,7 @@ export const defaults: ILabelAttr = {
   radius: 0,
   angle: 90,
   rotate: false,
-  color: '#808080',
+  color: COLORS.lightGray,
   font: 'Arial, Helvetica, sans-serif',
   size: 12
 }

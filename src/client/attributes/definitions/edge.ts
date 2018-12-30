@@ -3,6 +3,7 @@ import { AnimationFull } from './animation'
 import { ICommonAttr } from './common'
 import { ILabelAttr } from './label'
 import { AttrType } from '../definitions'
+import { COLORS } from '../../render/utils'
 import * as attrLabel from './label'
 import * as attrCommon from './common'
 import * as attrDef from '../definitions'
@@ -10,12 +11,13 @@ import * as attrUtils from '../utils'
 import * as math from '../../math'
 import * as utils from '../../utils'
 
+
 export interface IEdgeAttr extends ICommonAttr {
   readonly labels: AttrLookup<ILabelAttr>
   readonly source: AttrString
   readonly target: AttrString
   readonly length: AttrNum
-  readonly width: AttrNum
+  readonly thickness: AttrNum
   readonly color: AttrString
   readonly flip: AttrBool
   readonly curve: AttrString & Curve
@@ -23,7 +25,15 @@ export interface IEdgeAttr extends ICommonAttr {
 }
 
 export enum EnumCurve {
-  linear = 'linear'
+  basis = 'basis',
+  bundle = 'bundle',
+  cardinal = 'cardinal',
+  'catmull-rom' = 'catmull-rom',
+  linear = 'linear',
+  'monotone-x' = 'monotone-x',
+  'monotone-y' = 'monotone-y',
+  natural = 'natural',
+  step = 'step', 'step-before' = 'step-before', 'step-after' = 'step-after'
 }
 export type Curve = keyof typeof EnumCurve
 
@@ -33,7 +43,7 @@ export const definition = attrDef.extendRecordDef<IEdgeAttr, ICommonAttr>({
     source: { type: AttrType.String },
     target: { type: AttrType.String },
     length: { type: AttrType.Number },
-    width: { type: AttrType.Number },
+    thickness: { type: AttrType.Number },
     color: { type: AttrType.String },
     flip: { type: AttrType.Boolean },
     curve: { type: AttrType.String, validValues: utils.enumValues(EnumCurve) },
@@ -45,7 +55,7 @@ export const definition = attrDef.extendRecordDef<IEdgeAttr, ICommonAttr>({
     }
   },
   type: AttrType.Record,
-  keyOrder: ['labels', 'source', 'target', 'length', 'width', 'color', 'flip', 'curve', 'path'],
+  keyOrder: ['labels', 'source', 'target', 'length', 'thickness', 'color', 'flip', 'curve', 'path'],
   validVars: []
 }, attrCommon.definition)
 
@@ -55,16 +65,17 @@ export const defaults: IEdgeAttr = {
   source: '',
   target: '',
   length: 70,
-  width: 2,
-  color: 'rgb(150,150,150)',
+  thickness: 2,
+  color: COLORS.silver,
   flip: true,
-  curve: 'linear',
+  curve: 'cardinal',
   path: []
 }
 
 const labelDefaults: PartialAttr<ILabelAttr> = {
   align: 'radial',
   rotate: true,
+  size: 11,
   radius: 3
 }
 
@@ -82,19 +93,15 @@ export const initChildren = (prevAttr: IEdgeAttr, changes: PartialAttr<IEdgeAttr
     (k, v, i): PartialAttr<ILabelAttr> => {
 
     const path = changes.path ? changes.path : prevAttr.path
-    const pathMidY = path.length === 0 ? 0 : path[(path.length - 1) / 2].y
+    const pathMidY = path.length === 0 ? 0 : path[Math.floor((path.length - 1) / 2)].y
     const pathMidYNum = typeof pathMidY === 'number' ? pathMidY : 0
 
     const index = Object.keys(prevAttr.labels).length + i
-    const angle = index === 0 ? Math.PI / 2 : index === 1 ? Math.PI * 3 / 2
-      : Math.PI * 3 / 4 + (Math.PI / 2) * ((index - 2) % 4)
-
-    const radius = index < 2 ? 3 : 6
+    const angle = (index % 2) === 0 ? Math.PI / 2 : Math.PI * 3 / 2
 
     return {...attrLabel.init(k as string), ...labelDefaults,
       pos: { x: 0, y: pathMidYNum },
-      angle: math.angleToDeg(angle),
-      radius: radius
+      angle: math.angleToDeg(angle)
     }
   })
 
@@ -120,8 +127,8 @@ const createAdjMatrix = (edges: AttrLookup<IEdgeAttr>): EdgeAdjMatrix => {
   }, {} as EdgeAdjMatrix)
 }
 
-export const getLookupDefaults = (prevEdges: AttrLookup<IEdgeAttr>, changes: PartialAttr<AttrLookup<IEdgeAttr>>):
-                                  PartialAttr<AttrLookup<IEdgeAttr>> => {
+export const initLookup = (prevEdges: AttrLookup<IEdgeAttr>, changes: PartialAttr<AttrLookup<IEdgeAttr>>):
+                           PartialAttr<AttrLookup<IEdgeAttr>> => {
   const newEdges = attrUtils.newLookupEntries(prevEdges, changes)
   if (utils.isDictEmpty(newEdges)) return newEdges
 
@@ -134,7 +141,9 @@ export const getLookupDefaults = (prevEdges: AttrLookup<IEdgeAttr>, changes: Par
     const i = newMatrix[source][target] - 1
 
     const path: IEdgeAttr['path'] =
-      source !== target ? [{ x: 0, y: i === 0 ? 0 : Math.pow(-1, i + 1) * 20 }]
+      source !== target ? [{
+        x: 0, y: Math.pow(-1, i + 1) * Math.ceil(i / 2) * 16
+      }]
       : [{ x: -10 - i * 10, y: (i * 10) / 2 },
          { x: 0, y: i * 10 },
          { x: 10 + i * 10, y: (i * 10) / 2 }]

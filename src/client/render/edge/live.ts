@@ -4,6 +4,7 @@ import { IRenderLiveNode } from '../node/live'
 import { ILayoutState } from '../../layout/layout'
 import { ICanvasAttr } from '../../attributes/definitions/canvas'
 import { AttrEval } from '../../attributes/types'
+import * as renderUtils from '../utils'
 import * as liveNode from '../node/live'
 import * as math from '../../math'
 import * as d3 from '../d3.modules'
@@ -61,8 +62,8 @@ export const getEdgeOrigin = (edge: IRenderLiveEdge): [number, number]  => {
 }
 
 export const curveFn = (name: string) => {
-  // e.g. convert 'cardinal' to 'curveCardinal'
-  return d3.shape['curve' + name.charAt(0).toUpperCase() + name.substr(1)]
+  // e.g. convert 'step-after' to 'curveStepAfter'
+  return d3.shape['curve' + renderUtils.dashToUpperCamel(name)]
 }
 
 export const renderEdgePath = (edgeSel: D3Selection, edge: IRenderLiveEdge, origin: [number, number]) => {

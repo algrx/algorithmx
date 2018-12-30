@@ -71,15 +71,15 @@ export interface Selection {
    * @param ease - The name of the ease function, based on the functions found in D3. The full list is below:
    *
    * "linear",
-   * "poly", "polyIn", "polyOut", "polyInOut",
-   * "quad", "quadIn", "quadOut", "quadInOut",
-   * "cubic", "cubicIn", "cubicOut", "cubicInOut",
-   * "sin", "sinIn", "sinOut", "sinInOut",
-   * "exp", "expIn", "expOut", "expInOut",
-   * "circle", "circleIn", "circleOut", "circleInOut",
-   * "elastic", "elasticIn", "elasticOut", "elasticInOut",
-   * "back", "backIn", "backOut", "backInOut",
-   * "bounce", "bounceIn", "bounceOut", "bounceInOut".
+   * "poly", "poly-in", "poly-out", "poly-in-out",
+   * "quad", "quad-in", "quad-out", "quad-in-out",
+   * "cubic", "cubic-in", "cubic-out", "cubic-in-out",
+   * "sin", "sin-in", "sin-out", "sin-in-out",
+   * "exp", "exp-in", "exp-out", "exp-in-out",
+   * "circle", "circle-in", "circle-out", "circle-in-out",
+   * "elastic", "elastic-in", "elastic-out", "elastic-in-out",
+   * "back", "back-in", "back-out", "back-in-out",
+   * "bounce", "bounce-in", "bounce-out", "bounce-in-out".
    *
    * @return A new instance of the current selection using the specified animation ease.
    */

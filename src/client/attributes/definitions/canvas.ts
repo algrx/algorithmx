@@ -124,7 +124,7 @@ export const initChildren = (prevAttr: ICanvasAttr, changes: PartialAttr<ICanvas
     const initNodeChildren = attrNode.initChildren(initNode, node)
     return attrUtils.merge(initNode, initNodeChildren, attrNode.definition)
   })
-  const newEdges = attrEdge.getLookupDefaults(prevAttr.edges, changes.edges)
+  const newEdges = attrEdge.initLookup(prevAttr.edges, changes.edges)
   const newLabels = utils.mapDict(attrUtils.newLookupEntries(prevAttr.labels, changes.labels), k =>
     ({...attrLabel.init(k as string), ...labelDefaults }))
 

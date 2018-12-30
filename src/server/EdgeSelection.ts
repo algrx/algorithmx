@@ -20,8 +20,24 @@ const builder: ClassBuilder<EdgeSelection, ISelContext<IEdgeAttr>> = (context, s
     context.client.dispatch(utils.createUpdateEvent(context, length, d => ({ length: d })))
     return self()
   },
-   flip: flip => {
+  thickness: thickness => {
+    context.client.dispatch(utils.createUpdateEvent(context, thickness, d => ({ thickness: d })))
+    return self()
+  },
+  color: color => {
+    context.client.dispatch(utils.createUpdateEvent(context, color, d => ({ color: d })))
+    return self()
+  },
+  flip: flip => {
     context.client.dispatch(utils.createUpdateEvent(context, flip, d => ({ flip: d })))
+    return self()
+  },
+  curve: curve => {
+    context.client.dispatch(utils.createUpdateEvent(context, curve, d => ({ curve: d })))
+    return self()
+  },
+  path: path => {
+    context.client.dispatch(utils.createUpdateEvent(context, path, d => ({ path: d })))
     return self()
   }
 }, selection.builder(context, self, construct))
