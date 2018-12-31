@@ -7,9 +7,9 @@ import * as events from '../client/types/events'
 
 export type ClassBuilder<T, C> = (context: C, self: () => T, construct: (args: C) => T) => T
 
-export function create<T, C> (build: ClassBuilder<T, C>, context: C): T {
-  const construct = (args: C) => create(build, args)
-  const instance = build(context, () => instance, construct)
+export function build<T, C> (builder: ClassBuilder<T, C>, context: C): T {
+  const construct = (args: C) => build(builder, args)
+  const instance = builder(context, () => instance, construct)
   return instance
 }
 
@@ -70,9 +70,9 @@ const getFullAttributes = <T extends Attr, R extends Attr, A>
   else return getFullAttributes(sel.parent, arg, createParentAttr(sel, arg, attr))
 }
 
-export const createUpdateEvent = <T extends Attr, A>(sel: ISelContext<T>, arg: ElementArg<A>,
-                                                     attr: (a: A) => InputAttr<T>):
-                                                     events.IDispatchEventUpdate | events.IDispatchEventHighlight => {
+export const attrEvent = <T extends Attr, A>(sel: ISelContext<T>, arg: ElementArg<A>,
+                                             attr: (a: A) => InputAttr<T>):
+                                             events.IDispatchEventUpdate | events.IDispatchEventHighlight => {
   const eventData = {
     attributes: getFullAttributes<T, ICanvasAttr, A>(sel, arg, attr),
     animation: sel.animation

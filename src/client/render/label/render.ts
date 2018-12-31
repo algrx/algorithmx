@@ -46,7 +46,7 @@ export const renderText = (textSel: D3Selection, text: string, align: Align): vo
   textSel.selectAll('tspan').remove()
 
   splitText.forEach((line, i) => {
-    const lineHeight = 1.0
+    const lineHeight = 1.2
     const initOffset = isAlignTop(align) ? 0
       : isAlignBottom(align) ? (splitText.length - 1) * lineHeight
       : ((splitText.length - 1) / 2) * lineHeight

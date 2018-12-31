@@ -3,10 +3,15 @@ import { IAnimation, AnimationType } from '../client/attributes/definitions/anim
 import { ICommonAttr } from '../client/attributes/definitions/common'
 import { ClassBuilder } from './utils'
 import { Omit } from '../client/utils'
-import { ClientEventHandler } from '../client/client'
 import { Attr, InputAttr } from '../client/attributes/types'
+import { DispatchEvent, ReceiveEvent } from '../client/types/events'
 import * as events from '../client/types/events'
 import * as utils from './utils'
+
+export interface EventHandler {
+  dispatch (event: DispatchEvent): void
+  subscribe (listener: (event: ReceiveEvent) => void): void
+}
 
 export interface SelListeners {
    /* tslint:disable */
@@ -23,7 +28,7 @@ export const triggerListener = (listeners: SelListeners, id: string): void => {
 }
 
 export interface ISelContext<T extends Attr> {
-  readonly client: ClientEventHandler
+  readonly client: EventHandler
   readonly name: string
   readonly ids: ReadonlyArray<string | number>
   readonly data?: ReadonlyArray<unknown>
@@ -46,24 +51,24 @@ export const defaultContext: Omit<ISelContext<Attr>, 'client' | 'initAttr'> = {
 
 export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (context, self, construct) => ({
   visible: visible => {
-    context.client.dispatch(utils.createUpdateEvent(context, visible, d => ({ visible: d })))
+    context.client.dispatch(utils.attrEvent(context, visible, d => ({ visible: d })))
     return self()
   },
 
   add: () => {
-    context.client.dispatch(utils.createUpdateEvent(({...context, data: context.ids }), (id, i) => i, i => ({
+    context.client.dispatch(utils.attrEvent(({...context, data: context.ids }), (id, i) => i, i => ({
       visible: true,
       ...(context.initAttr ? context.initAttr[i] : {})
     })))
     return self().duration(0)
   },
   remove: () => {
-    context.client.dispatch(utils.createUpdateEvent(context, false, d => null))
+    context.client.dispatch(utils.attrEvent(context, false, d => null))
     return self()
   },
 
-  eventQ: (queue = 'default') => construct({...context,
-    queue: queue === null ? null : String(queue)
+  eventQ: (name = 'default') => construct({...context,
+    queue: name === null ? null : String(name)
   }),
   animate: type => construct({...context,
     animation: {...context.animation, type: type }
@@ -123,12 +128,12 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
 
   callback: onCallback => {
     const message = `callback-${Math.random().toString(36).substr(2, 9)}`
+    addListener(context.listeners, message, onCallback)
     context.client.dispatch({
       type: events.DispatchEventType.Broadcast,
       queue: context.queue,
       data: { message: message }
     })
-    addListener(context.listeners, message, onCallback)
     return self()
   }
 })

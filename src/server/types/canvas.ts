@@ -4,9 +4,8 @@ import { NodeSelection } from './node'
 import { EdgeSelection } from './edge'
 import { LabelSelection } from './label'
 import { EdgeLengthType } from '../../client/attributes/definitions/canvas'
-import { EventHandler } from './events'
 
-export interface CanvasSelection extends Selection, EventHandler {
+export interface CanvasSelection extends Selection {
   /**
    * Selects a single node by its ID.
    *

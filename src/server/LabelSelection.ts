@@ -10,43 +10,43 @@ const builder: ClassBuilder<LabelSelection, ISelContext<ILabelAttr>> = (context,
   utils.inherit<LabelSelection, Selection>({
 
   text: text => {
-    context.client.dispatch(utils.createUpdateEvent(context, text, d => ({ text: d })))
+    context.client.dispatch(utils.attrEvent(context, text, d => ({ text: d })))
     return self()
   },
   align: align => {
-    context.client.dispatch(utils.createUpdateEvent(context, align, d => ({ align: d })))
+    context.client.dispatch(utils.attrEvent(context, align, d => ({ align: d })))
     return self()
   },
   pos: pos => {
-    context.client.dispatch(utils.createUpdateEvent(context, pos, d => ({ pos: d })))
+    context.client.dispatch(utils.attrEvent(context, pos, d => ({ pos: d })))
     return self()
   },
   radius: radius => {
-    context.client.dispatch(utils.createUpdateEvent(context, radius, d => ({ radius: d })))
+    context.client.dispatch(utils.attrEvent(context, radius, d => ({ radius: d })))
     return self()
   },
   angle: angle => {
-    context.client.dispatch(utils.createUpdateEvent(context, angle, d => ({ angle: d })))
+    context.client.dispatch(utils.attrEvent(context, angle, d => ({ angle: d })))
     return self()
   },
   rotate: rotate => {
-    context.client.dispatch(utils.createUpdateEvent(context, rotate, d => ({ rotate: d })))
+    context.client.dispatch(utils.attrEvent(context, rotate, d => ({ rotate: d })))
     return self()
   },
   color: color => {
-    context.client.dispatch(utils.createUpdateEvent(context, color, d => ({ color: d })))
+    context.client.dispatch(utils.attrEvent(context, color, d => ({ color: d })))
     return self()
   },
   font: font => {
-    context.client.dispatch(utils.createUpdateEvent(context, font, d => ({ font: d })))
+    context.client.dispatch(utils.attrEvent(context, font, d => ({ font: d })))
     return self()
   },
   size: size => {
-    context.client.dispatch(utils.createUpdateEvent(context, size, d => ({ size: d })))
+    context.client.dispatch(utils.attrEvent(context, size, d => ({ size: d })))
     return self()
   }
 }, selection.builder(context, self, construct))
 
 export const labelSelection = (args: ISelContext<ILabelAttr>) => {
-  return utils.create(builder, {...args, name: 'labels' })
+  return utils.build(builder, {...args, name: 'labels' })
 }

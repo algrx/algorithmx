@@ -1,15 +1,19 @@
-import { ReceiveEvent, DispatchEvent } from '../../client/types/events'
+import { ReceiveEvent, DispatchEvent, Canvas } from '../../client/types/events'
+import { CanvasSelection } from './canvas'
 
-export interface EventHandler {
+/**
+ * An object responsible for rendering the network, storing application state, and dispatching and receiving events.
+ */
+export interface Client {
   /**
-   * Dispatches an event.
+   * Dispatches an event. More information to be provided soon.
    *
    * @param event The event.
    */
-  dispatch (event: DispatchEvent): this
+  dispatch (event: DispatchEvent): void
 
   /**
-   * Register a function to listen for events sent back by the client.
+   * Registers a function to listen for events sent back by the client.
    * The event will be a dictionary in one of the following formats:
    *
    * **Error**
@@ -45,5 +49,12 @@ export interface EventHandler {
    *
    * @param listener - The listener function, taking the received event as an argument.
    */
-  receive (listener: (event: ReceiveEvent) => void): this
+  subscribe (listener: (event: ReceiveEvent) => void): void
+
+  /**
+   * Creates a new [[CanvasSelection]], providing an interface to the network's graphics through the current client.
+   *
+   * @return a new [[CanvasSelection]].
+   */
+  canvas (): CanvasSelection
 }

@@ -1,4 +1,4 @@
-import { ISelContext } from './Selection'
+import { ISelContext, EventHandler } from './Selection'
 import { nodeSelection } from './NodeSelection'
 import { edgeSelection } from './EdgeSelection'
 import { labelSelection } from './LabelSelection'
@@ -7,14 +7,13 @@ import { Selection } from './types/selection'
 import { ClassBuilder } from './utils'
 import { ICanvasAttr } from '../client/attributes/definitions/canvas'
 import { InputAttr } from '../client/attributes/types'
-import { ClientEventHandler } from '../client/client'
 import * as events from '../client/types/events'
 import * as selection from './Selection'
 import * as utils from './utils'
 
 const receiveHandler = (event: events.ReceiveEvent, listeners: selection.SelListeners): void => {
   if (event.type === events.ReceiveEventType.Broadcast)
-    selection.triggerListener(listeners, event.data.message)
+     selection.triggerListener(listeners, event.data.message)
 
   else if (event.type === events.ReceiveEventType.Click)
     selection.triggerListener(listeners, `click-node-${event.data.id}`)
@@ -56,49 +55,38 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
     return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
   },
   size: size => {
-    context.client.dispatch(utils.createUpdateEvent(context, size, d => ({ size: d })))
+    context.client.dispatch(utils.attrEvent(context, size, d => ({ size: d })))
     return self()
   },
   edgeLengths: lengthInfo => {
-    context.client.dispatch(utils.createUpdateEvent(context, lengthInfo, d =>
+    context.client.dispatch(utils.attrEvent(context, lengthInfo, d =>
       ({ edgeLengths: d }) as InputAttr<ICanvasAttr>))
     return self()
   },
   pan: location => {
-    context.client.dispatch(utils.createUpdateEvent(context, location, d => ({ pan: d })))
+    context.client.dispatch(utils.attrEvent(context, location, d => ({ pan: d })))
     return self()
   },
   zoom: zoom => {
-    context.client.dispatch(utils.createUpdateEvent(context, zoom, d => ({ zoom: d })))
+    context.client.dispatch(utils.attrEvent(context, zoom, d => ({ zoom: d })))
     return self()
   },
   panLimit: box => {
-    context.client.dispatch(utils.createUpdateEvent(context, box, d => ({ panLimit: d })))
+    context.client.dispatch(utils.attrEvent(context, box, d => ({ panLimit: d })))
     return self()
   },
   zoomLimit: limit => {
-    context.client.dispatch(utils.createUpdateEvent(context, limit, d => ({ zoomLimit: d })))
-    return self()
-  },
-  dispatch: event => {
-    context.client.dispatch(event)
-    return self()
-  },
-  receive: (listener: (event: events.ReceiveEvent) => void) => {
-    context.client.receive(event => {
-      listener(event)
-      receiveHandler(event, context.listeners)
-    })
+    context.client.dispatch(utils.attrEvent(context, limit, d => ({ zoomLimit: d })))
     return self()
   }
 }, selection.builder(context, self, construct))
 
-export const canvasSelection = (client: ClientEventHandler) => {
+export const canvasSelection = (handler: EventHandler) => {
   const context: ISelContext<ICanvasAttr> = {
     ...selection.defaultContext,
-    client: client,
+    client: handler,
     name: 'canvas'
   }
-  client.receive(event => receiveHandler(event, context.listeners))
-  return utils.create(builder, context)
+  handler.subscribe(event => receiveHandler(event, context.listeners))
+  return utils.build(builder, context)
 }

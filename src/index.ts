@@ -1,15 +1,30 @@
-import { canvasSelection } from './server/CanvasSelection'
+import { Client } from './server/types/client'
 import { CanvasSelection } from './server/types/canvas'
 import { Canvas } from './client/types/events'
-import * as client from './client/client'
+import * as clientApp from './server/Client'
 
 /**
- * Selects a canvas to use for rendering the network. The returned object will be responsible for storing application
- * state and providing an interface to the network's graphics. The canvas can be any element on the HTML page
- * (preferably a `div`), or an `Element` object.
+ * Creates a new [[Client]], responsible for rendering the network, storing application state, and dispatching and receiving
+ * events. The network can be rendered in any HTML element on the page (preferably a `div`), or an `Element` object.
+ * A client should only be used directly if complete control over event handling is required.
+ *
+ * @param output - The `id` attribute of an element in which to render the network, or an `Element` object.
+ *
+ * @return A new [[Client]].
+ */
+export const client = (output: Canvas): Client => {
+  return clientApp.client(output)
+}
+
+/**
+ * Creates a new [[CanvasSelection]], providing an interface to the network's graphics. The network can be rendered in
+ * any HTML element on the page (preferably a `div`), or an `Element` object. This will automatically initialize a
+ * [[Client]] and return its corresponding interface.
  *
  * @param output - The `id` attribute of an element on the HTML page to use as the canvas, or an `Element` object.
+ *
+ * @return A new [[CanvasSelection]].
  */
 export const canvas = (output: Canvas): CanvasSelection => {
-  return canvasSelection(client.createClient(output))
+  return client(output).canvas()
 }

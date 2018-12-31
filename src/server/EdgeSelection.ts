@@ -17,31 +17,31 @@ const builder: ClassBuilder<EdgeSelection, ISelContext<IEdgeAttr>> = (context, s
     return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
   },
   length: length => {
-    context.client.dispatch(utils.createUpdateEvent(context, length, d => ({ length: d })))
+    context.client.dispatch(utils.attrEvent(context, length, d => ({ length: d })))
     return self()
   },
   thickness: thickness => {
-    context.client.dispatch(utils.createUpdateEvent(context, thickness, d => ({ thickness: d })))
+    context.client.dispatch(utils.attrEvent(context, thickness, d => ({ thickness: d })))
     return self()
   },
   color: color => {
-    context.client.dispatch(utils.createUpdateEvent(context, color, d => ({ color: d })))
+    context.client.dispatch(utils.attrEvent(context, color, d => ({ color: d })))
     return self()
   },
   flip: flip => {
-    context.client.dispatch(utils.createUpdateEvent(context, flip, d => ({ flip: d })))
+    context.client.dispatch(utils.attrEvent(context, flip, d => ({ flip: d })))
     return self()
   },
   curve: curve => {
-    context.client.dispatch(utils.createUpdateEvent(context, curve, d => ({ curve: d })))
+    context.client.dispatch(utils.attrEvent(context, curve, d => ({ curve: d })))
     return self()
   },
   path: path => {
-    context.client.dispatch(utils.createUpdateEvent(context, path, d => ({ path: d })))
+    context.client.dispatch(utils.attrEvent(context, path, d => ({ path: d })))
     return self()
   }
 }, selection.builder(context, self, construct))
 
 export const edgeSelection = (args: ISelContext<IEdgeAttr>) => {
-  return utils.create(builder, {...args, name: 'edges' })
+  return utils.build(builder, {...args, name: 'edges' })
 }

@@ -53,7 +53,7 @@ export interface EdgeSelection extends Selection {
   flip (flip: ElementArg<boolean>): this
 
   /**
-   * Configures the curve function used to interpolate the edge's path. The default setting is "cardinal". More
+   * Sets the curve function used to interpolate the edge's path. The default setting is "cardinal". More
    * information is available here: [[https://github.com/d3/d3-shape#curves]].
    *
    * @param curve - The name of the curve function, based on the functions found in D3. The full list is below:

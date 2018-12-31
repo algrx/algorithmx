@@ -32,12 +32,12 @@ export interface Selection {
    *
    * The `null` queue is special; all events added to it will execute immediately. The default queue is named "default".
    *
-   * @param queue - (Optional) The name of the queue. This can be any string or integer, or `null` for the immediate
+   * @param name - (Optional) The name of the queue. This can be any string or integer, or `null` for the immediate
    * queue. Defaults to "default".
    *
    * @return A new instance of the current selection using the specified event queue.
    */
-  eventQ (queue: string | number | null): this
+  eventQ (name: string | number | null): this
 
   /**
    * Configures the type of animation which should be used for all attribute changes triggered by the selection.

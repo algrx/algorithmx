@@ -18,36 +18,36 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
     return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
   },
   shape: shape => {
-    context.client.dispatch(utils.createUpdateEvent(context, shape, d => ({ shape: d })))
+    context.client.dispatch(utils.attrEvent(context, shape, d => ({ shape: d })))
     return self()
   },
   corners: radius => {
-    context.client.dispatch(utils.createUpdateEvent(context, radius, d => ({ corners: d })))
+    context.client.dispatch(utils.attrEvent(context, radius, d => ({ corners: d })))
     return self()
   },
   color: color => {
-    context.client.dispatch(utils.createUpdateEvent(context, color, d => ({ color: d })))
+    context.client.dispatch(utils.attrEvent(context, color, d => ({ color: d })))
     return self()
   },
   size: size => {
-    context.client.dispatch(utils.createUpdateEvent(context, size, d =>
+    context.client.dispatch(utils.attrEvent(context, size, d =>
       ({ size: d }) as InputAttr<INodeAttr>))
     return self()
   },
   pos: pos => {
-    context.client.dispatch(utils.createUpdateEvent(context, pos, d => ({ pos: d })))
+    context.client.dispatch(utils.attrEvent(context, pos, d => ({ pos: d })))
     return self()
   },
   fixed: fixed => {
-    context.client.dispatch(utils.createUpdateEvent(context, fixed, d => ({ fixed: d })))
+    context.client.dispatch(utils.attrEvent(context, fixed, d => ({ fixed: d })))
     return self()
   },
   draggable: draggable => {
-    context.client.dispatch(utils.createUpdateEvent(context, draggable, d => ({ draggable: d })))
+    context.client.dispatch(utils.attrEvent(context, draggable, d => ({ draggable: d })))
     return self()
   },
   click: onClick => {
-    context.client.dispatch(utils.createUpdateEvent(context, true, d => ({ click: d })))
+    context.client.dispatch(utils.attrEvent(context, true, d => ({ click: d })))
     context.ids.forEach((id, i) => {
       const elementData = utils.getElementData(context, i)
       selection.addListener(context.listeners, `click-node-${id}`, () => onClick(elementData, i))
@@ -55,7 +55,7 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
     return self()
   },
   hoverIn: onHoverIn => {
-    context.client.dispatch(utils.createUpdateEvent(context, true, d => ({ hover: d })))
+    context.client.dispatch(utils.attrEvent(context, true, d => ({ hover: d })))
     context.ids.forEach((id, i) => {
       const elementData = utils.getElementData(context, i)
       selection.addListener(context.listeners, `hoverin-node-${id}`, () => onHoverIn(elementData, i))
@@ -63,7 +63,7 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
     return self()
   },
   hoverOut: onHoverOut => {
-    context.client.dispatch(utils.createUpdateEvent(context, true, d => ({ hover: d })))
+    context.client.dispatch(utils.attrEvent(context, true, d => ({ hover: d })))
     context.ids.forEach((id, i) => {
       const elementData = utils.getElementData(context, i)
       selection.addListener(context.listeners, `hoverout-node-${id}`, () => onHoverOut(elementData, i))
@@ -73,5 +73,5 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
 }, selection.builder(context, self, construct))
 
 export const nodeSelection = (args: ISelContext<INodeAttr>) => {
-  return utils.create(builder, {...args, name: 'nodes' })
+  return utils.build(builder, {...args, name: 'nodes' })
 }

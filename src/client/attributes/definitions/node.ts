@@ -103,7 +103,7 @@ export const init = (name: string, index: number): INodeAttr => {
     radius: 0,
     angle: 90,
     rotate: false,
-    color: 'rgb(220,220,220)',
+    color: COLORS.white,
     size: 13
   }
   return {...defaults,
@@ -124,7 +124,7 @@ export const initChildren = (prevAttr: INodeAttr, changes: PartialAttr<INodeAttr
     const defaultAngle = (Math.PI * 3 / 4) - ((Math.PI / 2) * (index % 4)) - (Math.floor(index / 4) * (Math.PI / 4))
     return {
       ...attrLabel.init(k as string),
-      radius: { m: 1, x: EnumVarSymbol.Radius, c: 5 },
+      radius: { m: 1, x: EnumVarSymbol.Radius, c: 2 },
       angle: math.angleToDeg(defaultAngle),
       align: 'radial'
     }

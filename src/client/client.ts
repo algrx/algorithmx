@@ -19,12 +19,10 @@ export interface IClientState {
 
 export type ClientListener = (event: ReceiveEvent) => void
 
-export interface ClientEventHandler {
-  receive (onReceive: ClientListener): void
+export interface Client {
+  onReceive (listener: ClientListener): void
   dispatch (event: DispatchEvent): void
-}
 
-interface Client extends ClientEventHandler {
   /* tslint:disable */
   state: IClientState
   listener: ClientListener
@@ -56,7 +54,7 @@ const scheduleEvent = (schedulerState: ISchedulerState, event: DispatchEvent): I
     : scheduler.schedule(schedulerState, event.queue, event)
 }
 
-export const createClient = (canvas: Canvas): Client => {
+export const client = (canvas: Canvas): Client => {
   const buildClient = (self: () => Client): Client => ({
     state: undefined,
     listener: undefined,
@@ -66,7 +64,7 @@ export const createClient = (canvas: Canvas): Client => {
       self().state = state
       /* tslint:enable */
     },
-    receive: fn => {
+    onReceive: fn => {
       /* tslint:disable */
       self().listener = fn
       /* tslint:enable */
@@ -95,7 +93,7 @@ export const createClient = (canvas: Canvas): Client => {
     }
   })
 
-  const client = buildClient(() => client)
-  client.setState(init(canvas, client.receiveEvent, client.tick))
-  return client
+  const newClient = buildClient(() => newClient)
+  newClient.setState(init(canvas, newClient.receiveEvent, newClient.tick))
+  return newClient
 }
