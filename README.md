@@ -8,6 +8,8 @@
 **AlgorithmX** is an event-driven network visualization library, built on top of <a href="https://github.com/d3/d3">D3</a> and <a href="https://github.com/tgdwyer/WebCola">WebCola</a>. It can be used to create highly customizable interactive networks, as well as animated algorithm simulations.
 <br><br>
 
+<img src="https://raw.githubusercontent.com/algrx/algorithmx/master/img/example.svg?sanitize=true" align="center" width="600px">
+
 ## Installing
 
 **Browser:**
