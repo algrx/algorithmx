@@ -21,12 +21,10 @@ export const selectNode = (canvas: Canvas, id: string | number): D3Selection => 
   const renderId = renderUtils.renderId(String(id))
   return selectCanvas(canvas).select('.nodes').select(`[id="node-${renderId}"]`)
 }
-
 export const selectNodeLabel = (node: D3Selection, id: string | number): D3Selection => {
   const renderId = renderUtils.renderId(String(id))
   return node.select('.node-labels').select(`[id="label-${renderId}"]`)
 }
-
 export const getNodeAttr = (canvas: Canvas, id: string | number, attr: string) =>
   selectNode(canvas, id).select('.shape').attr(attr)
 
@@ -34,11 +32,18 @@ export const getNodeColor = (canvas: Canvas, id: string | number) =>
   getNodeAttr(canvas, id, 'fill').replace(/\s/g, '')
 
 
-export const selectEdge = (canvas: Canvas, source: string | number, target: string | number,
-                           id?: string | number): D3Selection => {
-  const renderId = renderUtils.renderId(`${source}-${target}${id !== undefined ? '-' + id : ''}`)
+type EdgeSelector = [string | number, string | number, (string | number)?]
+
+export const selectEdge = (canvas: Canvas, edge: EdgeSelector): D3Selection => {
+  const renderId = renderUtils.renderId(`${edge[0]}-${edge[1]}${edge[2] !== undefined ? '-' + edge[2] : ''}`)
   return selectCanvas(canvas).select('.edges').select(`[id="edge-${renderId}"]`)
 }
+export const getEdgeAttr = (canvas: Canvas, edge: EdgeSelector, attr: string) =>
+  selectEdge(canvas, edge).select('.edge-path').attr(attr)
+
+export const getEdgeColor = (canvas: Canvas, edge: EdgeSelector) =>
+  getEdgeAttr(canvas, edge, 'stroke').replace(/\s/g, '')
+
 
 export const getLabelAttr = (label: D3Selection, attr: string) =>
   label.select('text').attr(attr)

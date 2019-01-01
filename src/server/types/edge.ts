@@ -23,6 +23,13 @@ export interface EdgeSelection extends Selection {
   labels (ids: ReadonlyArray<string | number>): LabelSelection
 
   /**
+   * Sets whether or not the edge should include an arrow pointing towards its target node.
+   *
+   * @param directed - True if the edge should be directed, false otherwise.
+   */
+  directed (directed: ElementArg<boolean>): this
+
+  /**
    * Sets the length of the edge. This will only take effect when [[CanvasSelection.edgeLengths]] is set to "individual".
    *
    * @param length - The length of the edge.

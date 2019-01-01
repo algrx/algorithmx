@@ -16,6 +16,7 @@ export interface IEdgeAttr extends ICommonAttr {
   readonly labels: AttrLookup<ILabelAttr>
   readonly source: AttrString
   readonly target: AttrString
+  readonly directed: AttrBool
   readonly length: AttrNum
   readonly thickness: AttrNum
   readonly color: AttrString
@@ -42,6 +43,7 @@ export const definition = attrDef.extendRecordDef<IEdgeAttr, ICommonAttr>({
     labels: { type: AttrType.Lookup, entry: attrLabel.definition },
     source: { type: AttrType.String },
     target: { type: AttrType.String },
+    directed: { type: AttrType.Boolean },
     length: { type: AttrType.Number },
     thickness: { type: AttrType.Number },
     color: { type: AttrType.String },
@@ -55,7 +57,7 @@ export const definition = attrDef.extendRecordDef<IEdgeAttr, ICommonAttr>({
     }
   },
   type: AttrType.Record,
-  keyOrder: ['labels', 'source', 'target', 'length', 'thickness', 'color', 'flip', 'curve', 'path'],
+  keyOrder: ['labels', 'source', 'target', 'directed', 'length', 'thickness', 'color', 'flip', 'curve', 'path'],
   validVars: []
 }, attrCommon.definition)
 
@@ -64,6 +66,7 @@ export const defaults: IEdgeAttr = {
   labels: {} as AttrLookup<ILabelAttr>,
   source: '',
   target: '',
+  directed: false,
   length: 70,
   thickness: 2,
   color: COLORS.silver,

@@ -56,10 +56,9 @@ export const renderVisible: renderFns.RenderAttrFn<INodeAttr['visible']> = (sele
 
 export const render: renderFns.RenderAttrFn<INodeAttr> = (selection, renderDataInit) => {
   const renderData = preprocessRenderData(renderDataInit)
-
   const nodeSel = selectNodeInner(selection)
 
-  renderFns.onChanged(nodeSel, getEntry(renderData, 'shape'), (s, shapeData) => renderShape(s, shapeData.attr))
+  renderFns.render(nodeSel, getEntry(renderData, 'shape'), (s, shape) => renderShape(nodeSel, shape))
 
   const shapeSelection = nodeSel.select('.shape')
   const labelGroup = selectLabelGroup(nodeSel)

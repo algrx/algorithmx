@@ -43,11 +43,11 @@ export const getLiveNodeData = (canvasSel: D3Selection, layoutState: ILayoutStat
   }
 }
 
-export const getPointAtNodeBoundary = (node: IRenderLiveNode, angle: number): [number, number] => {
-  const offset = attrNode.radiusAtAngle(angle, node.size[0], node.size[1], node.shape)
+export const getPointAtNodeBoundary = (node: IRenderLiveNode, angle: number, offset: number = 0): [number, number] => {
+  const fullOffset = attrNode.radiusAtAngle(angle, node.size[0], node.size[1], node.shape) + offset
   return [
-    node.pos[0] + offset * Math.cos(angle),
-    node.pos[1] + offset * Math.sin(angle)
+    node.pos[0] + fullOffset * Math.cos(angle),
+    node.pos[1] + fullOffset * Math.sin(angle)
   ]
 }
 
