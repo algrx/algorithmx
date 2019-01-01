@@ -1,6 +1,7 @@
 import { D3Selection } from '../src/client/render/utils'
 import { Canvas } from '../src/client/types/events'
-import * as renderUtils from '../src/client/render/canvas/utils'
+import * as renderUtils from '../src/client/render/utils'
+import * as renderCanvasUtils from '../src/client/render/canvas/utils'
 import * as d3 from '../src/client/render/d3.modules'
 
 export const GREEN = 'rgb(0,255,0)'
@@ -13,14 +14,18 @@ export const createSvg = (width = 100, height = 100): HTMLDivElement => {
 }
 
 export const selectCanvas = (canvas: Canvas): D3Selection =>
-  renderUtils.selectCanvas(canvas).select('g')
+  renderCanvasUtils.selectCanvas(canvas).select('g')
 
 
-export const selectNode = (canvas: Canvas, id: string | number): D3Selection =>
-  selectCanvas(canvas).select('.nodes').select(`[id="node-${id}"]`)
+export const selectNode = (canvas: Canvas, id: string | number): D3Selection => {
+  const renderId = renderUtils.renderId(String(id))
+  return selectCanvas(canvas).select('.nodes').select(`[id="node-${renderId}"]`)
+}
 
-export const selectNodeLabel = (node: D3Selection, id: string | number): D3Selection =>
-  node.select('.node-labels').select(`[id="label-${id}"]`)
+export const selectNodeLabel = (node: D3Selection, id: string | number): D3Selection => {
+  const renderId = renderUtils.renderId(String(id))
+  return node.select('.node-labels').select(`[id="label-${renderId}"]`)
+}
 
 export const getNodeAttr = (canvas: Canvas, id: string | number, attr: string) =>
   selectNode(canvas, id).select('.shape').attr(attr)
@@ -30,10 +35,10 @@ export const getNodeColor = (canvas: Canvas, id: string | number) =>
 
 
 export const selectEdge = (canvas: Canvas, source: string | number, target: string | number,
-                           id?: string | number): D3Selection =>
- selectCanvas(canvas).select('.edges')
-    .select(`[id="edge-${source}-${target}${id !== undefined ? '-' + id : ''}"]`)
-
+                           id?: string | number): D3Selection => {
+  const renderId = renderUtils.renderId(`${source}-${target}${id !== undefined ? '-' + id : ''}`)
+  return selectCanvas(canvas).select('.edges').select(`[id="edge-${renderId}"]`)
+}
 
 export const getLabelAttr = (label: D3Selection, attr: string) =>
   label.select('text').attr(attr)

@@ -9,8 +9,10 @@ import * as renderUtils from '../utils'
 export const selectLabelGroup = (sel: D3Selection): D3Selection =>
   renderUtils.selectOrAdd(sel, '.edge-labels', s => s.append('g').classed('edge-labels', true))
 
-export const selectLabel = (sel: D3Selection, id: string): D3Selection =>
-  renderUtils.selectOrAdd(sel, `#label-${id}`, s => s.append('g').attr('id', `label-${id}`))
+export const selectLabel = (sel: D3Selection, id: string): D3Selection => {
+  const renderId = renderUtils.renderId(id)
+  return renderUtils.selectOrAdd(sel, `#label-${renderId}`, s => s.append('g').attr('id', `label-${renderId}`))
+}
 
 export const renderVisible: renderFns.RenderAttrFn<IEdgeAttr['visible']> = (selection, renderData) => {
   renderCommon.renderVisible(selection.select('path'), renderData)

@@ -24,15 +24,18 @@ export const selectLabelGroup = (sel: D3Selection): D3Selection =>
   renderUtils.selectOrAdd(sel, '.labels', s => s.append('g').classed('labels', true))
 
 
-export const selectNode = (sel: D3Selection, id: string): D3Selection =>
-  renderUtils.selectOrAdd(sel, `#node-${id}`, s => s.append('g').attr('id', `node-${id}`))
-
-export const selectEdge = (sel: D3Selection, id: string): D3Selection =>
-  renderUtils.selectOrAdd(sel, `#edge-${id}`, s => s.append('g').attr('id', `edge-${id}`))
-
-export const selectLabel = (sel: D3Selection, id: string): D3Selection =>
-  renderUtils.selectOrAdd(sel, `#label-${id}`, s => s.append('g').attr('id', `label-${id}`))
-
+export const selectNode = (sel: D3Selection, id: string): D3Selection => {
+  const renderId = renderUtils.renderId(id)
+  return renderUtils.selectOrAdd(sel, `#node-${renderId}`, s => s.append('g').attr('id', `node-${renderId}`))
+}
+export const selectEdge = (sel: D3Selection, id: string): D3Selection => {
+  const renderId = renderUtils.renderId(id)
+  return renderUtils.selectOrAdd(sel, `#edge-${renderId}`, s => s.append('g').attr('id', `edge-${renderId}`))
+}
+export const selectLabel = (sel: D3Selection, id: string): D3Selection => {
+  const renderId = renderUtils.renderId(id)
+  return renderUtils.selectOrAdd(sel, `#label-${renderId}`, s => s.append('g').attr('id', `label-${renderId}`))
+}
 
 export const canvasSize = (canvas: Canvas): [number, number] => {
   const svgBase = selectCanvasContainer(canvas)

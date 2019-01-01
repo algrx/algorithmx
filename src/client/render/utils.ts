@@ -42,6 +42,16 @@ export const parseColor = (color: string): string => {
   else return color
 }
 
+export const renderId = (id: string): string => {
+  /* tslint:disable */
+  const hash = id.split('').reduce((h, c) => {
+    const newHash = ((h << 5) - h) + c.charCodeAt(0)
+    return newHash & newHash
+  }, 0)
+  return (hash >>> 0).toString(16)
+  /* tslint:enable */
+}
+
 export const selectOrAdd = (selection: D3Selection, selector: string,
                             addFn: ((s: D3Selection) => D3Selection)): D3Selection => {
   const selected = selection.select(selector)

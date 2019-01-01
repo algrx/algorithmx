@@ -4,10 +4,11 @@ import { ElementFn, ElementArg } from './types'
 export interface Selection {
   /**
    * Adds all elements in the current selection to the canvas. This should be called immediately after a
-   * selection of new elements is created. Additionally, this will disable all subsequent animations, allowing initial
-   * attributes to be set.
+   * selection of new elements is created. If the selection contains multiple elements, they will not necessarily be
+   * added in order.
    *
-   * @return A new instance of the current selection with animations disabled.
+   * @return A new instance of the current selection with animations disabled, allowing initial attributes to be
+   * configured.
    */
   add (): this
 
