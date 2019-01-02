@@ -12,16 +12,16 @@ import * as selection from './Selection'
 import * as utils from './utils'
 
 const receiveHandler = (event: events.ReceiveEvent, listeners: selection.SelListeners): void => {
-  if (event.type === events.ReceiveEventType.Broadcast)
+  if (event.type === events.EnumReceiveType.broadcast)
      selection.triggerListener(listeners, event.data.message)
 
-  else if (event.type === events.ReceiveEventType.Click)
+  else if (event.type === events.EnumReceiveType.click)
     selection.triggerListener(listeners, `click-node-${event.data.id}`)
 
-  else if (event.type === events.ReceiveEventType.Hover)
+  else if (event.type === events.EnumReceiveType.hover)
     selection.triggerListener(listeners, `${event.data.entered ? 'hoverin' : 'hoverout'}-node-${event.data.id}`)
 
-  else if (event.type === events.ReceiveEventType.Error)
+  else if (event.type === events.EnumReceiveType.error)
     throw Error(event.data.message)
 }
 

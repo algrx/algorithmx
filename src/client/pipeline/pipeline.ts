@@ -39,7 +39,7 @@ const preprocess = (attr: unknown, animation: unknown): IAttrPreprocessed | Erro
 
 export const processUpdate = (canvas: Canvas, prevAttr: AttrEval<ICanvasAttr> | undefined,
                               prevExpr: PartialAttr<ICanvasAttr> | undefined,
-                              attrData: events.IDispatchEventUpdate['data']):
+                              attrData: events.IDispatchUpdate['data']):
                               IAttrProcessed | Error => {
   const preprocessed = preprocess(attrData.attributes, attrData.animation)
   if (preprocessed instanceof Error) return preprocessed
@@ -71,7 +71,7 @@ export const processUpdate = (canvas: Canvas, prevAttr: AttrEval<ICanvasAttr> | 
 
 export const processHighlight = (prevState: AttrEval<ICanvasAttr> | undefined,
                                  prevExpr: PartialAttr<ICanvasAttr> | undefined,
-                                 attrData: events.IDispatchEventHighlight['data']):
+                                 attrData: events.IDispatchHighlight['data']):
                                  Pick<IAttrProcessed, 'animation' | 'changes'> | Error => {
   const preprocessed = preprocess(attrData.attributes, attrData.animation)
   if (preprocessed instanceof Error) return preprocessed
@@ -86,7 +86,7 @@ export const processHighlight = (prevState: AttrEval<ICanvasAttr> | undefined,
 }
 
 export const processReset = (prevAttr: AttrEval<ICanvasAttr> | undefined,
-                             attrData: events.IDispatchEventUpdate['data']): IAttrProcessed | Error => {
+                             attrData: events.IDispatchUpdate['data']): IAttrProcessed | Error => {
   const preAnimation = preprocessFns.preprocess(attrData.animation, attrAnim.definition)
   if (preAnimation instanceof Error) return preAnimation
 

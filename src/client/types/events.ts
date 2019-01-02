@@ -4,84 +4,88 @@ import { IAnimation } from '../attributes/definitions/animation'
 
 export type Canvas = string | Element
 
-export enum DispatchEventType {
-  Update = 'update',
-  Highlight = 'highlight',
-  Pause = 'pause',
-  Start = 'start',
-  Stop = 'stop',
-  Cancel = 'cancel',
-  Broadcast = 'broadcast'
+export enum EnumDispatchType {
+  update = 'update',
+  highlight = 'highlight',
+  pause = 'pause',
+  start = 'start',
+  stop = 'stop',
+  cancel = 'cancel',
+  broadcast = 'broadcast'
 }
+export type DispatchType = keyof typeof EnumDispatchType
 
-interface IDispatchEventBase {
-  readonly type: DispatchEventType
+interface IDispatchBase {
+  readonly type: DispatchType
   readonly queue: string | null
 }
 
-export interface IDispatchEventUpdate extends IDispatchEventBase {
-  readonly type: DispatchEventType.Update
+export interface IDispatchUpdate extends IDispatchBase {
+  readonly type: 'update'
   readonly data: {
     readonly attributes: InputAttr<ICanvasAttr>
     readonly animation: PartialAttr<IAnimation>
   }
 }
-export interface IDispatchEventHighlight extends IDispatchEventBase {
-  readonly type: DispatchEventType.Highlight
+export interface IDispatchHighlight extends IDispatchBase {
+  readonly type: 'highlight'
   readonly data: {
     readonly attributes: InputAttr<ICanvasAttr>
     readonly animation: PartialAttr<IAnimation>
   }
 }
 
-export interface IDispatchEventPause extends IDispatchEventBase {
-  readonly type: DispatchEventType.Pause
+export interface IDispatchEventPause extends IDispatchBase {
+  readonly type: 'pause'
   readonly data: { readonly duration: number }
 }
-export interface IDispatchEventBroadcast extends IDispatchEventBase {
-  readonly type: DispatchEventType.Broadcast
+export interface IDispatchEventBroadcast extends IDispatchBase {
+  readonly type: 'broadcast'
   readonly data: { readonly message: string }
 }
-export interface IDispatchEventQueueUpdate extends IDispatchEventBase {
-  readonly type: DispatchEventType.Start | DispatchEventType.Stop | DispatchEventType.Cancel
+export interface IDispatchEventQueueUpdate extends IDispatchBase {
+  readonly type: 'start' | 'stop' | 'cancel'
+  readonly data: { readonly queue: string | null }
 }
 
-export type DispatchEvent = IDispatchEventUpdate | IDispatchEventHighlight | IDispatchEventPause
+export type DispatchEvent = IDispatchUpdate | IDispatchHighlight | IDispatchEventPause
   | IDispatchEventBroadcast | IDispatchEventQueueUpdate
 
-export enum ReceiveEventType {
-  Broadcast = 'broadcast',
-  Error = 'error',
-  Click = 'click',
-  Hover = 'hover'
+export enum EnumReceiveType {
+  broadcast = 'broadcast',
+  error = 'error',
+  click = 'click',
+  hover = 'hover'
 }
+export type ReceiveType = keyof typeof EnumReceiveType
 
-export enum ErrorType {
-  Attribute = 'attribute',
-  Unknown = 'unknown'
+export enum EnumErrorType {
+  attribute = 'attribute',
+  unknown = 'unknown'
 }
+export type ErrorType = keyof typeof EnumErrorType
 
 interface IReceiveEventBase {
-  readonly type: ReceiveEventType
+  readonly type: ReceiveType
 }
 
 export interface IReceiveEventError extends IReceiveEventBase {
-  readonly type: ReceiveEventType.Error
+  readonly type: 'error'
   readonly data: {
     readonly type: ErrorType
     readonly message: string
   }
 }
 export interface IReceiveEventBroadcast extends IReceiveEventBase {
-  readonly type: ReceiveEventType.Broadcast
+  readonly type: 'broadcast'
   readonly data: { readonly message: string }
 }
 export interface IReceiveEventClick extends IReceiveEventBase {
-  readonly type: ReceiveEventType.Click
+  readonly type: 'click'
   readonly data: { readonly id: string }
 }
 export interface IReceiveEventHover extends IReceiveEventBase {
-  readonly type: ReceiveEventType.Hover
+  readonly type: 'hover'
   readonly data: { readonly id: string, readonly entered: boolean }
 }
 

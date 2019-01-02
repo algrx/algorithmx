@@ -11,22 +11,22 @@ import * as renderCanvasListeners from './render/canvas/listeners'
 import * as renderCanvasLive from './render/canvas/live'
 import * as layout from './layout/layout'
 
-export const dispatchError = (message: string, type: events.ErrorType): events.IReceiveEventError =>
-  ({ type: events.ReceiveEventType.Error, data: { message: message, type: type } })
+export const dispatchError = (message: string, type: events.EnumErrorType): events.IReceiveEventError =>
+  ({ type: events.EnumReceiveType.error, data: { message: message, type: type } })
 
 const dispatchClick = (nodeId: string): events.IReceiveEventClick =>
-  ({ type: events.ReceiveEventType.Click, data: { id: nodeId } })
+  ({ type: events.EnumReceiveType.click, data: { id: nodeId } })
 
 const dispatchHover = (nodeId: string, entered: boolean): events.IReceiveEventHover =>
-  ({ type: events.ReceiveEventType.Hover, data: { id: nodeId, entered: entered } })
+  ({ type: events.EnumReceiveType.hover, data: { id: nodeId, entered: entered } })
 
 const executeReset = (state: IClientState, listener: ClientListener,
-                      event: events.IDispatchEventUpdate): IClientState => {
+                      event: events.IDispatchUpdate): IClientState => {
   if (state.attributes === undefined) return state
 
   const processed = pipeline.processReset(state.attributes, event.data)
   if (processed instanceof Error) {
-    listener(dispatchError(processed.message, events.ErrorType.Attribute))
+    listener(dispatchError(processed.message, events.EnumErrorType.attribute))
     return state
   }
 
@@ -64,12 +64,12 @@ const renderBehavior = (canvas: events.Canvas, renderData: RenderAttr<ICanvasAtt
 }
 
 const executeUpdate = (state: IClientState, listener: ClientListener,
-                       event: events.IDispatchEventUpdate): IClientState => {
+                       event: events.IDispatchUpdate): IClientState => {
   if (event.data.attributes === null) return executeReset(state, listener, event)
 
   const processed = pipeline.processUpdate(state.canvas, state.attributes, state.expressions, event.data)
   if (processed instanceof Error) {
-    listener(dispatchError(processed.message, events.ErrorType.Attribute))
+    listener(dispatchError(processed.message, events.EnumErrorType.attribute))
     return state
   }
 
@@ -95,10 +95,10 @@ const executeUpdate = (state: IClientState, listener: ClientListener,
 }
 
 const executeHighlight = (state: IClientState, listener: ClientListener,
-                          event: events.IDispatchEventHighlight): void => {
+                          event: events.IDispatchHighlight): void => {
   const processed = pipeline.processHighlight(state.attributes, state.expressions, event.data)
   if (processed instanceof Error) {
-    listener(dispatchError(processed.message, events.ErrorType.Attribute))
+    listener(dispatchError(processed.message, events.EnumErrorType.attribute))
     return
   }
 
@@ -116,17 +116,17 @@ const executeHighlight = (state: IClientState, listener: ClientListener,
 
 export const executeEvent = (state: IClientState, listener: ClientListener,
                              event: events.DispatchEvent): IClientState => {
-  if (event.type === events.DispatchEventType.Broadcast) {
+  if (event.type === events.EnumDispatchType.broadcast) {
     listener({
-      type: events.ReceiveEventType.Broadcast,
+      type: events.EnumReceiveType.broadcast,
       data: { message: event.data.message }
     })
     return state
 
-  } else if (event.type === events.DispatchEventType.Update) {
+  } else if (event.type === events.EnumDispatchType.update) {
     return executeUpdate(state, listener, event)
 
-  } else if (event.type === events.DispatchEventType.Highlight) {
+  } else if (event.type === events.EnumDispatchType.highlight) {
     executeHighlight(state, listener, event)
     return state
 

@@ -72,13 +72,22 @@ const getFullAttributes = <T extends Attr, R extends Attr, A>
 
 export const attrEvent = <T extends Attr, A>(sel: ISelContext<T>, arg: ElementArg<A>,
                                              attr: (a: A) => InputAttr<T>):
-                                             events.IDispatchEventUpdate | events.IDispatchEventHighlight => {
+                                             events.IDispatchUpdate | events.IDispatchHighlight => {
   const eventData = {
     attributes: getFullAttributes<T, ICanvasAttr, A>(sel, arg, attr),
     animation: sel.animation
   }
   if (sel.highlight)
-    return { type: events.DispatchEventType.Highlight, queue: sel.queue, data: eventData }
+    return { type: events.EnumDispatchType.highlight, queue: sel.queue, data: eventData }
   else
-    return { type: events.DispatchEventType.Update, queue: sel.queue, data: eventData }
+    return { type: events.EnumDispatchType.update, queue: sel.queue, data: eventData }
+}
+
+export const queueEvent = <T extends Attr>(sel: ISelContext<T>, type: events.IDispatchEventQueueUpdate['type'],
+                                           queue: string | number | null): events.IDispatchEventQueueUpdate => {
+  return {
+    type: type,
+    queue: sel.queue,
+    data: { queue: queue === null ? null : String(queue) }
+  }
 }

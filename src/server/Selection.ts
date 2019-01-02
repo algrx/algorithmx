@@ -67,9 +67,10 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
     return self()
   },
 
-  eventQ: (name = 'default') => construct({...context,
-    queue: name === null ? null : String(name)
+  eventQ: (queue = 'default') => construct({...context,
+    queue: queue === null ? null : String(queue)
   }),
+
   animate: type => construct({...context,
     animation: {...context.animation, type: type }
   }),
@@ -93,29 +94,43 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
 
   pause: milliseconds => {
     context.client.dispatch({
-      type: events.DispatchEventType.Pause,
+      type: events.EnumDispatchType.pause,
       queue: context.queue,
       data: { duration: milliseconds }
     })
     return self()
   },
 
-  start: () => {
-    context.client.dispatch({ type: events.DispatchEventType.Start, queue: context.queue })
+  stop: (queue = 'default') => {
+    context.client.dispatch(utils.queueEvent(context, 'stop', queue))
     return self()
   },
-  stop: () => {
-    context.client.dispatch({ type: events.DispatchEventType.Stop, queue: context.queue })
+  stopAll: () => {
+    context.client.dispatch(utils.queueEvent(context, 'stop', null))
     return self()
   },
-  cancel: () => {
-    context.client.dispatch({ type: events.DispatchEventType.Cancel, queue: context.queue })
+
+  start: (queue = 'default') => {
+    context.client.dispatch(utils.queueEvent(context, 'start', queue))
+    return self()
+  },
+  startAll: () => {
+    context.client.dispatch(utils.queueEvent(context, 'start', null))
+    return self()
+  },
+
+  cancel: (queue = 'default') => {
+    context.client.dispatch(utils.queueEvent(context, 'cancel', queue))
+    return self()
+  },
+  cancelAll: () => {
+    context.client.dispatch(utils.queueEvent(context, 'cancel', null))
     return self()
   },
 
   broadcast: message => {
     context.client.dispatch({
-      type: events.DispatchEventType.Broadcast,
+      type: events.EnumDispatchType.broadcast,
       queue: context.queue,
       data: { message: `broadcast-${message}` }
     })
@@ -130,7 +145,7 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
     const message = `callback-${Math.random().toString(36).substr(2, 9)}`
     addListener(context.listeners, message, onCallback)
     context.client.dispatch({
-      type: events.DispatchEventType.Broadcast,
+      type: events.EnumDispatchType.broadcast,
       queue: context.queue,
       data: { message: message }
     })

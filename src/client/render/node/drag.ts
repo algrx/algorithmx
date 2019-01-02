@@ -29,20 +29,22 @@ export const enableHover = (canvasSel: D3Selection, selection: D3Selection,
 
 export const enableDrag = (canvasSel: D3Selection, nodeSel: D3Selection,
                            colaLayout: Layout, nodeLayout: NodeLayout): void => {
-  nodeSel.call(d3.drag().subject(d => webcola.Layout.dragOrigin(nodeLayout))
-    .on('start', () => {
-      _dragging = true
-      canvasSel.style('cursor', 'pointer')
-      d3.event.sourceEvent.stopPropagation()
-      webcola.Layout.dragStart(nodeLayout)
-    }).on('drag', () => {
-      webcola.Layout.drag(nodeLayout, { x: d3.event.x, y: nodeLayout.y - d3.event.dy })
-      colaLayout.resume()
-    }).on('end', () => {
-      _dragging = false
-      if (!_mouseover) canvasSel.style('cursor', null)
-      webcola.Layout.dragEnd(nodeLayout)
-    }))
+  nodeSel.call(d3.drag().subject(() => {
+    const origin = webcola.Layout.dragOrigin(nodeLayout)
+    return {...origin, y: -origin.y }
+  }).on('start', () => {
+    _dragging = true
+    canvasSel.style('cursor', 'pointer')
+    // d3.event.sourceEvent.stopPropagation()
+    webcola.Layout.dragStart(nodeLayout)
+  }).on('drag', () => {
+    webcola.Layout.drag(nodeLayout, { x: d3.event.x, y: -d3.event.y })
+    colaLayout.resume()
+  }).on('end', () => {
+    _dragging = false
+    if (!_mouseover) canvasSel.style('cursor', null)
+    webcola.Layout.dragEnd(nodeLayout)
+  }))
 }
 
 export const disableDrag = (selection: D3Selection): void => {

@@ -2,7 +2,7 @@ import { ICanvasAttr } from './attributes/definitions/canvas'
 import { PartialAttr, AttrEval } from './attributes/types'
 import { RenderBehavior } from './render/canvas/behavior'
 import { ISchedulerState, ISchedulerTask } from './scheduler'
-import { Canvas, ReceiveEvent, DispatchEvent, DispatchEventType } from './types/events'
+import { Canvas, ReceiveEvent, DispatchEvent, EnumDispatchType } from './types/events'
 import * as scheduler from './scheduler'
 import * as renderCanvasLive from './render/canvas/live'
 import * as layout from './layout/layout'
@@ -48,9 +48,9 @@ const init = (canvas: Canvas, receiveEvent: Client['receiveEvent'], tick: Client
 }
 
 const scheduleEvent = (schedulerState: ISchedulerState, event: DispatchEvent): ISchedulerTask => {
-  return event.type === DispatchEventType.Start ? scheduler.start(schedulerState, event.queue)
-    : event.type === DispatchEventType.Stop ? scheduler.stop(schedulerState, event.queue)
-    : event.type === DispatchEventType.Cancel ? scheduler.cancel(schedulerState, event.queue)
+  return event.type === EnumDispatchType.start ? scheduler.start(schedulerState, event.queue)
+    : event.type === EnumDispatchType.stop ? scheduler.stop(schedulerState, event.queue)
+    : event.type === EnumDispatchType.cancel ? scheduler.cancel(schedulerState, event.queue)
     : scheduler.schedule(schedulerState, event.queue, event)
 }
 
@@ -71,7 +71,7 @@ export const client = (canvas: Canvas): Client => {
     },
 
     dispatch: event => {
-      const task = scheduleEvent(self().state.scheduler, event)
+      const task = scheduler.schedule(self().state.scheduler, event.queue, event)
       self().setState({...self().state, scheduler: task.state })
       task.execute()
     },

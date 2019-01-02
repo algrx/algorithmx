@@ -1,4 +1,5 @@
 import * as events from './types/events'
+import { EnumDispatchType } from './types/events'
 
 type Event = events.DispatchEvent
 type EventQueue = Event['queue']
@@ -20,11 +21,11 @@ export interface ISchedulerTask {
   readonly execute: () => void
 }
 
-const initQueue = (): IQueueState => {
+const initQueue = (state: ISchedulerState): IQueueState => {
   return {
     events: [],
     busy: false,
-    stopped: false
+    stopped: state.stopped
   }
 }
 export const init = (callback: SchedulerCallback): ISchedulerState => {
@@ -36,7 +37,7 @@ export const init = (callback: SchedulerCallback): ISchedulerState => {
 }
 
 const getQueueState = (state: ISchedulerState, queue: string): IQueueState => {
-  return state.queues.hasOwnProperty(queue) ? state.queues[queue] : initQueue()
+  return state.queues.hasOwnProperty(queue) ? state.queues[queue] : initQueue(state)
 }
 const updateQueue = (state: ISchedulerState, queue: string,
                      options: Partial<IQueueState>): ISchedulerState => {
@@ -45,10 +46,16 @@ const updateQueue = (state: ISchedulerState, queue: string,
 
 const startAllQueues = (state: ISchedulerState): ISchedulerTask => {
   return Object.keys(state.queues).reduce((resultTask, queue) => {
-    const task = executeNext(resultTask.state, queue)
-    const newState = updateQueue(task.state, queue, { stopped: false })
-    return { state: newState, execute: () => { task.execute(); resultTask.execute() } }
+    const newState = updateQueue(resultTask.state, queue, { stopped: false })
+    const task = executeNext(newState, queue)
+    return { state: task.state, execute: () => { task.execute(); resultTask.execute() } }
   }, { state: state, execute: () => { /**/ } })
+}
+
+const stopAllQueues = (state: ISchedulerState): ISchedulerState => {
+  return Object.keys(state.queues).reduce((resultState, queue) => {
+    return updateQueue(resultState, queue, { stopped: true })
+  }, state)
 }
 
 export const start = (state: ISchedulerState, queue: EventQueue): ISchedulerTask => {
@@ -59,8 +66,8 @@ export const start = (state: ISchedulerState, queue: EventQueue): ISchedulerTask
 }
 
 export const stop = (state: ISchedulerState, queue: EventQueue): ISchedulerTask => {
-  const newState: ISchedulerState = queue === null ? {...state, stopped: true }
-    : updateQueue(state, queue, { stopped: true, busy: false })
+  const newState: ISchedulerState = queue === null ? stopAllQueues({...state, stopped: true })
+    : updateQueue(state, queue, { stopped: true })
   return { state: newState, execute: () => { /**/ } }
 }
 
@@ -89,23 +96,29 @@ export const schedule = (state: ISchedulerState, queue: EventQueue, event: Event
 
 const executeNext = (state: ISchedulerState, queue: string, force = false): ISchedulerTask => {
   const queueState = getQueueState(state, queue)
-  if (state.stopped || queue === null || queueState.stopped || (!force && queueState.busy)) {
+  if (queue === null || (!force && queueState.busy)) {
     // if the queue is busy, only execute the next event when forced
     return {
       state: state,
       execute: () => { /**/ }
     }
-  } else if (queueState.events.length === 0) {
-    // all events have finished, the queue is no longer busy
+  } else if (queueState.stopped || queueState.events.length === 0) {
+    // either the queue is stopped or all events have finished, and so it is no longer busy
     return {
       state: updateQueue(state, queue, { busy: false }),
+      execute: () => { /**/ }
+    }
+  } else if (queue === null || (!force && queueState.busy)) {
+    // if the queue is busy, only execute the next event when forced
+    return {
+      state: state,
       execute: () => { /**/ }
     }
   } else {
     // get the next event in the queue, delay it if it is a pause event, otherwise execute it immediately
     const event = queueState.events[0]
     const executeFunc = () => {
-      if (event.type === events.DispatchEventType.Pause)
+      if (event.type === events.EnumDispatchType.pause)
         setTimeout(() => state.callback(event, queue), (event as events.IDispatchEventPause).data.duration)
       else state.callback(event, queue) // setTimeout(() => state.callback(event, queue), 1)
     }
@@ -117,14 +130,39 @@ const executeNext = (state: ISchedulerState, queue: string, force = false): ISch
   }
 }
 
+const isQueueUpdateEvent = (event: Event): event is events.IDispatchEventQueueUpdate =>
+  event.type === EnumDispatchType.start || event.type === EnumDispatchType.stop
+    || event.type === EnumDispatchType.cancel
+
+const executeQueueUpdate = (state: ISchedulerState, event: events.IDispatchEventQueueUpdate): ISchedulerTask => {
+  if (event.type === EnumDispatchType.start)
+    return start(state, event.data.queue)
+  else if (event.type === EnumDispatchType.stop)
+    return stop(state, event.data.queue)
+  else
+    return cancel(state, event.data.queue)
+}
+
 export const execute = (state: ISchedulerState, queue: string, event: Event,
-                        callback: (event: Event) => void) => {
+                        callback: (event: Event) => void): ISchedulerTask => {
+  // check if the event is valid
   if (queue === null || getQueueState(state, queue).current === event) {
-    // check if the event is valid, force-trigger the next event
-    const nextTask = executeNext(state, queue, true)
-    return {
-      state: nextTask.state,
-      execute: () => { callback(event); nextTask.execute() }
-    }
+    if (isQueueUpdateEvent(event)) {
+        // process start, stop and cancel
+        const queueTask = executeQueueUpdate(state, event)
+        // force-trigger the next event
+        const nextTask = executeNext(queueTask.state, queue, true)
+        return {
+          state: nextTask.state,
+          execute: () => { queueTask.execute(); nextTask.execute() }
+        }
+      } else {
+        // force-trigger the next event
+        const nextTask = executeNext(state, queue, true)
+        return {
+          state: nextTask.state,
+          execute: () => { callback(event); nextTask.execute() }
+        }
+      }
   } else return { state: state, execute: () => { /**/ } }
 }
