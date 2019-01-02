@@ -31,8 +31,8 @@ const isAlignTop = (a: Align): boolean => a === 'top-left' || a === 'top-middle'
 const isAlignBottom = (a: Align): boolean => a === 'bottom-left' || a === 'bottom-middle' || a === 'bottom-right'
 
 export const renderAlign = (selection: D3Selection, renderData: RenderAttr<ILabelAttr['align']>): void => {
-  renderCommon.renderSvgAttr(selection, 'dominant-baseline', v =>
-    isAlignTop(v) ? 'hanging' : isAlignBottom(v) ? 'baseline' : 'middle',
+  renderCommon.renderSvgAttr(selection, 'y', v =>
+    isAlignTop(v) ? '0.75em' : isAlignBottom(v) ? '0em' : '0.25em',
     {...renderData, name: renderData.name + '-y' })
 
   renderCommon.renderSvgAttr(selection, 'text-anchor', v =>
