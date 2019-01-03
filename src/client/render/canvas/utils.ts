@@ -41,18 +41,14 @@ export const selectLabel = (sel: D3Selection, id: string): D3Selection => {
   return renderUtils.selectOrAdd(sel, `#label-${renderId}`, s => s.append('g').attr('id', `label-${renderId}`))
 }
 
-export const canvasSize = (canvas: Canvas): [number, number] => {
+export const getCanvasSize = (canvas: Canvas): [number, number] => {
   const svgBase = selectCanvasContainer(canvas)
 
-  if (svgBase !== null) {
-    return [
-      (svgBase.node() as Element).getBoundingClientRect().width,
-      (svgBase.node() as Element).getBoundingClientRect().height
-    ]
-  } else if (renderUtils.isInBrowser() && typeof canvas === 'string' && document.getElementById(canvas) !== null) {
-    return [
-      document.getElementById(canvas).clientWidth,
-      document.getElementById(canvas).clientHeight
-    ]
-  } else return [100, 100]
+  const size: [number, number] = [
+    (svgBase.node() as Element).getBoundingClientRect().width,
+    (svgBase.node() as Element).getBoundingClientRect().height
+  ]
+
+  if (size[0] !== 0 && size[1] !== 0) return size
+  else return [100, 100]
 }

@@ -8,7 +8,7 @@ import * as attrUtils from '../attributes/utils'
 
 export const initialize = (canvas: Canvas, prevState: ICanvasAttr | undefined,
                            changes: PartialAttr<ICanvasAttr>): PartialAttr<ICanvasAttr> => {
-  const prevStateNew = prevState || attrCanvas.init(renderCanvasUtils.canvasSize(canvas))
+  const prevStateNew = prevState || attrCanvas.init(renderCanvasUtils.getCanvasSize(canvas))
   const initChildren = attrCanvas.initChildren(prevStateNew, changes)
 
   const changesNew = prevState === undefined ? attrUtils.merge(prevStateNew, changes, canvasDef) : changes

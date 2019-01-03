@@ -46,7 +46,13 @@ const renderPanZoom = (selection: D3Selection, renderData: RenderAttr<ICanvasAtt
 
   const panPos = renderProcess.flatten(getEntry(renderData, 'pan'))
   renderFns.render(selection, panPos, (sel, pan) => {
-    return (sel as D3Selection).call(zoomBehavior.translateTo, pan.x, pan.y)
+    const curPanFull = d3.zoomTransform(sel.node() as Element)
+    const newPan: [number, number] = [
+      renderData.attr.size.width / 2 + pan.x,
+      renderData.attr.size.height / 2 + pan.y
+    ]
+    const newPanFull = d3.zoomIdentity.translate(newPan[0], newPan[1]).scale(curPanFull.k)
+    return (sel as D3Selection).call(zoomBehavior.transform, newPanFull)
   })
 
   renderFns.render(selection, getEntry(renderData, 'zoom'), (sel, z) => {
