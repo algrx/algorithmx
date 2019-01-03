@@ -5,7 +5,7 @@ import { INumExpr } from '../../client/attributes/types'
  * allowing attributes to be configured differently for each element.
  *
  * @param ElementFn.data - The data associated with the element.
- * If the `data` method was used previously in the method chain (see [[Selection.data]]), it will determine the type of data used.
+ * If the [[Selection.data]] method was used previously in the method chain, it will determine the type of data used.
  * If the selection has no associated data, it will fall back on its parent's data (as is the case for [[LabelSelection]]).
  * Otherwise, the information used to construct the selection will serve as its data (such as node ID values and edge tuples).
  *

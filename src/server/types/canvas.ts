@@ -18,7 +18,7 @@ export interface CanvasSelection extends Selection {
   /**
    * Selects multiple nodes using an list of ID values.
    *
-   * @param ids - An list of node IDs.
+   * @param ids - A list of node IDs.
    *
    * @return A new selection corresponding to the given nodes.
    */
@@ -37,7 +37,7 @@ export interface CanvasSelection extends Selection {
   /**
    * Selects multiple edges using a list of source, target, and optional ID tuples.
    *
-   * @param ids - An array of (source, target) or (source, target, ID) tuples.
+   * @param ids - A list of (source, target) or (source, target, ID) tuples.
    *
    * @return A new selection corresponding to the given edges.
    */
@@ -55,7 +55,7 @@ export interface CanvasSelection extends Selection {
   /**
    * Selects multiple labels, attached to the canvas, using an array of ID values.
    *
-   * @param ids - An array of labels IDs.
+   * @param ids - A list of labels IDs.
    *
    * @return A new selection corresponding to the given labels.
    */

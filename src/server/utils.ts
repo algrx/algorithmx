@@ -30,9 +30,6 @@ const processAttr = (attr: unknown, data: unknown, index: number) => {
   } else return attr
 }
 
-export const getElementData = <T extends Attr>(selection: ISelContext<T>, index: number): unknown =>
-  selection.data !== undefined ? selection.data[index] : selection.ids[index]
-
 type AttrFromArgFn<T extends Attr, A> = ((d: A) => InputAttr<T>)
 type AttrFromArg<T extends Attr, A> = InputAttr<T> | AttrFromArgFn<T, A>
 
@@ -40,7 +37,7 @@ const getAttrEntry = <T extends Attr, A> (sel: ISelContext<T>, arg: ElementArg<A
                                           index: number): InputAttr<T> => {
   if (typeof attr === 'function') {
     const evalArg = typeof arg === 'function'
-      ? ((arg as ElementFn<A>)(getElementData(sel, index), index))
+      ? ((arg as ElementFn<A>)(sel.data[index], index))
       : arg
     return (attr as AttrFromArgFn<T, A>)(evalArg)
   } else return attr
@@ -53,13 +50,13 @@ const createParentAttr = <T extends Attr, P extends Attr, A>
     return ((a: A) => ({
       [sel.name]: sel.ids.reduce((result, id) =>
         ({...result, [id]: (attr as AttrFromArgFn<T, A>)(a) }), {})
-      })) as AttrFromArgFn<P, A>
+    })) as AttrFromArgFn<P, A>
 
   } else {
-    return ({
+    return {
       [sel.name]: sel.ids.reduce((result, id, i) =>
         ({...result, [id]: getAttrEntry(sel, arg, attr, i) }), {})
-      }) as InputAttr<P>
+    } as InputAttr<P>
   }
 }
 

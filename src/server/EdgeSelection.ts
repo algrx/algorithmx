@@ -13,7 +13,7 @@ const builder: ClassBuilder<EdgeSelection, ISelContext<IEdgeAttr>> = (context, s
   label: (id = 'weight') => {
     return self().labels([id])
   },
-  labels: (ids) => {
+  labels: ids => {
     return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
   },
   directed: directed => {

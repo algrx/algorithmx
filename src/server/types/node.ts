@@ -24,7 +24,7 @@ export interface NodeSelection extends Selection {
   /**
    * Selects multiple labels, attached to the node, using a list of ID values.
    *
-   * @param ids - A list of labels IDs.
+   * @param ids - A list of label IDs.
    *
    * @return A new selection corresponding to the given labels.
    */
@@ -45,7 +45,7 @@ export interface NodeSelection extends Selection {
    *
    * @param radius - The radial corner rounding.
    */
-  corners (radius: ElementArg<number>): this
+  corners (radius: ElementArg<NumExpr>): this
 
   /**
    * Sets the color of the node.

@@ -1,5 +1,8 @@
 import { Client } from './server/types/client'
 import { CanvasSelection } from './server/types/canvas'
+import { NodeSelection } from './server/types/node'
+import { EdgeSelection } from './server/types/edge'
+import { LabelSelection } from './server/types/label'
 import { Canvas } from './client/types/events'
 import * as clientApp from './server/Client'
 
@@ -27,4 +30,12 @@ export const client = (output: Canvas): Client => {
  */
 export const canvas = (output: Canvas): CanvasSelection => {
   return client(output).canvas()
+}
+
+export {
+  Client,
+  CanvasSelection,
+  NodeSelection,
+  EdgeSelection,
+  LabelSelection
 }
