@@ -12,7 +12,6 @@ import * as renderEdge from '../edge/render'
 import * as renderLabel from '../label/render'
 import * as renderDrag from '../node/drag'
 
-
 export const renderVisible: renderFns.RenderAttrFn<ICanvasAttr['visible']> = (selection, renderData) => {
   renderCommon.renderVisible(selection, renderData)
 }
@@ -21,6 +20,9 @@ const render: renderFns.RenderAttrFn<ICanvasAttr> = (selection, renderData) => {
   renderCommon.renderCustomSvg(selection, renderData)
   renderCommon.renderSvgAttr(selection, 'width', v => v, getEntry(getEntry(renderData, 'size'), 'width'))
   renderCommon.renderSvgAttr(selection, 'height', v => v, getEntry(getEntry(renderData, 'size'), 'height'))
+
+  // add an invisible rectangle to fix zooming on safari
+  if (renderUtils.isSafari()) canvasUtils.selectSafariFix(selection)
 
   const canvasInner = canvasUtils.selectCanvasInner(selection)
   const labelGroup = canvasUtils.selectLabelGroup(canvasInner)
@@ -66,7 +68,7 @@ export const renderWithLiveUpdate = (canvas: Canvas, renderData: RenderAttr<ICan
     const selection = canvasUtils.selectNode(nodeGroup, k)
 
     const width = getEntry(getEntry(nodeData, 'size'), 'width')
-    const shape =  getEntry(nodeData, 'shape')
+    const shape = getEntry(nodeData, 'shape')
     const height: IRender<number> = shape.attr === 'circle' ? {...width, name: 'height' }
       : getEntry(getEntry(nodeData, 'size'), 'height')
 

@@ -67,6 +67,11 @@ export const easeFn = (name: AnimationEase): ((t: number) => number) => {
   return d3.ease['ease' + dashToUpperCamel(name)]
 }
 
+export const isSafari = (): boolean => {
+  return navigator && navigator.userAgent !== undefined
+    && /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+}
+
 export const isInBrowser = (): boolean => {
   return typeof window !== undefined
 }

@@ -1,6 +1,8 @@
 import { Layout } from '../../layout/layout'
 import { NodeLayout } from '../../layout/node'
 import { D3Selection } from '../utils'
+import * as renderUtils from '../utils'
+import * as renderCanvasUtils from '../canvas/utils'
 import * as webcola from 'webcola'
 import * as d3 from '../d3.modules'
 
@@ -35,7 +37,8 @@ export const enableDrag = (canvasSel: D3Selection, nodeSel: D3Selection,
   }).on('start', () => {
     _dragging = true
     canvasSel.style('cursor', 'pointer')
-    // d3.event.sourceEvent.stopPropagation()
+    d3.event.sourceEvent.stopPropagation()
+    d3.event.sourceEvent.preventDefault()
     webcola.Layout.dragStart(nodeLayout)
   }).on('drag', () => {
     webcola.Layout.drag(nodeLayout, { x: d3.event.x, y: -d3.event.y })
@@ -50,6 +53,7 @@ export const enableDrag = (canvasSel: D3Selection, nodeSel: D3Selection,
 export const disableDrag = (selection: D3Selection): void => {
   selection.call(d3.drag().on('start', () => {
     d3.event.sourceEvent.stopPropagation()
+    d3.event.sourceEvent.preventDefault()
   }))
 }
 

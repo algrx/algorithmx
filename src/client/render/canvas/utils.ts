@@ -13,6 +13,10 @@ export const selectCanvas = (canvas: Canvas): D3Selection => {
 export const selectCanvasInner = (sel: D3Selection): D3Selection =>
   renderUtils.selectOrAdd(sel, 'g', s => s.append('g'))
 
+export const selectSafariFix = (sel: D3Selection): D3Selection =>
+  renderUtils.selectOrAdd(sel, 'rect', s => s.append('rect').classed('safari-fix', true)
+    .attr('width', '100%').attr('height', '100%').attr('fill', 'none'))
+
 
 export const selectNodeGroup = (sel: D3Selection): D3Selection =>
   renderUtils.selectOrAdd(sel, '.nodes', s => s.append('g').classed('nodes', true))

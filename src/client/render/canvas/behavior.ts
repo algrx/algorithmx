@@ -14,7 +14,6 @@ export interface RenderBehavior {
 
 const updatePanZoomLimit = (selection: D3Selection, renderData: RenderAttr<ICanvasAttr>,
                             behavior: RenderBehavior['zoom'] | undefined): RenderBehavior['zoom'] => {
-  // TODO: renderProcess.hasChanged(renderData)
   if (renderProcess.hasChanged(getEntry(renderData, 'zoomLimit'))
       || renderProcess.hasChanged(getEntry(renderData, 'panLimit'))
       || behavior === undefined) {
