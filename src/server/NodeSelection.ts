@@ -15,7 +15,7 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
     return self().labels([id])
   },
   labels: ids => {
-    return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
+    return labelSelection({...context, parent: context, ids: ids, data: undefined, initattr: undefined })
   },
   shape: shape => {
     context.client.dispatch(utils.attrEvent(context, shape, d => ({ shape: d })))
@@ -53,17 +53,17 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
     })
     return self()
   },
-  hoverIn: onHoverIn => {
+  hoverin: onHoverin => {
     context.client.dispatch(utils.attrEvent(context, true, d => ({ hover: d })))
     context.ids.forEach((id, i) => {
-      selection.addListener(context.listeners, `hoverin-node-${id}`, () => onHoverIn(context.data[i], i))
+      selection.addListener(context.listeners, `hoverin-node-${id}`, () => onHoverin(context.data[i], i))
     })
     return self()
   },
-  hoverOut: onHoverOut => {
+  hoverout: onHoverout => {
     context.client.dispatch(utils.attrEvent(context, true, d => ({ hover: d })))
     context.ids.forEach((id, i) => {
-      selection.addListener(context.listeners, `hoverout-node-${id}`, () => onHoverOut(context.data[i], i))
+      selection.addListener(context.listeners, `hoverout-node-${id}`, () => onHoverout(context.data[i], i))
     })
     return self()
   }

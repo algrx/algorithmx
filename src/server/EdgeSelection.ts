@@ -14,7 +14,7 @@ const builder: ClassBuilder<EdgeSelection, ISelContext<IEdgeAttr>> = (context, s
     return self().labels([id])
   },
   labels: ids => {
-    return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
+    return labelSelection({...context, parent: context, ids: ids, data: undefined, initattr: undefined })
   },
   directed: directed => {
     context.client.dispatch(utils.attrEvent(context, directed, d => ({ directed: d })))

@@ -33,7 +33,7 @@ export interface Selection {
    *
    * The null queue is special; all events added to it will execute immediately. The default queue is named "default".
    *
-   * @param queue - (Optional) The name of the queue. This can be any string or number, or `null` for the immediate
+   * @param queue - The name of the queue. This can be any string or number, or `null` for the immediate
    * queue. Defaults to "default".
    *
    * @return A new instance of the current selection using the specified event queue.
@@ -90,7 +90,7 @@ export interface Selection {
    * Returns a new selection through which all attribute changes are temporary. This is typically used to draw attention
    * to a certain element without permanently changing its attributes.
    *
-   * @param milliseconds - (Optional) The amount of time attributes should remain 'highlighted', in milliseconds, before
+   * @param milliseconds - The amount of time attributes should remain 'highlighted', in milliseconds, before
    * changing back to their original values.
    *
    * @return A new instance of the current selection, where all attribute changes are temporary.
@@ -119,40 +119,43 @@ export interface Selection {
    * Stops the execution of all scheduled events on a particular event queue.
    * Note this will still be added as an event onto the current queue.
    *
-   * @param queue - (Optional) The name of the queue to stop. Defaults to "default".
+   * @param queue - The name of the queue to stop. Defaults to "default".
    */
   stop (queue?: string | number): this
 
   /**
    * Stops the execution of all scheduled events on all event queues.
+   * Note this will still be added as an event onto the current queue.
    */
-  stopAll (): this
+  stopall (): this
 
   /**
    * Starts/resumes the execution of all scheduled events on a particular event queue.
    * Note this will still be added as an event onto the current queue.
    *
-   * @param queue - (Optional) The name of the queue to start. Defaults to "default".
+   * @param queue - The name of the queue to start. Defaults to "default".
    */
   start (queue?: string | number): this
 
   /**
    * Stops the execution of all scheduled events on all event queues.
+   * Note this will still be added as an event onto the current queue.
    */
-  startAll (): this
+  startall (): this
 
   /**
    * Cancels all scheduled events on a particular event queue.
    * Note this will still be added as an event onto the current queue.
    *
-   * @param queue - (Optional) The name of the queue to cancel. Defaults to "default".
+   * @param queue - The name of the queue to cancel. Defaults to "default".
    */
   cancel (queue?: string | number): this
 
   /**
    * Cancels all scheduled events on all event queues.
+   * Note this will still be added as an event onto the current queue.
    */
-  cancelAll (): this
+  cancelall (): this
 
   /**
    * Adds a message to the event queue, which will trigger a corresponding listener (see [[Selection.listen]]).

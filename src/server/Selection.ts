@@ -34,13 +34,13 @@ export interface ISelContext<T extends Attr> {
   readonly data?: ReadonlyArray<unknown>
   readonly parent?: ISelContext<Attr>
   readonly listeners: SelListeners
-  readonly initAttr?: ReadonlyArray<InputAttr<T>>
+  readonly initattr?: ReadonlyArray<InputAttr<T>>
   readonly queue: string | null
   readonly animation: Partial<IAnimation>
   readonly highlight: boolean
 }
 
-export const defaultContext: Omit<ISelContext<Attr>, 'client' | 'initAttr'> = {
+export const defaultContext: Omit<ISelContext<Attr>, 'client' | 'initattr'> = {
   name: '',
   ids: [],
   listeners: {},
@@ -58,7 +58,7 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
   add: () => {
     context.client.dispatch(utils.attrEvent(({...context, data: context.ids }), (id, i) => i, i => ({
       visible: true,
-      ...(context.initAttr ? context.initAttr[i] : {})
+      ...(context.initattr ? context.initattr[i] : {})
     })))
     return self().duration(0)
   },
@@ -105,7 +105,7 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
     context.client.dispatch(utils.queueEvent(context, 'stop', queue))
     return self()
   },
-  stopAll: () => {
+  stopall: () => {
     context.client.dispatch(utils.queueEvent(context, 'stop', null))
     return self()
   },
@@ -114,7 +114,7 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
     context.client.dispatch(utils.queueEvent(context, 'start', queue))
     return self()
   },
-  startAll: () => {
+  startall: () => {
     context.client.dispatch(utils.queueEvent(context, 'start', null))
     return self()
   },
@@ -123,7 +123,7 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
     context.client.dispatch(utils.queueEvent(context, 'cancel', queue))
     return self()
   },
-  cancelAll: () => {
+  cancelall: () => {
     context.client.dispatch(utils.queueEvent(context, 'cancel', null))
     return self()
   },

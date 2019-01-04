@@ -32,7 +32,7 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
     return self().nodes([id])
   },
   nodes: ids => {
-    return nodeSelection({...context, parent: context, ids: ids, data: ids, initAttr: undefined })
+    return nodeSelection({...context, parent: context, ids: ids, data: ids, initattr: undefined })
   },
   edge: edge => {
     return self().edges([edge])
@@ -46,21 +46,21 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
     const initAttr = edges.map(([source, target]) =>
       ({ source: String(source), target: String(target) }))
 
-    return edgeSelection({...context, parent: context, ids: ids, data: edges, initAttr: initAttr })
+    return edgeSelection({...context, parent: context, ids: ids, data: edges, initattr: initAttr })
   },
   label: (id = 'title') => {
     return self().labels([id])
   },
   labels: ids => {
-    return labelSelection({...context, parent: context, ids: ids, data: undefined, initAttr: undefined })
+    return labelSelection({...context, parent: context, ids: ids, data: undefined, initattr: undefined })
   },
   size: size => {
     context.client.dispatch(utils.attrEvent(context, size, d => ({ size: d })))
     return self()
   },
-  edgeLengths: lengthInfo => {
+  edgelengths: lengthInfo => {
     context.client.dispatch(utils.attrEvent(context, lengthInfo, d =>
-      ({ edgeLengths: d }) as InputAttr<ICanvasAttr>))
+      ({ edgelengths: d }) as InputAttr<ICanvasAttr>))
     return self()
   },
   pan: location => {
@@ -71,12 +71,12 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
     context.client.dispatch(utils.attrEvent(context, zoom, d => ({ zoom: d })))
     return self()
   },
-  panLimit: box => {
-    context.client.dispatch(utils.attrEvent(context, box, d => ({ panLimit: d })))
+  panlimit: box => {
+    context.client.dispatch(utils.attrEvent(context, box, d => ({ panlimit: d })))
     return self()
   },
-  zoomLimit: limit => {
-    context.client.dispatch(utils.attrEvent(context, limit, d => ({ zoomLimit: d })))
+  zoomlimit: limit => {
+    context.client.dispatch(utils.attrEvent(context, limit, d => ({ zoomlimit: d })))
     return self()
   }
 }, selection.builder(context, self, construct))

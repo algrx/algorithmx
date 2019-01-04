@@ -30,7 +30,7 @@ export interface ICanvasAttr extends ICommonAttr {
     readonly width: AttrNum
     readonly height: AttrNum
   }
-  readonly edgeLengths: {
+  readonly edgelengths: {
     readonly type: AttrString & EdgeLengthType
     readonly length: AttrNum
   }
@@ -39,11 +39,11 @@ export interface ICanvasAttr extends ICommonAttr {
     readonly y: AttrNum
   }
   readonly zoom: AttrNum
-  readonly panLimit: {
+  readonly panlimit: {
     readonly horizontal: AttrNum
     readonly vertical: AttrNum
   }
-  readonly zoomLimit: {
+  readonly zoomlimit: {
     readonly min: AttrNum
     readonly max: AttrNum
   }
@@ -59,7 +59,7 @@ export const definition = attrDef.extendRecordDef<ICanvasAttr, ICommonAttr>({
       width: { type: AttrType.Number, symbol: EnumVarSymbol.CanvasWidth },
       height: { type: AttrType.Number, symbol: EnumVarSymbol.CanvasHeight }
     }, keyOrder: ['width', 'height'] },
-    edgeLengths: { type: AttrType.Record, entries: {
+    edgelengths: { type: AttrType.Record, entries: {
       type: { type: AttrType.String, validValues: utils.enumValues(EnumEdgeLengthType) },
       length: { type: AttrType.Number }
     }, keyOrder: ['type', 'length'] },
@@ -68,16 +68,16 @@ export const definition = attrDef.extendRecordDef<ICanvasAttr, ICommonAttr>({
       y: { type: AttrType.Number }
     }, keyOrder: ['x', 'y'] },
     zoom: { type: AttrType.Number },
-    panLimit: { type: AttrType.Record, entries: {
+    panlimit: { type: AttrType.Record, entries: {
       horizontal: { type: AttrType.Number },
       vertical: { type: AttrType.Number }
     }, keyOrder: ['horizontal', 'vertical'] },
-    zoomLimit: { type: AttrType.Record, entries: {
+    zoomlimit: { type: AttrType.Record, entries: {
       min: { type: AttrType.Number },
       max: { type: AttrType.Number }
     }, keyOrder: ['min', 'max'] }
   },
-  keyOrder: ['nodes', 'edges', 'labels', 'size', 'edgeLengths', 'pan', 'zoom', 'panLimit', 'zoomLimit'],
+  keyOrder: ['nodes', 'edges', 'labels', 'size', 'edgelengths', 'pan', 'zoom', 'panlimit', 'zoomlimit'],
   validVars: [EnumVarSymbol.CanvasWidth, EnumVarSymbol.CanvasHeight]
 }, attrCommon.definition)
 
@@ -87,14 +87,14 @@ export const defaults: ICanvasAttr = {
   edges: {} as AttrLookup<IEdgeAttr>,
   labels: {} as AttrLookup<ILabelAttr>,
   size: { width: 100, height: 100 },
-  edgeLengths: {
+  edgelengths: {
     type: 'jaccard',
     length: 70
   },
   pan: { x: 0, y: 0 },
   zoom: 1,
-  panLimit: { horizontal: Infinity, vertical: Infinity },
-  zoomLimit: { min: 0.1, max: 10 }
+  panlimit: { horizontal: Infinity, vertical: Infinity },
+  zoomlimit: { min: 0.1, max: 10 }
 }
 
 const labelDefaults: PartialAttr<ILabelAttr> = {

@@ -7,7 +7,7 @@ export interface EdgeSelection extends Selection {
   /**
    * Selects a single label, attached to the edge, by its ID.
    *
-   * @param id - (Optional) The ID of the label. Defaults to "weight".
+   * @param id - The ID of the label. Defaults to "weight".
    *
    * @return A new selection corresponding to the given label.
    */
@@ -30,7 +30,7 @@ export interface EdgeSelection extends Selection {
   directed (directed: ElementArg<boolean>): this
 
   /**
-   * Sets the length of the edge. This will only take effect when [[CanvasSelection.edgeLengths]] is set to "individual".
+   * Sets the length of the edge. This will only take effect when [[CanvasSelection.edgelengths]] is set to "individual".
    *
    * @param length - The length of the edge.
    */

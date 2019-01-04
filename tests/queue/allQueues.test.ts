@@ -12,7 +12,7 @@ it('Queue | Start all', () => {
     canvas.eventQ(1).pause(5).callback(() => { counter += 1 })
     canvas.eventQ(2).pause(15).callback(() => { counter += 1 })
     canvas.eventQ(null).stop().stop(1).stop(2)
-    canvas.eventQ(null).startAll()
+    canvas.eventQ(null).startall()
 
     setTimeout(() => {
       expect(counter).to.eq(3)
@@ -27,7 +27,7 @@ it('Queue | Stop all', () => {
     canvas.pause(10).callback(() => reject(new Error('queues didn\'t stop')))
     canvas.eventQ('A').pause(10).callback(() => reject(new Error('queues didn\'t stop')))
     canvas.eventQ('B').pause(10).callback(() => reject(new Error('queues didn\'t stop')))
-    canvas.eventQ(null).stopAll()
+    canvas.eventQ(null).stopall()
     setTimeout(resolve, 20)
   })
 })
@@ -36,10 +36,10 @@ it('Queue | Stop all then start', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
     canvas.pause(20).callback(() => reject(new Error('queue didn\'t stop')))
-    canvas.stopAll()
+    canvas.stopall()
 
     canvas.eventQ(2).pause(10).callback(resolve)
-    canvas.eventQ(null).startAll()
+    canvas.eventQ(null).startall()
 
     setTimeout(() => reject(new Error('queue didn\'t start')), 30)
   })
@@ -48,7 +48,7 @@ it('Queue | Stop all then start', () => {
 it('Queue | Stop all then start individual', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
-    canvas.stopAll()
+    canvas.stopall()
 
     canvas.eventQ(null).start()
     canvas.pause(10).callback(resolve)
@@ -63,7 +63,7 @@ it('Queue | Cancel all', () => {
   return new Promise((resolve, reject) => {
     canvas.eventQ('q1').pause(10).callback(() => reject(new Error('queues didn\'t cancel')))
     canvas.eventQ('q2').pause(10).callback(() => reject(new Error('queues didn\'t cancel')))
-    canvas.cancelAll()
+    canvas.cancelall()
     setTimeout(resolve, 20)
   })
 })

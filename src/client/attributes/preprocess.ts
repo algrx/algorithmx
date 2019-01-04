@@ -11,7 +11,7 @@ interface PreProcessInfo {
 
 export const initInfo = (): PreProcessInfo => ({
   variables: [],
-  path: []
+  path: [['canvas', AttrType.Record]]
 })
 
 const formatPath = (path: PreProcessInfo['path']): string => {

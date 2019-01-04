@@ -14,18 +14,18 @@ export interface RenderBehavior {
 
 const updatePanZoomLimit = (selection: D3Selection, renderData: RenderAttr<ICanvasAttr>,
                             behavior: RenderBehavior['zoom'] | undefined): RenderBehavior['zoom'] => {
-  if (renderProcess.hasChanged(getEntry(renderData, 'zoomLimit'))
-      || renderProcess.hasChanged(getEntry(renderData, 'panLimit'))
+  if (renderProcess.hasChanged(getEntry(renderData, 'zoomlimit'))
+      || renderProcess.hasChanged(getEntry(renderData, 'panlimit'))
       || behavior === undefined) {
 
     const onZoom = () => canvasUtils.selectCanvasInner(selection)
       .attr('transform', d3.event ? d3.event.transform : '')
 
-    const panH = renderData.attr.panLimit.horizontal
-    const panV = renderData.attr.panLimit.vertical
+    const panH = renderData.attr.panlimit.horizontal
+    const panV = renderData.attr.panlimit.vertical
     const newBehavior = d3.zoom()
       .translateExtent([[-panH, -panV], [panH, panV]])
-      .scaleExtent([renderData.attr.zoomLimit.min, renderData.attr.zoomLimit.max])
+      .scaleExtent([renderData.attr.zoomlimit.min, renderData.attr.zoomlimit.max])
       .on('zoom', onZoom)
 
     selection.call(newBehavior)

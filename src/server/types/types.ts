@@ -9,7 +9,7 @@ import { INumExpr } from '../../client/attributes/types'
  * If the selection has no associated data, it will fall back on its parent's data (as is the case for [[LabelSelection]]).
  * Otherwise, the information used to construct the selection will serve as its data (such as node ID values and edge tuples).
  *
- * @param ElementFn.index - (Optional) The index of the element in the selection, beginning at 0, determined by its
+ * @param ElementFn.index - The index of the element in the selection, beginning at 0, determined by its
  * position in the list initially used to construct the selection.
  */
 export type ElementFn<T> = (data: unknown, index?: number) => T

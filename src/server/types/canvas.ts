@@ -46,7 +46,7 @@ export interface CanvasSelection extends Selection {
   /**
    * Selects a single label, attached to the canvas, by its ID.
    *
-   * @param id - (Optional) The ID of the label. Defaults to "title".
+   * @param id - The ID of the label. Defaults to "title".
    *
    * @return A new selection corresponding to the given label.
    */
@@ -81,7 +81,7 @@ export interface CanvasSelection extends Selection {
    * - "individual": Uses each edge's length attribute individually.
    * - "jaccard", "symmetric": Dynamic calculation using an 'average length' value.
    */
-  edgeLengths (lengthInfo: EdgeLengthType | [EdgeLengthType, NumExpr]): this
+  edgelengths (lengthInfo: EdgeLengthType | [EdgeLengthType, NumExpr]): this
 
   /**
    * Sets the location of the canvas camera. The canvas uses a Cartesian coordinate system with (0, 0) at the center.
@@ -107,7 +107,7 @@ export interface CanvasSelection extends Selection {
    *
    * @param box - A (width/2, height/2) tuple describing the bounding box.
    */
-  panLimit (box: [NumExpr, NumExpr]): this
+  panlimit (box: [NumExpr, NumExpr]): this
 
   /**
    * Restricts the zoom level of the canvas camera to the given range. The lower bound describes how far
@@ -117,5 +117,5 @@ export interface CanvasSelection extends Selection {
    *
    * @param limit - A (min, max) tuple describing the zoom limit.
    */
-  zoomLimit (limit: [NumExpr, NumExpr]): this
+  zoomlimit (limit: [NumExpr, NumExpr]): this
 }

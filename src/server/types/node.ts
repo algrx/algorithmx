@@ -15,7 +15,7 @@ export interface NodeSelection extends Selection {
    * By default, each node is initialized with a "value" label, located at the center of the node and displaying its ID.
    * Any additional labels will be automatically positioned along the boundary of the node.
    *
-   * @param id - (Optional) The ID of the label. Defaults to "value".
+   * @param id - The ID of the label. Defaults to "value".
    *
    * @return A new selection corresponding to the given label.
    */
@@ -97,14 +97,14 @@ export interface NodeSelection extends Selection {
   /**
    * Registers a function to listen for node mouse-over events, triggered when the mouse enters the node.
    *
-   * @param onHoverIn - A function taking the node's data (see [[Selection.data]]) and, optionally, index.
+   * @param onHoverin - A function taking the node's data (see [[Selection.data]]) and, optionally, index.
    */
-  hoverIn (onHoverIn: ElementFn<void>): this
+  hoverin (onHoverin: ElementFn<void>): this
 
   /**
    * Registers a function to listen for node mouse-over events, triggered when the mouse leaves the node.
    *
-   * @param onHoverOut - A function taking the node's data (see [[Selection.data]]) and, optionally, index.
+   * @param onHoverout - A function taking the node's data (see [[Selection.data]]) and, optionally, index.
    */
-  hoverOut (onHoverOut: ElementFn<void>): this
+  hoverout (onHoverout: ElementFn<void>): this
 }

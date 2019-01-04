@@ -54,7 +54,7 @@ export const update = (layoutState: ILayoutState, attr: AttrEval<ICanvasAttr>,
   if (didUpdateNodes) layoutNode.updateCola(layoutState.cola, newNodes)
 
   // edges need to be re-added when edge length type changes
-  if (didUpdateEdges || changes.edgeLengths !== undefined)
+  if (didUpdateEdges || changes.edgelengths !== undefined)
     layoutEdge.updateCola(layoutState.cola, newNodes, layoutEdge.createLookup(attr.edges))
 
   if (didUpdateCanvas) layoutCanvas.updateCola(layoutState.cola, attr)

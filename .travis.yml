@@ -17,9 +17,8 @@ jobs:
   include:
   - stage: test
     script: "npm run test && node_modules/codecov/bin/codecov"
-# waiting for TypeDoc to update to TypeScript 3.2
-#  - stage: docs
-#    script: "npm run docs && node scripts/deployDocs.js"
+  - stage: docs
+    script: "npm run docs && node scripts/deployDocs.js"
 
 env:
   global:
