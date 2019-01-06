@@ -45,7 +45,7 @@ export interface IDispatchEventBroadcast extends IDispatchBase {
 }
 export interface IDispatchEventQueueUpdate extends IDispatchBase {
   readonly type: 'start' | 'stop' | 'cancel'
-  readonly data: { readonly queue: string | null }
+  readonly data: { readonly queues: ReadonlyArray<string> | null }
 }
 
 export type DispatchEvent = IDispatchUpdate | IDispatchHighlight | IDispatchEventPause

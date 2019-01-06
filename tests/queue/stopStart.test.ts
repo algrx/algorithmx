@@ -1,5 +1,15 @@
+import { expect } from 'chai'
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
+
+it('Queue | Stop', () => {
+  const canvas = algorithmx.canvas(utils.createSvg())
+  return new Promise((resolve, reject) => {
+    canvas.pause(10).callback(() => reject(new Error('queue didn\'t stop')))
+    canvas.eventQ(2).stop()
+    setTimeout(resolve, 20)
+  })
+})
 
 it('Queue | Start', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
@@ -11,11 +21,11 @@ it('Queue | Start', () => {
   })
 })
 
-it('Queue | Stop', () => {
+it('Queue | Cancel', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
-    canvas.pause(10).callback(() => reject(new Error('queue didn\'t stop')))
-    canvas.eventQ(2).stop()
+    canvas.eventQ('q1').pause(10).callback(() => reject(new Error('queue didn\'t cancel')))
+    canvas.cancel('q1')
     setTimeout(resolve, 20)
   })
 })
@@ -39,11 +49,32 @@ it('Queue | Delayed stop', () => {
   })
 })
 
-it('Queue | Cancel', () => {
+it('Queue | Stop and start multiple', () => {
+  const canvas = algorithmx.canvas(utils.createSvg())
+  return new Promise(resolve => {
+    /* tslint:disable */
+    let count = 0
+    /* tslint:enable */
+    canvas.eventQ(1).pause(10).callback(() => count += 1)
+    canvas.eventQ(2).pause(10).callback(() => count += 1)
+
+    canvas.stop([1, 2])
+    canvas.pause(20).start([1, 2])
+
+    expect(count).to.eq(0)
+    setTimeout(() => {
+      expect(count).to.eq(2)
+      resolve()
+    }, 25)
+  })
+})
+
+it('Queue | Cancel multiple', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
-    canvas.eventQ('q1').pause(10).callback(() => reject(new Error('queue didn\'t cancel')))
-    canvas.cancel('q1')
+    canvas.eventQ('q1').pause(10).callback(() => reject(new Error('queue 1 didn\'t cancel')))
+    canvas.eventQ('q2').pause(10).callback(() => reject(new Error('queue 2 didn\'t cancel')))
+    canvas.cancel(['q1', 'q2'])
     setTimeout(resolve, 20)
   })
 })

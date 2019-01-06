@@ -47,13 +47,6 @@ const init = (canvas: Canvas, receiveEvent: Client['receiveEvent'], tick: Client
   }
 }
 
-const scheduleEvent = (schedulerState: ISchedulerState, event: DispatchEvent): ISchedulerTask => {
-  return event.type === EnumDispatchType.start ? scheduler.start(schedulerState, event.queue)
-    : event.type === EnumDispatchType.stop ? scheduler.stop(schedulerState, event.queue)
-    : event.type === EnumDispatchType.cancel ? scheduler.cancel(schedulerState, event.queue)
-    : scheduler.schedule(schedulerState, event.queue, event)
-}
-
 export const client = (canvas: Canvas): Client => {
   const buildClient = (self: () => Client): Client => ({
     state: undefined,

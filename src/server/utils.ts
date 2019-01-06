@@ -80,11 +80,13 @@ export const attrEvent = <T extends Attr, A>(sel: ISelContext<T>, arg: ElementAr
     return { type: events.EnumDispatchType.update, queue: sel.queue, data: eventData }
 }
 
+type EventQueues = string | number | ReadonlyArray<string | number> | null
 export const queueEvent = <T extends Attr>(sel: ISelContext<T>, type: events.IDispatchEventQueueUpdate['type'],
-                                           queue: string | number | null): events.IDispatchEventQueueUpdate => {
+                                           queues: EventQueues): events.IDispatchEventQueueUpdate => {
+  const queueList = queues === null ? null : (Array.isArray(queues) ? queues : [queues]).map(q => String(q))
   return {
     type: type,
     queue: sel.queue,
-    data: { queue: queue === null ? null : String(queue) }
+    data: { queues: queueList }
   }
 }

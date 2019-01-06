@@ -116,44 +116,44 @@ export interface Selection {
   pause (milliseconds: number): this
 
   /**
-   * Stops the execution of all scheduled events on a particular event queue.
-   * Note this will still be added as an event onto the current queue.
+   * Stops the execution of all scheduled events on one or more event queues.
+   * Note that this will still be added as an event onto the current queue.
    *
-   * @param queue - The name of the queue to stop. Defaults to "default".
+   * @param queue - The name of the queue to stop, or list of names. Defaults to "default".
    */
-  stop (queue?: string | number): this
+  stop (queue?: string | number | ReadonlyArray<string | number>): this
 
   /**
    * Stops the execution of all scheduled events on all event queues.
-   * Note this will still be added as an event onto the current queue.
+   * Note that this will still be added as an event onto the current queue.
    */
   stopall (): this
 
   /**
-   * Starts/resumes the execution of all scheduled events on a particular event queue.
-   * Note this will still be added as an event onto the current queue.
+   * Starts/resumes the execution of all scheduled events on one or more event queues.
+   * Note that this will still be added as an event onto the current queue.
    *
-   * @param queue - The name of the queue to start. Defaults to "default".
+   * @param queue - The name of the queue to start, or list of names. Defaults to "default".
    */
-  start (queue?: string | number): this
+  start (queue?: string | number | ReadonlyArray<string | number>): this
 
   /**
    * Starts/resumes the execution of all scheduled events on all event queues.
-   * Note this will still be added as an event onto the current queue.
+   * Note that this will still be added as an event onto the current queue.
    */
   startall (): this
 
   /**
-   * Cancels all scheduled events on a particular event queue.
-   * Note this will still be added as an event onto the current queue.
+   * Cancels all scheduled events on one or more event queues.
+   * Note that this will still be added as an event onto the current queue.
    *
-   * @param queue - The name of the queue to cancel. Defaults to "default".
+   * @param queue - The name of the queue to cancel, or list of names. Defaults to "default".
    */
-  cancel (queue?: string | number): this
+  cancel (queue?: string | number | ReadonlyArray<string | number>): this
 
   /**
    * Cancels all scheduled events on all event queues.
-   * Note this will still be added as an event onto the current queue.
+   * Note that this will still be added as an event onto the current queue.
    */
   cancelall (): this
 

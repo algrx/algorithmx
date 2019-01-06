@@ -2,8 +2,7 @@ import * as events from './types/events'
 import { EnumDispatchType } from './types/events'
 
 type Event = events.DispatchEvent
-type EventQueue = Event['queue']
-type SchedulerCallback = (event: Event, queue: EventQueue) => void
+type SchedulerCallback = (event: Event, queue: string | null) => void
 
 interface IQueueState {
   readonly events: ReadonlyArray<Event>
@@ -44,40 +43,43 @@ const updateQueue = (state: ISchedulerState, queue: string,
   return {...state, queues: {...state.queues, [queue]: {...getQueueState(state, queue), ...options } } }
 }
 
-const startAllQueues = (state: ISchedulerState): ISchedulerTask => {
-  return Object.keys(state.queues).reduce((resultTask, queue) => {
-    const newState = updateQueue(resultTask.state, queue, { stopped: false })
-    const task = executeNext(newState, queue)
+const modifyMultipleQueues = (state: ISchedulerState, queues: ReadonlyArray<string>,
+                              stateFn: (state: ISchedulerState, q: string) => ISchedulerState,
+                              taskFn: (state: ISchedulerState, q: string) => ISchedulerTask) => {
+  return queues.reduce((resultTask, q) => {
+    const newState = stateFn(resultTask.state, q)
+    const task = taskFn(newState, q)
     return { state: task.state, execute: () => { task.execute(); resultTask.execute() } }
   }, { state: state, execute: () => { /**/ } })
 }
 
-const stopAllQueues = (state: ISchedulerState): ISchedulerState => {
-  return Object.keys(state.queues).reduce((resultState, queue) => {
-    return updateQueue(resultState, queue, { stopped: true })
-  }, state)
+export const start = (state: ISchedulerState, queues: ReadonlyArray<string> | null): ISchedulerTask => {
+  const newState: ISchedulerState = queues === null ? {...state, stopped: false } : state
+  const allQueues = queues === null ? Object.keys(state.queues) : queues
+  return modifyMultipleQueues(newState, allQueues,
+    (s, q) => updateQueue(s, q, { stopped: false }),
+    (s, q) => executeNext(s, q))
 }
 
-export const start = (state: ISchedulerState, queue: EventQueue): ISchedulerTask => {
-  const newState: ISchedulerState = queue === null ? {...state, stopped: false }
-    : updateQueue(state, queue, { stopped: false })
-  if (queue === null) return startAllQueues(newState)
-  else return executeNext(newState, queue)
+export const stop = (state: ISchedulerState, queues: ReadonlyArray<string> | null): ISchedulerTask => {
+  const newState: ISchedulerState = queues === null ? {...state, stopped: true } : state
+  const allQueues = queues === null ? Object.keys(state.queues) : queues
+
+  const finalState = allQueues.reduce((resultState, queue) =>
+    updateQueue(resultState, queue, { stopped: true }), newState)
+  return { state: finalState, execute: () => { /**/ } }
 }
 
-export const stop = (state: ISchedulerState, queue: EventQueue): ISchedulerTask => {
-  const newState: ISchedulerState = queue === null ? stopAllQueues({...state, stopped: true })
-    : updateQueue(state, queue, { stopped: true })
-  return { state: newState, execute: () => { /**/ } }
+export const cancel = (state: ISchedulerState, queues: ReadonlyArray<string> | null): ISchedulerTask => {
+  const newState: ISchedulerState = queues === null ? {...state, queues: {} } : state
+  const allQueues = queues === null ? Object.keys(state.queues) : queues
+
+  const finalState = allQueues.reduce((resultState, queue) =>
+    updateQueue(resultState, queue,  { events: [], busy: false }), newState)
+  return { state: finalState, execute: () => { /**/ } }
 }
 
-export const cancel = (state: ISchedulerState, queue: EventQueue): ISchedulerTask => {
-  const newState: ISchedulerState = queue === null ? {...state, queues: {} }
-    : updateQueue(state, queue, { events: [], busy: false })
-  return { state: newState, execute: () => { /**/ } }
-}
-
-export const schedule = (state: ISchedulerState, queue: EventQueue, event: Event): ISchedulerTask => {
+export const schedule = (state: ISchedulerState, queue: string | null, event: Event): ISchedulerTask => {
   if (queue === null) {
     // execute the event immediately if no queue is specified
     return {
@@ -136,14 +138,14 @@ const isQueueUpdateEvent = (event: Event): event is events.IDispatchEventQueueUp
 
 const executeQueueUpdate = (state: ISchedulerState, event: events.IDispatchEventQueueUpdate): ISchedulerTask => {
   if (event.type === EnumDispatchType.start)
-    return start(state, event.data.queue)
+    return start(state, event.data.queues)
   else if (event.type === EnumDispatchType.stop)
-    return stop(state, event.data.queue)
+    return stop(state, event.data.queues)
   else
-    return cancel(state, event.data.queue)
+    return cancel(state, event.data.queues)
 }
 
-export const execute = (state: ISchedulerState, queue: string, event: Event,
+export const execute = (state: ISchedulerState, queue: string | null, event: Event,
                         callback: (event: Event) => void): ISchedulerTask => {
   // check if the event is valid
   if (queue === null || getQueueState(state, queue).current === event) {

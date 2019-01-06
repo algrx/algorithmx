@@ -11,7 +11,7 @@ it('Queue | Start all', () => {
     canvas.pause(5).callback(() => { counter += 1 })
     canvas.eventQ(1).pause(5).callback(() => { counter += 1 })
     canvas.eventQ(2).pause(15).callback(() => { counter += 1 })
-    canvas.eventQ(null).stop().stop(1).stop(2)
+    canvas.eventQ(null).stop().stop([1, 2])
     canvas.eventQ(null).startall()
 
     setTimeout(() => {
