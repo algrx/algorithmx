@@ -61,7 +61,7 @@ export interface NodeSelection extends Selection {
    * Note that size can be set relative to the node's current size using string expressions, e.g. "1.5x" for circles
    * or ["1.5x", "1.5y"] for rectangles and other shapes.
    *
-   * @param size The radius of the node, or a (width/2, height/2) tuple.
+   * @param size - The radius of the node, or a (width/2, height/2) tuple.
    */
   size (size: ElementArg<NumExpr | [NumExpr, NumExpr]>): this
 

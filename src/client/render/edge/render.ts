@@ -1,25 +1,27 @@
 import { IEdgeAttr } from '../../attributes/definitions/edge'
 import { D3Selection } from '../utils'
 import { RenderAttr, getEntry } from '../process'
+import * as edgeColor from './color'
 import * as renderLabel from '../label/render'
 import * as renderFns from '../render'
 import * as renderCommon from '../common'
 import * as renderUtils from '../utils'
 
-export const MARKER_WIDTH = 5
+export const MARKER_SIZE = 10
 
 interface RenderMarker {
   readonly path: string
   readonly viewBox: string
-  readonly width: number
-  readonly height: number
+  readonly size: number
 }
 const MARKER_ARROW: RenderMarker = {
   path: 'M 0,0 m -5,-5 L 5,0 L -5,5 Z',
   viewBox: '-5 -5 10 10',
-  width: MARKER_WIDTH,
-  height: 5
+  size: MARKER_SIZE
 }
+
+export const selectEdgeInner = (sel: D3Selection): D3Selection =>
+  renderUtils.selectOrAdd(sel, '.edge', s => s.append('g').classed('edge', true))
 
 export const selectLabelGroup = (sel: D3Selection): D3Selection =>
   renderUtils.selectOrAdd(sel, '.edge-labels', s => s.append('g').classed('edge-labels', true))
@@ -39,17 +41,18 @@ const selectMarker = (sel: D3Selection, edgeId: string, markerId: string): D3Sel
   })
 }
 
-export const renderMarkers = (selection: D3Selection, renderData: RenderAttr<IEdgeAttr>, edgeId: string) => {
+export const renderMarkers = (selection: D3Selection, renderData: RenderAttr<IEdgeAttr>, edgeId: string): void => {
   renderFns.render(selection, getEntry(renderData, 'directed'), (sel, directed) => {
     if (directed) {
       const marketTarget = selectMarker(selection, edgeId, 'target')
       const shape = MARKER_ARROW
       marketTarget.attr('viewBox', shape.viewBox)
-        .attr('markerHeight', shape.width).attr('markerWidth', shape.height)
-        .attr('markerUnits', 'strokeWidth')
+        .attr('markerWidth', shape.size).attr('markerHeight', shape.size)
+        .attr('markerUnits', 'userSpaceOnUse')
         .attr('orient', 'auto').attr('refX', 0).attr('refY', 0)
-
-      marketTarget.select('path').attr('d', shape.path).attr('fill', renderData.attr.color)
+      marketTarget.select('path')
+        .attr('d', shape.path)
+        .attr('fill', renderUtils.parseColor(renderData.attr.color))
       return sel
     } else {
       selection.select('defs').remove()
@@ -59,13 +62,14 @@ export const renderMarkers = (selection: D3Selection, renderData: RenderAttr<IEd
 }
 
 export const renderVisible: renderFns.RenderAttrFn<IEdgeAttr['visible']> = (selection, renderData) => {
-  renderCommon.renderVisible(selection.select('.edge-path'), renderData)
+  renderCommon.renderVisible(selection.select('.edge'), renderData)
 }
 
 export const render: renderFns.RenderAttrFn<IEdgeAttr> = (selection, renderData) => {
-  const pathSel = renderUtils.selectOrAdd(selection, '.edge-path', s =>
+  const edgeSel = selectEdgeInner(selection)
+  const pathSel = renderUtils.selectOrAdd(edgeSel, '.edge-path', s =>
     s.append('path').classed('edge-path', true).attr('fill', 'none').attr('stroke-linecap', 'round'))
-  const labelGroup = selectLabelGroup(selection)
+  const labelGroup = selectLabelGroup(edgeSel)
 
   renderCommon.renderCommonLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
     renderLabel.render, renderLabel.renderVisible)
@@ -73,14 +77,14 @@ export const render: renderFns.RenderAttrFn<IEdgeAttr> = (selection, renderData)
   renderCommon.renderCustomSvg(pathSel, renderData)
   renderCommon.renderSvgAttr(pathSel, 'stroke-width', v => v, getEntry(renderData, 'thickness'))
 
-  const edgeId = selection.attr('id').substr('edge-'.length)
-  renderMarkers(selection, renderData, edgeId)
+  const edgeRenderId = selection.attr('id').substr('edge-'.length)
+  renderMarkers(edgeSel, renderData, edgeRenderId)
 
   renderCommon.renderSvgAttr(pathSel, 'marker-end', v =>
-    v ? `url(#marker-edge-${edgeId}-target)` : 'url()', getEntry(renderData, 'directed'))
+    v ? `url(#marker-edge-${edgeRenderId}-target)` : 'url()', getEntry(renderData, 'directed'))
 
-  const markerTarget = selectMarker(selection, edgeId, 'target').select('path')
+  const markerTarget = selectMarker(edgeSel, edgeRenderId, 'target').select('path')
 
-  renderCommon.renderSvgAttr(markerTarget, 'fill', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
-  renderCommon.renderSvgAttr(pathSel, 'stroke', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
+  const overlaySelector = () => edgeColor.selectOverlay(edgeSel, edgeRenderId)
+  edgeColor.renderColor(pathSel, markerTarget, overlaySelector, renderData)
 }

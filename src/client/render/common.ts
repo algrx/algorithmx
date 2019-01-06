@@ -40,7 +40,7 @@ export const renderCustomSvg: renderFns.RenderAttrFn<ICommonAttr> = (selection, 
   })
 }
 
-function animateAdd (selection: D3Selection, animation: IAnimation): void {
+const animateAdd = (selection: D3Selection, animation: IAnimation): void => {
   if (animation.type === 'scale' || animation.type === 'scale-fade') {
     selection.attr('transform', 'scale(0,0)')
     const transition = renderFns.animate(selection, 'visible-scale', animation).attr('transform', 'scale(1,1)')
@@ -53,7 +53,7 @@ function animateAdd (selection: D3Selection, animation: IAnimation): void {
   }
 }
 
-function animateRemove (selection: D3Selection, animation: IAnimation): void {
+const animateRemove = (selection: D3Selection, animation: IAnimation): void => {
   if (animation.type === 'scale' || animation.type === 'scale-fade') {
     selection.attr('transform', 'scale(1,1)')
     renderFns.animate(selection, 'visible-scale', animation).attr('transform', 'scale(0,0)')

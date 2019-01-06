@@ -35,7 +35,9 @@ export const getNodeColor = (canvas: Canvas, id: string | number) =>
 type EdgeSelector = [string | number, string | number, (string | number)?]
 
 export const selectEdge = (canvas: Canvas, edge: EdgeSelector): D3Selection => {
-  const renderId = renderUtils.renderId(`${edge[0]}-${edge[1]}${edge[2] !== undefined ? '-' + edge[2] : ''}`)
+  const orderedNodes = [edge[0], edge[1]].sort()
+  const edgeIdFull = `${orderedNodes[0]}-${orderedNodes[1]}${edge[2] !== undefined ? '-' + edge[2] : ''}`
+  const renderId = renderUtils.renderId(edgeIdFull)
   return selectCanvas(canvas).select('.edges').select(`[id="edge-${renderId}"]`)
 }
 export const getEdgeAttr = (canvas: Canvas, edge: EdgeSelector, attr: string) =>

@@ -68,10 +68,10 @@ export const defaults: IEdgeAttr = {
   target: '',
   directed: false,
   length: 70,
-  thickness: 2,
+  thickness: 2.5,
   color: COLORS.silver,
   flip: true,
-  curve: 'cardinal',
+  curve: 'natural',
   path: []
 }
 
@@ -84,7 +84,11 @@ const labelDefaults: PartialAttr<ILabelAttr> = {
 
 export const animationDefaults: PartialAttr<AnimationFull<IEdgeAttr>> = {
   ...attrCommon.animationDefaults,
-  labels: { '*': attrLabel.animationDefaults }
+  labels: { '*': attrLabel.animationDefaults },
+  color: {
+    duration: 600,
+    linger: 0
+  }
 }
 
 export const init = (): IEdgeAttr => {

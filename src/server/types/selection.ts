@@ -51,7 +51,7 @@ export interface Selection {
    * - "traverse": Changes the color of edges using a traversal animation (from source to target).
    * - "traverse-reverse": Changes the color of edges using a reversed traversal animation (from target to source).
    *
-   * @return A new instance of the current selection using the specified animation type.
+   * @return A new instance of the current selection using the specified animation type. Defaults to "normal".
    */
   animate (type: AnimationType): this
 
@@ -138,7 +138,7 @@ export interface Selection {
   start (queue?: string | number): this
 
   /**
-   * Stops the execution of all scheduled events on all event queues.
+   * Starts/resumes the execution of all scheduled events on all event queues.
    * Note this will still be added as an event onto the current queue.
    */
   startall (): this

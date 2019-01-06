@@ -71,7 +71,7 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
     queue: queue === null ? null : String(queue)
   }),
 
-  animate: type => construct({...context,
+  animate: (type = 'normal') => construct({...context,
     animation: {...context.animation, type: type }
   }),
   duration: milliseconds => construct({...context,

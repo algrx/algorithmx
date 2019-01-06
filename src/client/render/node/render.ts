@@ -9,6 +9,9 @@ import * as renderFns from '../render'
 import * as renderCommon from '../common'
 import * as renderUtils from '../utils'
 
+export const selectNodeInner = (sel: D3Selection): D3Selection =>
+  renderUtils.selectOrAdd(sel, '.node', s => s.append('g').classed('node', true))
+
 export const selectLabelGroup = (sel: D3Selection): D3Selection =>
   renderUtils.selectOrAdd(sel, '.node-labels', s => s.append('g').classed('node-labels', true))
 
@@ -16,8 +19,6 @@ export const selectLabel = (sel: D3Selection, id: string): D3Selection => {
   const renderId = renderUtils.renderId(id)
   return renderUtils.selectOrAdd(sel, `#label-${renderId}`, s => s.append('g').attr('id', `label-${renderId}`))
 }
-export const selectNodeInner = (sel: D3Selection): D3Selection =>
-  renderUtils.selectOrAdd(sel, `.node`, s => s.append('g').classed('node', true))
 
 const renderShape: renderFns.RenderFn<INodeAttr['shape']> = (selection: D3Selection, shape) => {
   selection.select('.shape').remove()

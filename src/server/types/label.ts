@@ -81,7 +81,7 @@ export interface LabelSelection extends Selection {
   font (font: ElementArg<string>): this
 
   /**
-   * Sets size of the label's text.
+   * Sets the size of the label's text.
    *
    * @param size - The size of the label's text, in pixels.
    */

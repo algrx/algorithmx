@@ -8,7 +8,9 @@ export enum EnumAnimationType {
   normal = 'normal',
   scale = 'scale',
   fade = 'fade',
-  'scale-fade' = 'scale-fade'
+  'scale-fade' = 'scale-fade',
+  traverse = 'traverse',
+  'traverse-reverse' = 'traverse-reverse'
 }
 export type AnimationType = keyof typeof EnumAnimationType
 

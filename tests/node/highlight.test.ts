@@ -21,5 +21,19 @@ it('Node | Highlight color', () => {
 })
 
 it('Node | Highlight size using expression', () => {
-  //
+  const svg = utils.createSvg()
+  const canvas = algorithmx.canvas(svg)
+
+  canvas.node('A').add().size(20)
+  expect(utils.getNodeAttr(svg, 'A', 'r')).to.eq('20')
+
+  canvas.node('A').duration(0).highlight(40).size('1.5x')
+  expect(utils.getNodeAttr(svg, 'A', 'r')).to.eq('30')
+
+  return new Promise(resolve => {
+    setTimeout(() => {
+      expect(utils.getNodeAttr(svg, 'A', 'r')).to.eq('20')
+      resolve()
+    }, 50)
+  })
 })

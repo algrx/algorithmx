@@ -22,13 +22,21 @@ export const newTransition = (selection: D3SelTrans, callback: TransCallback): D
   if (!canAnimate()) return selection
   else return callback(selection.transition())
 }
+export const updateTransition = (selection: D3SelTrans, callback: TransCallback): D3SelTrans => {
+  if (renderUtils.isTransition(selection)) return callback(selection)
+  else return selection
+}
+
+export const parseTime = (time: number): number => {
+  return time
+}
 
 export const isAnimationImmediate = (animation: IAnimation | undefined) =>
   animation === undefined || animation.duration === 0
 
 export const transAnimate = (trans: D3Transition, animation: IAnimation): D3Transition => {
   if (isAnimationImmediate(animation)) return trans.duration(0)
-  else return trans.duration(animation.duration).ease(renderUtils.easeFn(animation.ease))
+  else return trans.duration(parseTime(animation.duration)).ease(renderUtils.easeFn(animation.ease))
 }
 export const animate = (selection: D3Selection, name: string, animation: IAnimation): D3SelTrans => {
   if (isAnimationImmediate(animation)) {
@@ -39,30 +47,32 @@ export const animate = (selection: D3Selection, name: string, animation: IAnimat
   }
 }
 
-export function onChanged<T extends Attr> (selection: D3Selection, renderData: RenderEndpoint<T>,
-                                           callback: ((s: D3Selection, d: RenderEndpoint<T>) => void)):
-                                           void {
+export const onChanged = <T extends Attr>(selection: D3Selection, renderData: RenderEndpoint<T>,
+                                          callback: ((s: D3Selection, d: RenderEndpoint<T>) => void)): void => {
   if (renderProcess.hasChanged(renderData))
     callback(selection, renderData)
 }
 
-export function render<T extends Attr> (selection: D3Selection, renderData: RenderEndpoint<T>,
-                                        renderFn: RenderFn<T>): D3SelTrans {
-  if (renderData.highlight !== undefined) {
-    const initTrans = renderFn(animate(selection, renderData.name, renderData.animation), renderData.highlight)
-
-    const linger = renderData.animation ? renderData.animation.linger : 0
-    const newTrans = newTransition(initTrans, t => transAnimate(t.delay(linger), renderData.animation))
-    return renderFn(newTrans, renderData.attr)
-
-  } else return renderNoHighlight(selection, renderData, renderFn)
+export const render = <T extends Attr>(selection: D3Selection, renderData: RenderEndpoint<T>,
+                                       renderFn: RenderFn<T>): D3SelTrans => {
+  if (renderData.highlight !== undefined) return renderHighlight(selection, renderData, renderFn, renderFn)
+  else return renderNoHighlight(selection, renderData, renderFn)
 }
 
-export function renderNoHighlight<T extends Attr> (selection: D3Selection, renderData: RenderEndpoint<T>,
-                                                   renderFn: RenderFn<T>): D3SelTrans {
+export const renderNoHighlight = <T extends Attr>(selection: D3Selection, renderData: RenderEndpoint<T>,
+                                                  renderFn: RenderFn<T>): D3SelTrans => {
   if (renderData.changes !== undefined) {
     return renderFn(animate(selection, renderData.name, renderData.animation), renderData.attr)
   } else return selection
+}
+
+export const renderHighlight = <T extends Attr>(selection: D3Selection, renderData: RenderEndpoint<T>,
+                                                renderStartFn: RenderFn<T>, renderEndFn: RenderFn<T>): D3SelTrans => {
+  const initTrans = renderStartFn(animate(selection, renderData.name, renderData.animation), renderData.highlight)
+
+  const linger = renderData.animation ? renderData.animation.linger : 0
+  const newTrans = newTransition(initTrans, t => transAnimate(t.delay(parseTime(linger)), renderData.animation))
+  return renderEndFn(newTrans, renderData.attr)
 }
 
 export type RenderLookupFn<T> = (k: string, renderData: RenderAttr<T>) => void

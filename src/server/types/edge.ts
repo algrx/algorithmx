@@ -14,7 +14,7 @@ export interface EdgeSelection extends Selection {
   label (id: string | number): LabelSelection
 
   /**
-   * Selects multiple labels, attached to the edge, using an list of ID values.
+   * Selects multiple labels, attached to the edge, using a list of ID values.
    *
    * @param ids - A list of label IDs.
    *

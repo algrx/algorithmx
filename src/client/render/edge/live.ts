@@ -4,7 +4,7 @@ import { IRenderLiveNode } from '../node/live'
 import { ILayoutState } from '../../layout/layout'
 import { ICanvasAttr } from '../../attributes/definitions/canvas'
 import { AttrEval } from '../../attributes/types'
-import { MARKER_WIDTH } from './render'
+import { MARKER_SIZE } from './render'
 import * as renderUtils from '../utils'
 import * as liveNode from '../node/live'
 import * as math from '../../math'
@@ -28,7 +28,7 @@ export const getLiveEdgeData = (canvasSel: D3Selection, layoutState: ILayoutStat
   const sourceData = liveNode.getLiveNodeData(canvasSel, layoutState, canvasAttr, edgeAttr.source)
   const targetData = liveNode.getLiveNodeData(canvasSel, layoutState, canvasAttr, edgeAttr.target)
 
-  const targetOffset = edgeAttr.directed ? MARKER_WIDTH : 0
+  const targetOffset = edgeAttr.directed ? MARKER_SIZE / 2 : 0
   const angle = Math.atan2(targetData.pos[1] - sourceData.pos[1], targetData.pos[0] - sourceData.pos[0])
 
   return {
@@ -90,5 +90,9 @@ export const renderEdgePath = (edgeSel: D3Selection, edge: IRenderLiveEdge, orig
   const pointAtTargetRel = math.rotate(math.translate(pointAtTarget, [-origin[0], -origin[1]]), -edge.angle)
 
   const lineFunction = d3.shape.line().x(d => d[0]).y(d => -d[1]).curve(curveFn(edge.curve))
-  edgeSel.select('.edge-path').attr('d', lineFunction([pointAtSourceRel, ...edgePath, pointAtTargetRel]))
+  const line = lineFunction([pointAtSourceRel, ...edgePath, pointAtTargetRel])
+
+  edgeSel.select('.edge-path').attr('d', line)
+  const overlay = edgeSel.select('.edge-path-overlay')
+  if (!overlay.empty()) overlay.attr('d', line)
 }
