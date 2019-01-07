@@ -35,21 +35,21 @@ export interface IDispatchHighlight extends IDispatchBase {
   }
 }
 
-export interface IDispatchEventPause extends IDispatchBase {
+export interface IDispatchPause extends IDispatchBase {
   readonly type: 'pause'
   readonly data: { readonly duration: number }
 }
-export interface IDispatchEventBroadcast extends IDispatchBase {
+export interface IDispatchBroadcast extends IDispatchBase {
   readonly type: 'broadcast'
   readonly data: { readonly message: string }
 }
-export interface IDispatchEventQueueUpdate extends IDispatchBase {
+export interface IDispatchQueueUpdate extends IDispatchBase {
   readonly type: 'start' | 'stop' | 'cancel'
   readonly data: { readonly queues: ReadonlyArray<string> | null }
 }
 
-export type DispatchEvent = IDispatchUpdate | IDispatchHighlight | IDispatchEventPause
-  | IDispatchEventBroadcast | IDispatchEventQueueUpdate
+export type DispatchEvent = IDispatchUpdate | IDispatchHighlight | IDispatchPause
+  | IDispatchBroadcast | IDispatchQueueUpdate
 
 export enum EnumReceiveType {
   broadcast = 'broadcast',
@@ -65,29 +65,28 @@ export enum EnumErrorType {
 }
 export type ErrorType = keyof typeof EnumErrorType
 
-interface IReceiveEventBase {
+interface IReceiveBase {
   readonly type: ReceiveType
 }
 
-export interface IReceiveEventError extends IReceiveEventBase {
+export interface IReceiveError extends IReceiveBase {
   readonly type: 'error'
   readonly data: {
     readonly type: ErrorType
     readonly message: string
   }
 }
-export interface IReceiveEventBroadcast extends IReceiveEventBase {
+export interface IReceiveBroadcast extends IReceiveBase {
   readonly type: 'broadcast'
   readonly data: { readonly message: string }
 }
-export interface IReceiveEventClick extends IReceiveEventBase {
+export interface IReceiveClick extends IReceiveBase {
   readonly type: 'click'
   readonly data: { readonly id: string }
 }
-export interface IReceiveEventHover extends IReceiveEventBase {
+export interface IReceiveHover extends IReceiveBase {
   readonly type: 'hover'
   readonly data: { readonly id: string, readonly entered: boolean }
 }
 
-export type ReceiveEvent = IReceiveEventError | IReceiveEventBroadcast
-  | IReceiveEventClick | IReceiveEventHover
+export type ReceiveEvent = IReceiveError | IReceiveBroadcast | IReceiveClick | IReceiveHover

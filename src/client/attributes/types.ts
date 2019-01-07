@@ -65,15 +65,33 @@ export type PartialAttr<T extends Attr> =
   : T extends AttrArray<infer A> ? T // should be: AttrArray<PartialAttr<A>>
   : { [k in keyof T]?: PartialAttr<T[k]> }
 
+
+// INPUT ATTRIBUTES
+
 type InputAttrRec<T> = { [k in keyof T]?: InputAttr<T[k]> }
+
+type InputNum = AttrNum | string
+
+// type NumTuple<K1 extends string, K2 extends string> = { [k in K1]: AttrNum } & { [k in K2]: AttrNum }
+type NumTuple<K1 extends string, K2 extends string> = { [k in K1 | K2]: AttrNum }
+type InputNumTuple = InputNum | [InputNum, InputNum]
+
+// type StrNumTuple<K1 extends string, K2 extends string, S extends string> =
+//  { [k in K2]: S } & { [k in K1]: AttrNum }
+
+type StrNumTuple<K1 extends string, K2 extends string, S extends string> = { [k in K1 | K2]: S | AttrNum }
+type InputStrNumTuple<S extends string> = S | [S, InputNum]
+
 export type InputAttr<T extends Attr> =
-  T extends AttrNum ? T | string
+  T extends AttrNum ? InputNum
   : T extends AttrPrimitive ? T
+
+
+  // this is a work-around to allow number records (such as size or pos) to be specified as tuples or individual values
+  : T extends NumTuple<infer NK2, infer NK2> ? InputNumTuple | InputAttrRec<T>
+  : T extends StrNumTuple<infer SNK1, infer SNK2, infer S> ? InputStrNumTuple<S> | InputAttrRec<T>
+
   : T extends AttrLookup<infer L> ? InputAttrRec<T>
 
-  // this is a work-around to allow number records (such as size or pos) to be specified as arrays
-  : T extends { readonly [s: string]: AttrNum } ? InputAttrRec<T> | ReadonlyArray<AttrNum | string>
-
-  // should end with: ReadonlyArray<InputAttr<AttrEntry<T>>>
-  : T extends AttrRecord ? InputAttrRec<T> | ReadonlyArray<AttrEntry<T>>
+  : T extends AttrRecord ? InputAttrRec<T>
   : never

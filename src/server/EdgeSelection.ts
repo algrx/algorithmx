@@ -1,14 +1,14 @@
+import { InputEdgeAttr } from '../client/attributes/definitions/types'
 import { ISelContext } from './Selection'
 import { EdgeSelection } from './types/edge'
 import { Selection } from './types/selection'
 import { labelSelection } from './LabelSelection'
 import { ClassBuilder } from './utils'
-import { IEdgeAttr } from '../client/attributes/definitions/edge'
 import * as selection from './Selection'
 import * as utils from './utils'
 
-const builder: ClassBuilder<EdgeSelection, ISelContext<IEdgeAttr>> = (context, self, construct) =>
-  utils.inherit<EdgeSelection, Selection>({
+const builder: ClassBuilder<EdgeSelection, ISelContext<InputEdgeAttr>> = (context, self, construct) =>
+  utils.inherit<EdgeSelection, Selection<InputEdgeAttr>>({
 
   label: (id = 'weight') => {
     return self().labels([id])
@@ -46,6 +46,6 @@ const builder: ClassBuilder<EdgeSelection, ISelContext<IEdgeAttr>> = (context, s
   }
 }, selection.builder(context, self, construct))
 
-export const edgeSelection = (args: ISelContext<IEdgeAttr>) => {
+export const edgeSelection = (args: ISelContext<InputEdgeAttr>) => {
   return utils.build(builder, {...args, name: 'edges' })
 }

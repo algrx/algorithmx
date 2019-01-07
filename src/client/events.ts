@@ -11,13 +11,13 @@ import * as renderCanvasListeners from './render/canvas/listeners'
 import * as renderCanvasLive from './render/canvas/live'
 import * as layout from './layout/layout'
 
-export const dispatchError = (message: string, type: events.EnumErrorType): events.IReceiveEventError =>
+export const dispatchError = (message: string, type: events.EnumErrorType): events.IReceiveError =>
   ({ type: events.EnumReceiveType.error, data: { message: message, type: type } })
 
-const dispatchClick = (nodeId: string): events.IReceiveEventClick =>
+const dispatchClick = (nodeId: string): events.IReceiveClick =>
   ({ type: events.EnumReceiveType.click, data: { id: nodeId } })
 
-const dispatchHover = (nodeId: string, entered: boolean): events.IReceiveEventHover =>
+const dispatchHover = (nodeId: string, entered: boolean): events.IReceiveHover =>
   ({ type: events.EnumReceiveType.hover, data: { id: nodeId, entered: entered } })
 
 const executeReset = (state: IClientState, listener: ClientListener,

@@ -121,7 +121,7 @@ const executeNext = (state: ISchedulerState, queue: string, force = false): ISch
     const event = queueState.events[0]
     const executeFunc = () => {
       if (event.type === events.EnumDispatchType.pause) {
-        const delay = (event as events.IDispatchEventPause).data.duration * 1000
+        const delay = (event as events.IDispatchPause).data.duration * 1000
         setTimeout(() => state.callback(event, queue), delay)
       } else state.callback(event, queue)
     }
@@ -133,11 +133,11 @@ const executeNext = (state: ISchedulerState, queue: string, force = false): ISch
   }
 }
 
-const isQueueUpdateEvent = (event: Event): event is events.IDispatchEventQueueUpdate =>
+const isQueueUpdateEvent = (event: Event): event is events.IDispatchQueueUpdate =>
   event.type === EnumDispatchType.start || event.type === EnumDispatchType.stop
     || event.type === EnumDispatchType.cancel
 
-const executeQueueUpdate = (state: ISchedulerState, event: events.IDispatchEventQueueUpdate): ISchedulerTask => {
+const executeQueueUpdate = (state: ISchedulerState, event: events.IDispatchQueueUpdate): ISchedulerTask => {
   if (event.type === EnumDispatchType.start)
     return start(state, event.data.queues)
   else if (event.type === EnumDispatchType.stop)

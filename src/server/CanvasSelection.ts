@@ -1,3 +1,4 @@
+import { InputCanvasAttr } from '../client/attributes/definitions/types'
 import { ISelContext, EventHandler } from './Selection'
 import { nodeSelection } from './NodeSelection'
 import { edgeSelection } from './EdgeSelection'
@@ -5,8 +6,6 @@ import { labelSelection } from './LabelSelection'
 import { CanvasSelection } from './types/canvas'
 import { Selection } from './types/selection'
 import { ClassBuilder } from './utils'
-import { ICanvasAttr } from '../client/attributes/definitions/canvas'
-import { InputAttr } from '../client/attributes/types'
 import * as events from '../client/types/events'
 import * as selection from './Selection'
 import * as utils from './utils'
@@ -25,8 +24,8 @@ const receiveHandler = (event: events.ReceiveEvent, listeners: selection.SelList
     throw Error(event.data.message)
 }
 
-const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (context, self, construct) =>
-  utils.inherit<CanvasSelection, Selection>({
+const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (context, self, construct) =>
+  utils.inherit<CanvasSelection, Selection<InputCanvasAttr>>({
 
   node: id => {
     return self().nodes([id])
@@ -59,8 +58,7 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
     return self()
   },
   edgelengths: lengthInfo => {
-    context.client.dispatch(utils.attrEvent(context, lengthInfo, d =>
-      ({ edgelengths: d }) as InputAttr<ICanvasAttr>))
+    context.client.dispatch(utils.attrEvent(context, lengthInfo, d => ({ edgelengths: d })))
     return self()
   },
   pan: location => {
@@ -82,7 +80,7 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<ICanvasAttr>> = (contex
 }, selection.builder(context, self, construct))
 
 export const canvasSelection = (handler: EventHandler) => {
-  const context: ISelContext<ICanvasAttr> = {
+  const context: ISelContext<InputCanvasAttr> = {
     ...selection.defaultContext,
     client: handler,
     name: 'canvas'

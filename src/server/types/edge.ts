@@ -1,9 +1,10 @@
+import { InputEdgeAttr } from '../../client/attributes/definitions/types'
+import { Curve } from '../../client/attributes/definitions/edge'
 import { Selection } from './selection'
 import { LabelSelection } from './label'
 import { ElementArg, NumExpr } from './types'
-import { Curve } from '../../client/attributes/definitions/edge'
 
-export interface EdgeSelection extends Selection {
+export interface EdgeSelection extends Selection<InputEdgeAttr> {
   /**
    * Selects a single label, attached to the edge, by its ID.
    *

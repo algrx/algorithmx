@@ -1,7 +1,8 @@
 import { AnimationType, AnimationEase } from '../../client/attributes/definitions/animation'
+import { InputElementAttr } from '../../client/attributes/definitions/types'
 import { ElementFn, ElementArg } from './types'
 
-export interface Selection {
+export interface Selection<T extends InputElementAttr> {
   /**
    * Adds all elements in the current selection to the canvas. This should be called immediately after a
    * selection of new elements is created. If the selection contains multiple elements, they will not necessarily be
@@ -16,6 +17,29 @@ export interface Selection {
    * Removes all elements in the current selection from the canvas.
    */
   remove (): this
+
+  /**
+   * Sets one or more custom attributes on all elements in the current selection. The attributes are provided using
+   * a dictionary, where each (key, value) pair corresponds to the method and argument setting the same attribute.
+   * For example:
+   *
+   * @example
+   * ```typescript
+   *
+   * node.color('red').size([20, 30]).svgattr('fill-opacity', 0.5)
+   * // is equivalent to
+   * node.set({
+   *  color: 'red',
+   *  size: [20, 30],
+   *  svgattr: {
+   *    'fill-opacity': 0.5
+   *  }
+   * })
+   * ```
+   *
+   * @param attrs - A dictionary of custom attributes.
+   */
+  set (attrs: ElementArg<T>): this
 
   /**
    * Sets whether or not the elements in the current selection should be visible. This can be animated in the same way

@@ -1,4 +1,4 @@
-import { ReceiveEvent, DispatchEvent, Canvas } from '../../client/types/events'
+import { ReceiveEvent, DispatchEvent } from '../../client/types/events'
 import { CanvasSelection } from './canvas'
 
 /**

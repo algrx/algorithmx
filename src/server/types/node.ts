@@ -1,13 +1,16 @@
+import { Shape } from '../../client/attributes/definitions/node'
+import { InputNodeAttr } from '../../client/attributes/definitions/types'
 import { Selection } from './selection'
 import { LabelSelection } from './label'
 import { ElementArg, NumExpr, ElementFn } from './types'
-import { Shape } from '../../client/attributes/definitions/node'
 
-export interface NodeSelection extends Selection {
+export interface NodeSelection extends Selection<InputNodeAttr> {
   /**
    * Removes all nodes in the current selection from the canvas. Additionally, removes any edges connected to the nodes.
    */
   remove (): this
+
+  set (attrs: InputNodeAttr): this
 
   /**
    * Selects a single label, attached to the node, by its ID.

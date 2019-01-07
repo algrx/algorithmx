@@ -1,13 +1,13 @@
+import { InputLabelAttr } from '../client/attributes/definitions/types'
 import { ISelContext } from './Selection'
 import { Selection } from './types/selection'
 import { LabelSelection } from './types/label'
 import { ClassBuilder } from './utils'
-import { ILabelAttr } from '../client/attributes/definitions/label'
 import * as selection from './Selection'
 import * as utils from './utils'
 
-const builder: ClassBuilder<LabelSelection, ISelContext<ILabelAttr>> = (context, self, construct) =>
-  utils.inherit<LabelSelection, Selection>({
+const builder: ClassBuilder<LabelSelection, ISelContext<InputLabelAttr>> = (context, self, construct) =>
+  utils.inherit<LabelSelection, Selection<InputLabelAttr>>({
 
   text: text => {
     context.client.dispatch(utils.attrEvent(context, text, d => ({ text: d })))
@@ -47,6 +47,6 @@ const builder: ClassBuilder<LabelSelection, ISelContext<ILabelAttr>> = (context,
   }
 }, selection.builder(context, self, construct))
 
-export const labelSelection = (args: ISelContext<ILabelAttr>) => {
+export const labelSelection = (args: ISelContext<InputLabelAttr>) => {
   return utils.build(builder, {...args, name: 'labels' })
 }

@@ -1,9 +1,9 @@
+import { InputElementAttr } from '../client/attributes/definitions/types'
 import { Selection } from './types/selection'
-import { IAnimation, AnimationType } from '../client/attributes/definitions/animation'
+import { IAnimation } from '../client/attributes/definitions/animation'
 import { ICommonAttr } from '../client/attributes/definitions/common'
 import { ClassBuilder } from './utils'
 import { Omit } from '../client/utils'
-import { Attr, InputAttr } from '../client/attributes/types'
 import { DispatchEvent, ReceiveEvent } from '../client/types/events'
 import * as events from '../client/types/events'
 import * as utils from './utils'
@@ -27,20 +27,20 @@ export const triggerListener = (listeners: SelListeners, id: string): void => {
   if (listeners[id] !== undefined) listeners[id]()
 }
 
-export interface ISelContext<T extends Attr> {
+export interface ISelContext<T extends InputElementAttr> {
   readonly client: EventHandler
   readonly name: string
   readonly ids: ReadonlyArray<string | number>
   readonly data?: ReadonlyArray<unknown>
-  readonly parent?: ISelContext<Attr>
+  readonly parent?: ISelContext<InputElementAttr>
   readonly listeners: SelListeners
-  readonly initattr?: ReadonlyArray<InputAttr<T>>
+  readonly initattr?: ReadonlyArray<T>
   readonly queue: string | null
   readonly animation: Partial<IAnimation>
   readonly highlight: boolean
 }
 
-export const defaultContext: Omit<ISelContext<Attr>, 'client' | 'initattr'> = {
+export const defaultContext: Omit<ISelContext<ICommonAttr>, 'client' | 'initattr'> = {
   name: '',
   ids: [],
   listeners: {},
@@ -49,7 +49,9 @@ export const defaultContext: Omit<ISelContext<Attr>, 'client' | 'initattr'> = {
   highlight: false
 }
 
-export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (context, self, construct) => ({
+export const builder: ClassBuilder<Selection<InputElementAttr>, ISelContext<InputElementAttr>> =
+  (context, self, construct) => ({
+
   visible: visible => {
     context.client.dispatch(utils.attrEvent(context, visible, d => ({ visible: d })))
     return self()
@@ -64,6 +66,11 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
   },
   remove: () => {
     context.client.dispatch(utils.attrEvent(context, false, d => null))
+    return self()
+  },
+
+  set: attrs => {
+    context.client.dispatch(utils.attrEvent(context, attrs, d => d))
     return self()
   },
 

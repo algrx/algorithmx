@@ -1,4 +1,8 @@
-import { INumExpr } from '../../client/attributes/types'
+import { INumExpr, AttrRecord, InputAttr } from '../../client/attributes/types'
+import { ICanvasAttr } from '../../client/attributes/definitions/canvas'
+import { INodeAttr } from '../../client/attributes/definitions/node'
+import { IEdgeAttr } from '../../client/attributes/definitions/edge'
+import { ICommonAttr } from '../../client/attributes/definitions/common'
 
 /**
  * A function taking a selected element's data as input. This is typically provided as an argument in a selection method,
@@ -21,8 +25,8 @@ export type ElementFn<T> = (data: unknown, index?: number) => T
 export type ElementArg<T> = ElementFn<T> | T
 
 /**
- * A number or expression evaluating to a number. Expressions must be in the form `mx+c`, described by either an
- * `{ m, x, c }` dictionary, or an expression string such as `-2x+8`. Both `m` and `c` are constants, while `x` is a
+ * A number, or an expression evaluating to a number. Expressions must be in the form `mx+c`, described by either an
+ * `{ m, x, c }` dictionary, or an expression string such as "-2x+8". Both `m` and `c` are constants, while `x` is a
  * variable corresponding to some other attribute. Below is a list of valid variables and the context in which they
  * can be used:
  *

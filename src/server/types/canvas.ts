@@ -1,11 +1,13 @@
+import { InputCanvasAttr } from '../../client/attributes/definitions/types'
+import { EdgeLengthType } from '../../client/attributes/definitions/canvas'
 import { Selection } from './selection'
 import { NumExpr } from './types'
 import { NodeSelection } from './node'
 import { EdgeSelection } from './edge'
 import { LabelSelection } from './label'
-import { EdgeLengthType } from '../../client/attributes/definitions/canvas'
 
-export interface CanvasSelection extends Selection {
+
+export interface CanvasSelection extends Selection<InputCanvasAttr> {
   /**
    * Selects a single node by its ID.
    *

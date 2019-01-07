@@ -9,7 +9,7 @@ it('Node | Highlight color', () => {
   canvas.node('A').add().color(utils.GREEN)
   expect(utils.getNodeColor(svg, 'A')).to.eq(utils.GREEN)
 
-  canvas.node('A').duration(0).highlight(0.04).color(utils.RED)
+  canvas.node('A').duration(0).highlight(0.03).color(utils.RED)
   expect(utils.getNodeColor(svg, 'A')).to.eq(utils.RED)
 
   return new Promise(resolve => {
@@ -27,7 +27,7 @@ it('Node | Highlight size using expression', () => {
   canvas.node('A').add().size(20)
   expect(utils.getNodeAttr(svg, 'A', 'r')).to.eq('20')
 
-  canvas.node('A').duration(0).highlight(0.04).size('1.5x')
+  canvas.node('A').duration(0).highlight(0.03).size('1.5x')
   expect(utils.getNodeAttr(svg, 'A', 'r')).to.eq('30')
 
   return new Promise(resolve => {

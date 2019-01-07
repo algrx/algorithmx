@@ -1,8 +1,9 @@
+import { InputLabelAttr } from '../../client/attributes/definitions/types'
+import { Align } from '../../client/attributes/definitions/label'
 import { Selection } from './selection'
 import { ElementArg, NumExpr } from './types'
-import { Align } from '../../client/attributes/definitions/label'
 
-export interface LabelSelection extends Selection {
+export interface LabelSelection extends Selection<InputLabelAttr> {
   /**
    * Sets the text displayed by the label. The newline character ("\n") can be used to break the text into multiple lines.
    * Note that text cannot be animated or highlighted.

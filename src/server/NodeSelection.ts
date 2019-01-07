@@ -1,15 +1,14 @@
+import { InputNodeAttr } from '../client/attributes/definitions/types'
 import { ISelContext } from './Selection'
 import { NodeSelection } from './types/node'
 import { Selection } from './types/selection'
 import { labelSelection } from './LabelSelection'
 import { ClassBuilder } from './utils'
-import { INodeAttr } from '../client/attributes/definitions/node'
-import { InputAttr } from '../client/attributes/types'
 import * as selection from './Selection'
 import * as utils from './utils'
 
-const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, self, construct) =>
-  utils.inherit<NodeSelection, Selection>({
+const builder: ClassBuilder<NodeSelection, ISelContext<InputNodeAttr>> = (context, self, construct) =>
+  utils.inherit<NodeSelection, Selection<InputNodeAttr>>({
 
   label: (id = 'value') => {
     return self().labels([id])
@@ -30,8 +29,7 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
     return self()
   },
   size: size => {
-    context.client.dispatch(utils.attrEvent(context, size, d =>
-      ({ size: d }) as InputAttr<INodeAttr>))
+    context.client.dispatch(utils.attrEvent(context, size, d => ({ size: d })))
     return self()
   },
   pos: pos => {
@@ -69,6 +67,6 @@ const builder: ClassBuilder<NodeSelection, ISelContext<INodeAttr>> = (context, s
   }
 }, selection.builder(context, self, construct))
 
-export const nodeSelection = (args: ISelContext<INodeAttr>) => {
+export const nodeSelection = (args: ISelContext<InputNodeAttr>) => {
   return utils.build(builder, {...args, name: 'nodes' })
 }

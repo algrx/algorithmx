@@ -1,3 +1,5 @@
+import { InputCanvasAttr, InputNodeAttr, InputEdgeAttr, InputLabelAttr} from './client/attributes/definitions/types'
+import { DispatchEvent, ReceiveEvent } from './client/types/events'
 import { Client } from './server/types/client'
 import { CanvasSelection } from './server/types/canvas'
 import { NodeSelection } from './server/types/node'
@@ -34,8 +36,16 @@ export const canvas = (output: Canvas): CanvasSelection => {
 
 export {
   Client,
+  DispatchEvent,
+  ReceiveEvent,
+
   CanvasSelection,
   NodeSelection,
   EdgeSelection,
-  LabelSelection
+  LabelSelection,
+
+  InputCanvasAttr,
+  InputNodeAttr,
+  InputEdgeAttr,
+  InputLabelAttr
 }
