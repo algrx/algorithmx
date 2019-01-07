@@ -31,7 +31,7 @@ export interface Selection {
    * independently, and all queues execute in parallel. Since queues can be delayed (see [[Selection.pause]]), this
    * effectively enables multiple animations to run simultaneously.
    *
-   * The null queue is special; all events added to it will execute immediately. The default queue is named "default".
+   * The `null` queue is special; all events added to it will execute immediately. The default queue is named "default".
    *
    * @param queue - The name of the queue. This can be any string or number, or `null` for the immediate
    * queue. Defaults to "default".
@@ -59,11 +59,11 @@ export interface Selection {
    * Configures the duration of all animations triggered by the selection. A duration of 0 will ensure that changes
    * occur immediately.
    *
-   * @param milliseconds - The animation duration, in milliseconds.
+   * @param seconds - The animation duration, in seconds.
    *
    * @return A new instance of the current selection using the specified animation duration.
    */
-  duration (milliseconds: number): this
+  duration (seconds: number): this
 
   /**
    * Configures the ease function used in all animations triggered by the selection. This will affect the way attributes
@@ -90,15 +90,15 @@ export interface Selection {
    * Returns a new selection through which all attribute changes are temporary. This is typically used to draw attention
    * to a certain element without permanently changing its attributes.
    *
-   * @param milliseconds - The amount of time attributes should remain 'highlighted', in milliseconds, before
-   * changing back to their original values.
+   * @param seconds - The amount of time attributes should remain 'highlighted', in seconds, before
+   * changing back to their original values. If not provided, an appropriate default will be used.
    *
    * @return A new instance of the current selection, where all attribute changes are temporary.
    */
-  highlight (milliseconds?: number): this
+  highlight (seconds?: number): this
 
   /**
-   * Binds the selection to a list of data values. This will affect the arguments provided whenever an attribute is
+   * Binds the selection to a list of data values. This will decide the arguments provided whenever an attribute is
    * configured using a function (see [[ElementArg]]).
    *
    * @param data - A list of values to use as the data of this selection, which should have the same length as the number
@@ -109,11 +109,11 @@ export interface Selection {
   data (data: ReadonlyArray<unknown> | ElementFn<unknown>): this
 
   /**
-   * Adds a pause to the event queue, delaying the next event by the given number of milliseconds.
+   * Adds a pause to the event queue, delaying the next event by the given number of seconds.
    *
-   * @param milliseconds - The duration of the pause, in milliseconds.
+   * @param seconds - The duration of the pause, in seconds.
    */
-  pause (milliseconds: number): this
+  pause (seconds: number): this
 
   /**
    * Stops the execution of all scheduled events on one or more event queues.

@@ -120,9 +120,10 @@ const executeNext = (state: ISchedulerState, queue: string, force = false): ISch
     // get the next event in the queue, delay it if it is a pause event, otherwise execute it immediately
     const event = queueState.events[0]
     const executeFunc = () => {
-      if (event.type === events.EnumDispatchType.pause)
-        setTimeout(() => state.callback(event, queue), (event as events.IDispatchEventPause).data.duration)
-      else state.callback(event, queue) // setTimeout(() => state.callback(event, queue), 1)
+      if (event.type === events.EnumDispatchType.pause) {
+        const delay = (event as events.IDispatchEventPause).data.duration * 1000
+        setTimeout(() => state.callback(event, queue), delay)
+      } else state.callback(event, queue)
     }
     // pop the next event, set it as the current event, and make the queue busy
     return {

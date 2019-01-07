@@ -12,13 +12,13 @@ it('Animation | Interrupt', () => {
   canvas.node('A').duration(0).color(utils.RED)
 
   canvas.node('B').duration(0).color(utils.GREEN)
-  canvas.node('B').duration(100).color(utils.RED)
+  canvas.node('B').duration(0.1).color(utils.RED)
 
-  canvas.node('C').duration(100).color(utils.GREEN)
+  canvas.node('C').duration(0.1).color(utils.GREEN)
   canvas.node('C').duration(0).color(utils.RED)
 
-  canvas.node('D').duration(100).color(utils.GREEN)
-  canvas.node('D').duration(100).color(utils.RED)
+  canvas.node('D').duration(0.1).color(utils.GREEN)
+  canvas.node('D').duration(0.1).color(utils.RED)
 
   return new Promise(resolve => {
     setTimeout(() => {
@@ -38,9 +38,9 @@ it('Animation | Interrupt with pause', () => {
   return new Promise(resolve => {
     canvas.node('A').duration(0).add()
 
-    canvas.node('A').duration(50).size(90)
-    canvas.pause(25)
-    canvas.node('A').duration(25).size(60)
+    canvas.node('A').duration(0.05).size(90)
+    canvas.pause(0.025)
+    canvas.node('A').duration(0.025).size(60)
 
     setTimeout(() => {
       expect(utils.getNodeAttr(svg, 'A', 'r')).to.eq('60')

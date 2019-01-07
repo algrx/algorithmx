@@ -74,15 +74,15 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
   animate: (type = 'normal') => construct({...context,
     animation: {...context.animation, type: type }
   }),
-  duration: milliseconds => construct({...context,
-    animation: {...context.animation, duration: milliseconds }
+  duration: seconds => construct({...context,
+    animation: {...context.animation, duration: seconds }
   }),
   ease: ease => construct({...context,
     animation: {...context.animation, ease: ease }
   }),
-  highlight: milliseconds => construct({...context,
+  highlight: seconds => construct({...context,
     highlight: true,
-    animation: milliseconds !== undefined ? {...context.animation, linger: milliseconds } : context.animation
+    animation: seconds !== undefined ? {...context.animation, linger: seconds } : context.animation
   }),
 
   data: data => construct({...context,
@@ -92,11 +92,11 @@ export const builder: ClassBuilder<Selection, ISelContext<ICommonAttr>> = (conte
       : data)
   }),
 
-  pause: milliseconds => {
+  pause: seconds => {
     context.client.dispatch({
       type: events.EnumDispatchType.pause,
       queue: context.queue,
-      data: { duration: milliseconds }
+      data: { duration: seconds }
     })
     return self()
   },

@@ -77,7 +77,7 @@ export const renderRemove: renderFns.RenderAttrFn<ICommonAttr['visible']> = (sel
   renderFns.onChanged(selection, renderData, (sel, visible) => {
     if (visible.attr === false) {
       if (renderFns.isAnimationImmediate(visible.animation)) sel.remove()
-      else renderFns.transition(sel, 'remove', t => t.delay(visible.animation.duration)).remove()
+      else renderFns.transition(sel, 'remove', t => t.delay(renderFns.parseTime(visible.animation.duration))).remove()
     }
   })
 }

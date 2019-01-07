@@ -10,8 +10,8 @@ it('Edge | Set color with traverse animation', () => {
   canvas.nodes([1, 2]).add()
   canvas.edges([[1, 2, 'a'], [2, 1, 'b']]).add()
 
-  canvas.edge([1, 2, 'a']).duration(20).animate('traverse').color(utils.RED)
-  canvas.edge([2, 1, 'b']).duration(20).animate('traverse-reverse').color(utils.RED)
+  canvas.edge([1, 2, 'a']).duration(0.02).animate('traverse').color(utils.RED)
+  canvas.edge([2, 1, 'b']).duration(0.02).animate('traverse-reverse').color(utils.RED)
 
   expect(utils.selectEdge(svg, [1, 2, 'a']).select('.edge-path-overlay')).to.satisfy((s: D3Selection) => !s.empty())
   expect(utils.selectEdge(svg, [2, 1, 'b']).select('.edge-path-overlay')).to.satisfy((s: D3Selection) => !s.empty())
@@ -34,7 +34,7 @@ it('Edge | Highlight color with traverse animation', () => {
 
   expect(utils.getEdgeColor(svg, ['A', 'B'])).to.eq(utils.GREEN)
 
-  canvas.edge(['A', 'B']).duration(0).highlight(40).color(utils.RED)
+  canvas.edge(['A', 'B']).duration(0).highlight(0.04).color(utils.RED)
   expect(utils.getEdgeColor(svg, ['A', 'B'])).to.eq(utils.RED)
 
   return new Promise(resolve => {

@@ -86,7 +86,7 @@ export const animationDefaults: PartialAttr<AnimationFull<IEdgeAttr>> = {
   ...attrCommon.animationDefaults,
   labels: { '*': attrLabel.animationDefaults },
   color: {
-    duration: 600,
+    duration: 0.6,
     linger: 0
   }
 }

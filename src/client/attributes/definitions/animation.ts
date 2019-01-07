@@ -50,9 +50,9 @@ export const definition: IAttrDefRecord<IAnimation> = {
 
 export const defaults: IAnimation = {
   type: 'normal',
-  duration: 350,
+  duration: 0.35,
   ease: 'poly',
-  linger: 1000
+  linger: 1
 }
 
 export const createFullDef = <T extends Attr, A extends Attr>(bodyDef: AttrDef<T>, endDef: AttrDef<A>):

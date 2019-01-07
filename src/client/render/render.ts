@@ -28,7 +28,7 @@ export const updateTransition = (selection: D3SelTrans, callback: TransCallback)
 }
 
 export const parseTime = (time: number): number => {
-  return time
+  return time * 1000
 }
 
 export const isAnimationImmediate = (animation: IAnimation | undefined) =>
@@ -70,8 +70,8 @@ export const renderHighlight = <T extends Attr>(selection: D3Selection, renderDa
                                                 renderStartFn: RenderFn<T>, renderEndFn: RenderFn<T>): D3SelTrans => {
   const initTrans = renderStartFn(animate(selection, renderData.name, renderData.animation), renderData.highlight)
 
-  const linger = renderData.animation ? renderData.animation.linger : 0
-  const newTrans = newTransition(initTrans, t => transAnimate(t.delay(parseTime(linger)), renderData.animation))
+  const linger = renderData.animation ? parseTime(renderData.animation.linger) : 0
+  const newTrans = newTransition(initTrans, t => transAnimate(t.delay(linger), renderData.animation))
   return renderEndFn(newTrans, renderData.attr)
 }
 

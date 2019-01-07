@@ -37,7 +37,7 @@ export interface CanvasSelection extends Selection {
   /**
    * Selects multiple edges using a list of source, target, and optional ID tuples.
    *
-   * @param ids - A list of (source, target) or (source, target, ID) tuples.
+   * @param edges - A list of (source, target) or (source, target, ID) tuples.
    *
    * @return A new selection corresponding to the given edges.
    */
@@ -62,7 +62,7 @@ export interface CanvasSelection extends Selection {
   labels (ids: ReadonlyArray<string | number>): LabelSelection
 
   /**
-   * Sets the width and height of the canvas. This will only updated the `width` and `height` attributes of the SVG
+   * Sets the width and height of the canvas. This will only update the `width` and `height` attributes of the SVG
    * element displaying the canvas, not the enclosing HTML element.
    *
    * @param size - A (width, height) tuple describing the size of the canvas.

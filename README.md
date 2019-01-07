@@ -41,7 +41,7 @@ canvas.nodes(['A', 'B', 'C']).add().color('blue')
 canvas.edge(['A', 'C']).add()
 
 // pause for half a second
-canvas.pause(500)
+canvas.pause(0.5)
 
 // temporarily make node 'B' 1.5 times as large
 canvas.node('B').highlight().size('1.5x')

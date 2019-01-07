@@ -31,10 +31,11 @@ const highlightTraverse = (pathSel: D3Selection, overlaySel: D3Selection,
   const colorData = getEntry(renderData, 'color')
 
   overlaySel.attr('stroke', renderUtils.parseColor(colorData.highlight))
-    .attr('stroke-width', renderData.attr.thickness + 1)
+    .attr('stroke-width', renderData.attr.thickness + 2)
 
   const startFn = (sel: D3SelTrans): D3SelTrans => {
-    return tweenOverlay(sel, colorData.animation, () => getPathLength(pathSel), true)
+    const trans = sel.attr('stroke-width', renderData.attr.thickness)
+    return tweenOverlay(trans, colorData.animation, () => getPathLength(pathSel), true)
   }
   const endFn = (sel: D3SelTrans): D3SelTrans => {
     sel.on('start', () => {

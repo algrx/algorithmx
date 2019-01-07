@@ -5,7 +5,7 @@ import * as utils from '../utils'
 it('Callback | Late', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
-    canvas.pause(50).callback(resolve)
+    canvas.pause(0.05).callback(resolve)
     setTimeout(() => reject(new Error('callback was too late')), 60)
   })
 })
@@ -13,7 +13,7 @@ it('Callback | Late', () => {
 it('Callback | Early', () => {
   const canvas = algorithmx.canvas(utils.createSvg())
   return new Promise((resolve, reject) => {
-    canvas.pause(20).callback(() => reject(new Error('callback was too early')))
+    canvas.pause(0.02).callback(() => reject(new Error('callback was too early')))
     setTimeout(resolve, 10)
   })
 })
@@ -24,8 +24,8 @@ it('Callback | Parallel', () => {
     /* tslint:disable */
     let animal = 'cat'
     /* tslint:enable */
-    canvas.eventQ(1).pause(40).callback(() => { animal = 'elephant' })
-    canvas.eventQ(2).pause(30).callback(() => { animal = 'dog' })
+    canvas.eventQ(1).pause(0.04).callback(() => { animal = 'elephant' })
+    canvas.eventQ(2).pause(0.03).callback(() => { animal = 'dog' })
 
     setTimeout(() => expect(animal).to.eq('cat'), 25)
     setTimeout(() => expect(animal).to.eq('dog'), 35)
