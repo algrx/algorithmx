@@ -6,7 +6,7 @@ import { CanvasSelection } from './canvas'
  */
 export interface Client {
   /**
-   * Dispatches an event. More information to be provided soon.
+   * Dispatches an event.
    *
    * @param event The event.
    */

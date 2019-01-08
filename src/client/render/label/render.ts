@@ -5,7 +5,7 @@ import { getEntry } from '../process'
 import * as attrLabel from '../../attributes/definitions/label'
 import * as renderProcess from '../process'
 import * as renderFns from '../render'
-import * as renderCommon from '../common'
+import * as renderElement from '../element'
 import * as renderUtils from '../utils'
 import * as math from '../../math'
 
@@ -31,11 +31,11 @@ const isAlignTop = (a: Align): boolean => a === 'top-left' || a === 'top-middle'
 const isAlignBottom = (a: Align): boolean => a === 'bottom-left' || a === 'bottom-middle' || a === 'bottom-right'
 
 export const renderAlign = (selection: D3Selection, renderData: RenderAttr<ILabelAttr['align']>): void => {
-  renderCommon.renderSvgAttr(selection, 'y', v =>
+  renderElement.renderSvgAttr(selection, 'y', v =>
     isAlignTop(v) ? '0.75em' : isAlignBottom(v) ? '0em' : '0.25em',
     {...renderData, name: renderData.name + '-y' })
 
-  renderCommon.renderSvgAttr(selection, 'text-anchor', v =>
+  renderElement.renderSvgAttr(selection, 'text-anchor', v =>
     v === 'top-left' || v === 'middle-left' || v === 'bottom-left' ? 'start'
     : v === 'top-right' || v === 'middle-right' || v === 'bottom-right' ? 'end'
     : 'middle', {...renderData, name: renderData.name + '-x' })
@@ -69,7 +69,7 @@ export const preprocessAlign = (labelData: RenderAttr<ILabelAttr>): RenderAttr<I
 }
 
 export const renderVisible: renderFns.RenderAttrFn<ILabelAttr['visible']> = (selection, renderData) => {
-  renderCommon.renderVisible(selection, renderData)
+  renderElement.renderVisible(selection, renderData)
 }
 
 export const render: renderFns.RenderAttrFn<ILabelAttr> = (selection, renderData) => {
@@ -100,8 +100,9 @@ export const render: renderFns.RenderAttrFn<ILabelAttr> = (selection, renderData
 
   renderAlign(textSel, alignData)
 
-  renderCommon.renderCustomSvg(textSel, renderData)
-  renderCommon.renderSvgAttr(textSel, 'fill', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
-  renderCommon.renderSvgAttr(textSel, 'font-family', v => v, getEntry(renderData, 'font'))
-  renderCommon.renderSvgAttr(textSel, 'font-size', v => v, getEntry(renderData, 'size'))
+  renderElement.renderSvgAttr(textSel, 'fill', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
+  renderElement.renderSvgAttr(textSel, 'font-family', v => v, getEntry(renderData, 'font'))
+  renderElement.renderSvgAttr(textSel, 'font-size', v => v, getEntry(renderData, 'size'))
+
+  renderElement.renderSvgCssMixin(textSel, renderData)
 }

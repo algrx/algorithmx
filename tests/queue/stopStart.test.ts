@@ -3,7 +3,7 @@ import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
 
 it('Queue | Stop', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.pause(0.01).callback(() => reject(new Error('queue didn\'t stop')))
     canvas.eventQ(2).stop()
@@ -12,7 +12,7 @@ it('Queue | Stop', () => {
 })
 
 it('Queue | Start', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.eventQ(1).pause(0.01).callback(resolve)
     canvas.stop(1)
@@ -22,7 +22,7 @@ it('Queue | Start', () => {
 })
 
 it('Queue | Cancel', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.eventQ('q1').pause(0.01).callback(() => reject(new Error('queue didn\'t cancel')))
     canvas.cancel('q1')
@@ -31,7 +31,7 @@ it('Queue | Cancel', () => {
 })
 
 it('Queue | Delayed start', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.stop(1)
     canvas.eventQ(1).pause(0.005).callback(() => reject(new Error('queue shouldn\'t have started')))
@@ -41,7 +41,7 @@ it('Queue | Delayed start', () => {
 })
 
 it('Queue | Delayed stop', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.eventQ(1).pause(0.015).callback(() => reject(new Error('queue didn\'t stop')))
     canvas.pause(0.01).stop(1)
@@ -50,7 +50,7 @@ it('Queue | Delayed stop', () => {
 })
 
 it('Queue | Stop and start multiple', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise(resolve => {
     /* tslint:disable */
     let count = 0
@@ -70,7 +70,7 @@ it('Queue | Stop and start multiple', () => {
 })
 
 it('Queue | Cancel multiple', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.eventQ('q1').pause(0.01).callback(() => reject(new Error('queue 1 didn\'t cancel')))
     canvas.eventQ('q2').pause(0.01).callback(() => reject(new Error('queue 2 didn\'t cancel')))
@@ -80,7 +80,7 @@ it('Queue | Cancel multiple', () => {
 })
 
 it('Queue | Cancel then start', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.pause(0.01).callback(() => reject(new Error('queue didn\'t cancel')))
     canvas.eventQ(null).stop()
@@ -95,7 +95,7 @@ it('Queue | Cancel then start', () => {
 })
 
 it('Queue | Interrupt pause', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.pause(0.01).pause(0.1).callback(() =>
       reject(new Error('stopping the queue didn\'t invalidate the current pause')))

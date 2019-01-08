@@ -1,10 +1,11 @@
-import { InputElementAttr } from '../client/attributes/definitions/types'
-import { Selection } from './types/selection'
+import { InputElementAttr, InputSvgCssAttr } from '../client/attributes/definitions/types'
 import { IAnimation } from '../client/attributes/definitions/animation'
-import { ICommonAttr } from '../client/attributes/definitions/common'
+import { IElementAttr } from '../client/attributes/definitions/element'
+import { Selection } from './types/selection'
 import { ClassBuilder } from './utils'
 import { Omit } from '../client/utils'
 import { DispatchEvent, ReceiveEvent } from '../client/types/events'
+import { ElementArg } from './types/types'
 import * as events from '../client/types/events'
 import * as utils from './utils'
 
@@ -40,7 +41,7 @@ export interface ISelContext<T extends InputElementAttr> {
   readonly highlight: boolean
 }
 
-export const defaultContext: Omit<ISelContext<ICommonAttr>, 'client' | 'initattr'> = {
+export const defaultContext: Omit<ISelContext<IElementAttr>, 'client' | 'initattr'> = {
   name: '',
   ids: [],
   listeners: {},
@@ -156,6 +157,19 @@ export const builder: ClassBuilder<Selection<InputElementAttr>, ISelContext<Inpu
       queue: context.queue,
       data: { message: message }
     })
+    return self()
+  }
+})
+
+export const svgCssMixinBuilder = <T extends InputSvgCssAttr & InputElementAttr, S extends Selection<T>>
+  (context: ISelContext<T>, self: () => S) => ({
+
+  svgattr: (key: string, value: ElementArg<string | number | null>) => {
+    context.client.dispatch(utils.attrEvent(context, value, d => ({ svgattr: { [key]: d } } as T)))
+    return self()
+  },
+  cssattr: (key: string, value: ElementArg<string | number | null>) => {
+    context.client.dispatch(utils.attrEvent(context, value, d => ({ cssattr: { [key]: d } } as T)))
     return self()
   }
 })

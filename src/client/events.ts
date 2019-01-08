@@ -4,7 +4,7 @@ import { IClientState, ClientListener } from './client'
 import { RenderBehavior } from './render/canvas/behavior'
 import * as events from './types/events'
 import * as pipeline from './pipeline/pipeline'
-import * as renderCommon from './render/common'
+import * as renderElement from './render/element'
 import * as renderCanvas from './render/canvas/render'
 import * as renderCanvasBehavior from './render/canvas/behavior'
 import * as renderCanvasListeners from './render/canvas/listeners'
@@ -73,7 +73,7 @@ const executeUpdate = (state: IClientState, listener: ClientListener,
     return state
   }
 
-  const renderData = renderCommon.preprocessRenderData(pipeline.getRenderData(processed))
+  const renderData = renderElement.preprocessRenderData(pipeline.getRenderData(processed))
   const layoutState = layout.update(state.layout, processed.attributes, processed.changes)
 
   render(state.canvas, renderData, layoutState)
@@ -108,7 +108,7 @@ const executeHighlight = (state: IClientState, listener: ClientListener,
     animation: processed.animation,
     highlight: processed.changes
   }
-  const renderData = renderCommon.preprocessRenderData(renderDataInit)
+  const renderData = renderElement.preprocessRenderData(renderDataInit)
 
   render(state.canvas, renderData, state.layout)
   renderBehavior(state.canvas, renderData, state.renderBehavior)

@@ -3,8 +3,8 @@ import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
 
 it('Animation | Interrupt', () => {
-  const svg = utils.createSvg()
-  const canvas = algorithmx.canvas(svg)
+  const div = utils.createDiv()
+  const canvas = algorithmx.canvas(div)
 
   canvas.nodes(['A', 'B', 'C', 'D']).add()
 
@@ -22,18 +22,18 @@ it('Animation | Interrupt', () => {
 
   return new Promise(resolve => {
     setTimeout(() => {
-      expect(utils.getNodeColor(svg, 'A')).to.eq(utils.RED)
-      expect(utils.getNodeColor(svg, 'B')).to.eq(utils.RED)
-      expect(utils.getNodeColor(svg, 'C')).to.eq(utils.RED)
-      expect(utils.getNodeColor(svg, 'D')).to.eq(utils.RED)
+      expect(utils.getNodeColor(div, 'A')).to.eq(utils.RED)
+      expect(utils.getNodeColor(div, 'B')).to.eq(utils.RED)
+      expect(utils.getNodeColor(div, 'C')).to.eq(utils.RED)
+      expect(utils.getNodeColor(div, 'D')).to.eq(utils.RED)
       resolve()
     }, 200)
   })
 })
 
 it('Animation | Interrupt with pause', () => {
-  const svg = utils.createSvg()
-  const canvas = algorithmx.canvas(svg)
+  const div = utils.createDiv()
+  const canvas = algorithmx.canvas(div)
 
   return new Promise(resolve => {
     canvas.node('A').duration(0).add()
@@ -43,7 +43,7 @@ it('Animation | Interrupt with pause', () => {
     canvas.node('A').duration(0.025).size(60)
 
     setTimeout(() => {
-      expect(utils.getNodeAttr(svg, 'A', 'r')).to.eq('60')
+      expect(utils.getNodeAttr(div, 'A', 'r')).to.eq('60')
       resolve()
     }, 70)
   })

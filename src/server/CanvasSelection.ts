@@ -33,6 +33,7 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
   nodes: ids => {
     return nodeSelection({...context, parent: context, ids: ids, data: ids, initattr: undefined })
   },
+
   edge: edge => {
     return self().edges([edge])
   },
@@ -47,12 +48,14 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
 
     return edgeSelection({...context, parent: context, ids: ids, data: edges, initattr: initAttr })
   },
+
   label: (id = 'title') => {
     return self().labels([id])
   },
   labels: ids => {
     return labelSelection({...context, parent: context, ids: ids, data: undefined, initattr: undefined })
   },
+
   size: size => {
     context.client.dispatch(utils.attrEvent(context, size, d => ({ size: d })))
     return self()
@@ -61,6 +64,7 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
     context.client.dispatch(utils.attrEvent(context, lengthInfo, d => ({ edgelengths: d })))
     return self()
   },
+
   pan: location => {
     context.client.dispatch(utils.attrEvent(context, location, d => ({ pan: d })))
     return self()
@@ -69,6 +73,7 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
     context.client.dispatch(utils.attrEvent(context, zoom, d => ({ zoom: d })))
     return self()
   },
+
   panlimit: box => {
     context.client.dispatch(utils.attrEvent(context, box, d => ({ panlimit: d })))
     return self()
@@ -76,14 +81,17 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
   zoomlimit: limit => {
     context.client.dispatch(utils.attrEvent(context, limit, d => ({ zoomlimit: d })))
     return self()
-  }
+  },
+  ...(selection.svgCssMixinBuilder(context, self))
+
 }, selection.builder(context, self, construct))
 
-export const canvasSelection = (handler: EventHandler) => {
+export const canvasSelection = (canvas: events.Canvas, handler: EventHandler) => {
   const context: ISelContext<InputCanvasAttr> = {
     ...selection.defaultContext,
     client: handler,
-    name: 'canvas'
+    name: 'canvas',
+    data: [canvas]
   }
   handler.subscribe(event => receiveHandler(event, context.listeners))
   return utils.build(builder, context)

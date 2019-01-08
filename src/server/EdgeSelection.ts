@@ -43,7 +43,9 @@ const builder: ClassBuilder<EdgeSelection, ISelContext<InputEdgeAttr>> = (contex
   path: path => {
     context.client.dispatch(utils.attrEvent(context, path, d => ({ path: d })))
     return self()
-  }
+  },
+  ...(selection.svgCssMixinBuilder(context, self))
+
 }, selection.builder(context, self, construct))
 
 export const edgeSelection = (args: ISelContext<InputEdgeAttr>) => {

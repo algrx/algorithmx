@@ -3,7 +3,7 @@ import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
 
 it('Queue | Start all', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise(resolve => {
     /* tslint:disable */
     let counter = 0;
@@ -22,7 +22,7 @@ it('Queue | Start all', () => {
 })
 
 it('Queue | Stop all', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.pause(0.01).callback(() => reject(new Error('queues didn\'t stop')))
     canvas.eventQ('A').pause(0.01).callback(() => reject(new Error('queues didn\'t stop')))
@@ -33,7 +33,7 @@ it('Queue | Stop all', () => {
 })
 
 it('Queue | Stop all then start', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.pause(0.02).callback(() => reject(new Error('queue didn\'t stop')))
     canvas.stopall()
@@ -46,7 +46,7 @@ it('Queue | Stop all then start', () => {
 })
 
 it('Queue | Stop all then start individual', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.stopall()
 
@@ -59,7 +59,7 @@ it('Queue | Stop all then start individual', () => {
 })
 
 it('Queue | Cancel all', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.eventQ('q1').pause(0.01).callback(() => reject(new Error('queues didn\'t cancel')))
     canvas.eventQ('q2').pause(0.01).callback(() => reject(new Error('queues didn\'t cancel')))

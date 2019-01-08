@@ -10,8 +10,6 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
    */
   remove (): this
 
-  set (attrs: InputNodeAttr): this
-
   /**
    * Selects a single label, attached to the node, by its ID.
    *
@@ -22,7 +20,7 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
    *
    * @return A new selection corresponding to the given label.
    */
-  label (id: string | number): LabelSelection
+  label (id?: string | number): LabelSelection
 
   /**
    * Selects multiple labels, attached to the node, using a list of ID values.
@@ -110,4 +108,20 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
    * @param onHoverout - A function taking the node's data (see [[Selection.data]]) and, optionally, index.
    */
   hoverout (onHoverout: ElementFn<void>): this
+
+  /**
+   * Sets a custom SVG attribute on the node's shape.
+   *
+   * @param key - The name of the SVG attribute
+   * @param value - The value of the SVG attribute.
+   */
+  svgattr (key: string, value: ElementArg<string | number | null>): this
+
+  /**
+   * Sets a custom CSS attribute on the node's shape.
+   *
+   * @param key - The name of the CSS attribute
+   * @param value - The value of the CSS attribute.
+   */
+  cssattr (key: string, value: ElementArg<string | number | null>): this
 }

@@ -3,7 +3,7 @@ import { D3Selection, D3SelTrans } from '../utils'
 import { RenderAttr, getEntry } from '../process'
 import { IAnimation } from '../../attributes/definitions/animation'
 import * as renderFns from '../render'
-import * as renderCommon from '../common'
+import * as renderElement from '../element'
 import * as renderUtils from '../utils'
 
 export const selectOverlay = (edgeSel: D3Selection, edgeRenderId: string): D3Selection => {
@@ -86,7 +86,7 @@ export const renderColor = (pathSel: D3Selection, markerSel: D3Selection, overla
     || colorData.animation.type === 'traverse-reverse')
 
   if (doTraverse) renderTraverse(pathSel, renderData, overlaySelector)
-  else renderCommon.renderSvgAttr(pathSel, 'stroke', v => renderUtils.parseColor(v), colorData)
+  else renderElement.renderSvgAttr(pathSel, 'stroke', v => renderUtils.parseColor(v), colorData)
 
-  renderCommon.renderSvgAttr(markerSel, 'fill', v => renderUtils.parseColor(v), colorData)
+  renderElement.renderSvgAttr(markerSel, 'fill', v => renderUtils.parseColor(v), colorData)
 }

@@ -1,6 +1,6 @@
 import { PartialAttr, AttrLookup, AttrNum, AttrString, EnumVarSymbol, AttrEvalPartial } from '../types'
 import { AnimationFull } from './animation'
-import { ICommonAttr } from './common'
+import { IElementAttr, ISvgCssAttr } from './element'
 import { ILabelAttr } from './label'
 import { INodeAttr } from './node'
 import { IEdgeAttr } from './edge'
@@ -9,7 +9,7 @@ import { COLORS } from '../../render/utils'
 import * as attrNode from './node'
 import * as attrEdge from './edge'
 import * as attrLabel from './label'
-import * as attrCommon from './common'
+import * as attrElement from './element'
 import * as attrDef from '../definitions'
 import * as attrExpr from '../expressions'
 import * as attrUtils from '../utils'
@@ -22,7 +22,7 @@ export enum EnumEdgeLengthType {
 }
 export type EdgeLengthType = keyof typeof EnumEdgeLengthType
 
-export interface ICanvasAttr extends ICommonAttr {
+export interface ICanvasAttr extends IElementAttr, ISvgCssAttr {
   readonly nodes: AttrLookup<INodeAttr>
   readonly edges: AttrLookup<IEdgeAttr>
   readonly labels: AttrLookup<ILabelAttr>
@@ -49,7 +49,7 @@ export interface ICanvasAttr extends ICommonAttr {
   }
 }
 
-export const definition = attrDef.extendRecordDef<ICanvasAttr, ICommonAttr>({
+export const definition = attrDef.extendRecordDef<ICanvasAttr, IElementAttr>({
   type: AttrType.Record,
   entries: {
     nodes: { type: AttrType.Lookup, entry: attrNode.definition },
@@ -75,14 +75,16 @@ export const definition = attrDef.extendRecordDef<ICanvasAttr, ICommonAttr>({
     zoomlimit: { type: AttrType.Record, entries: {
       min: { type: AttrType.Number },
       max: { type: AttrType.Number }
-    }, keyOrder: ['min', 'max'] }
+    }, keyOrder: ['min', 'max'] },
+    ...attrElement.svgCssDefEntries
   },
-  keyOrder: ['nodes', 'edges', 'labels', 'size', 'edgelengths', 'pan', 'zoom', 'panlimit', 'zoomlimit'],
+  keyOrder: ['nodes', 'edges', 'labels', 'size', 'edgelengths', 'pan', 'zoom', 'panlimit', 'zoomlimit',
+    ...attrElement.svgCssDefKeys],
   validVars: [EnumVarSymbol.CanvasWidth, EnumVarSymbol.CanvasHeight]
-}, attrCommon.definition)
+}, attrElement.definition)
 
 export const defaults: ICanvasAttr = {
-  ...attrCommon.defaults,
+  ...attrElement.defaults,
   nodes: {} as AttrLookup<INodeAttr>,
   edges: {} as AttrLookup<IEdgeAttr>,
   labels: {} as AttrLookup<ILabelAttr>,
@@ -94,7 +96,8 @@ export const defaults: ICanvasAttr = {
   pan: { x: 0, y: 0 },
   zoom: 1,
   panlimit: { horizontal: Infinity, vertical: Infinity },
-  zoomlimit: { min: 0.1, max: 10 }
+  zoomlimit: { min: 0.1, max: 10 },
+  ...attrElement.svgCssDefaults
 }
 
 const labelDefaults: PartialAttr<ILabelAttr> = {
@@ -106,7 +109,7 @@ const labelDefaults: PartialAttr<ILabelAttr> = {
 }
 
 export const animationDefaults: PartialAttr<AnimationFull<ICanvasAttr>> = {
-  ...attrCommon.animationDefaults,
+  ...attrElement.animationDefaults,
   nodes: { '*': attrNode.animationDefaults },
   edges: { '*': attrEdge.animationDefaults },
   labels: { '*': attrLabel.animationDefaults }

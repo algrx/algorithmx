@@ -8,14 +8,14 @@ const getPos = (label: D3Selection): [number, number] => {
 }
 
 it('Label (node) | Position in corner using expressions', () => {
-  utils.createSvg()
-  const svg = utils.createSvg()
-  const canvas = algorithmx.canvas(svg)
+  utils.createDiv()
+  const div = utils.createDiv()
+  const canvas = algorithmx.canvas(div)
 
   canvas.node('A').duration(0).add().size(10)
     .label(1).add().radius(0).align('top-right').pos(['0.8x', '0.8y'])
 
-  const labelSel = utils.selectNodeLabel(utils.selectNode(svg, 'A'), 1)
+  const labelSel = utils.selectNodeLabel(utils.selectNode(div, 'A'), 1)
 
   expect(getPos(labelSel)).to.eql([8, 8])
 

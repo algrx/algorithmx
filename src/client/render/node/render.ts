@@ -6,7 +6,7 @@ import * as nodeAttr from '../../attributes/definitions/node'
 import * as renderLabel from '../label/render'
 import * as renderProcess from '../process'
 import * as renderFns from '../render'
-import * as renderCommon from '../common'
+import * as renderElement from '../element'
 import * as renderUtils from '../utils'
 
 export const selectNodeInner = (sel: D3Selection): D3Selection =>
@@ -30,17 +30,17 @@ const renderSize = (selection: D3Selection, sizeData: RenderAttr<INodeAttr['size
   const height = getEntry(sizeData, 'height')
   switch (shape) {
     case 'circle':
-      renderCommon.renderSvgAttr(selection, 'r', v => v, width)
+      renderElement.renderSvgAttr(selection, 'r', v => v, width)
       break
     case 'rect':
-      renderCommon.renderSvgAttr(selection, 'width', v => v * 2, width)
-      renderCommon.renderSvgAttr(selection, 'height', v => v * 2, height)
-      renderCommon.renderSvgAttr(selection, 'x', v => -v, {...width, name: width.name + '-pos' })
-      renderCommon.renderSvgAttr(selection, 'y', v => -v, {...height, name: height.name + '-pos' })
+      renderElement.renderSvgAttr(selection, 'width', v => v * 2, width)
+      renderElement.renderSvgAttr(selection, 'height', v => v * 2, height)
+      renderElement.renderSvgAttr(selection, 'x', v => -v, {...width, name: width.name + '-pos' })
+      renderElement.renderSvgAttr(selection, 'y', v => -v, {...height, name: height.name + '-pos' })
       break
     case 'ellipse':
-      renderCommon.renderSvgAttr(selection, 'rx', v => v, width)
-      renderCommon.renderSvgAttr(selection, 'ry', v => v, height)
+      renderElement.renderSvgAttr(selection, 'rx', v => v, width)
+      renderElement.renderSvgAttr(selection, 'ry', v => v, height)
       break
   }
 }
@@ -52,7 +52,7 @@ export const preprocessRenderData = (renderData: RenderAttr<INodeAttr>): RenderA
 }
 
 export const renderVisible: renderFns.RenderAttrFn<INodeAttr['visible']> = (selection, renderData) => {
-  renderCommon.renderVisible(selection.select('.node'), renderData)
+  renderElement.renderVisible(selection.select('.node'), renderData)
 }
 
 export const render: renderFns.RenderAttrFn<INodeAttr> = (selection, renderDataInit) => {
@@ -64,17 +64,18 @@ export const render: renderFns.RenderAttrFn<INodeAttr> = (selection, renderDataI
   const shapeSelection = nodeSel.select('.shape')
   const labelGroup = selectLabelGroup(nodeSel)
 
-  renderCommon.renderCommonLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
+  renderElement.renderElementLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
     renderLabel.render, renderLabel.renderVisible)
 
-  renderCommon.renderCustomSvg(shapeSelection, renderData)
-  renderCommon.renderSvgAttr(shapeSelection, 'fill', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
+  renderElement.renderSvgAttr(shapeSelection, 'fill', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
 
   renderSize(shapeSelection, getEntry(renderData, 'size'), getEntry(renderData, 'shape').attr)
 
   if (renderData.attr.shape === 'rect') {
     const cornerData = getEntry(renderData, 'corners')
-    renderCommon.renderSvgAttr(shapeSelection, 'rx', v => v, {...cornerData, name: cornerData.name + '-x' })
-    renderCommon.renderSvgAttr(shapeSelection, 'ry', v => v, {...cornerData, name: cornerData.name + '-y' })
+    renderElement.renderSvgAttr(shapeSelection, 'rx', v => v, {...cornerData, name: cornerData.name + '-x' })
+    renderElement.renderSvgAttr(shapeSelection, 'ry', v => v, {...cornerData, name: cornerData.name + '-y' })
   }
+
+  renderElement.renderSvgCssMixin(shapeSelection, renderData)
 }

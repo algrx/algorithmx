@@ -1,18 +1,18 @@
 import { PartialAttr, AttrLookup, AttrString, AttrNum, AttrArray, AttrBool } from '../types'
 import { AnimationFull } from './animation'
-import { ICommonAttr } from './common'
+import { IElementAttr, ISvgCssAttr } from './element'
 import { ILabelAttr } from './label'
 import { AttrType } from '../definitions'
 import { COLORS } from '../../render/utils'
 import * as attrLabel from './label'
-import * as attrCommon from './common'
+import * as attrElement from './element'
 import * as attrDef from '../definitions'
 import * as attrUtils from '../utils'
 import * as math from '../../math'
 import * as utils from '../../utils'
 
 
-export interface IEdgeAttr extends ICommonAttr {
+export interface IEdgeAttr extends IElementAttr, ISvgCssAttr {
   readonly labels: AttrLookup<ILabelAttr>
   readonly source: AttrString
   readonly target: AttrString
@@ -38,7 +38,7 @@ export enum EnumCurve {
 }
 export type Curve = keyof typeof EnumCurve
 
-export const definition = attrDef.extendRecordDef<IEdgeAttr, ICommonAttr>({
+export const definition = attrDef.extendRecordDef<IEdgeAttr, IElementAttr>({
   entries: {
     labels: { type: AttrType.Lookup, entry: attrLabel.definition },
     source: { type: AttrType.String },
@@ -54,15 +54,17 @@ export const definition = attrDef.extendRecordDef<IEdgeAttr, ICommonAttr>({
         x: { type: AttrType.Number },
         y: { type: AttrType.Number }
       }, keyOrder: ['x', 'y'] }
-    }
+    },
+    ...attrElement.svgCssDefEntries
   },
   type: AttrType.Record,
-  keyOrder: ['labels', 'source', 'target', 'directed', 'length', 'thickness', 'color', 'flip', 'curve', 'path'],
+  keyOrder: ['labels', 'source', 'target', 'directed', 'length', 'thickness', 'color', 'flip', 'curve', 'path',
+    ...attrElement.svgCssDefKeys],
   validVars: []
-}, attrCommon.definition)
+}, attrElement.definition)
 
 export const defaults: IEdgeAttr = {
-  ...attrCommon.defaults,
+  ...attrElement.defaults,
   labels: {} as AttrLookup<ILabelAttr>,
   source: '',
   target: '',
@@ -72,7 +74,8 @@ export const defaults: IEdgeAttr = {
   color: COLORS.silver,
   flip: true,
   curve: 'natural',
-  path: []
+  path: [],
+  ...attrElement.svgCssDefaults
 }
 
 const labelDefaults: PartialAttr<ILabelAttr> = {
@@ -83,7 +86,7 @@ const labelDefaults: PartialAttr<ILabelAttr> = {
 }
 
 export const animationDefaults: PartialAttr<AnimationFull<IEdgeAttr>> = {
-  ...attrCommon.animationDefaults,
+  ...attrElement.animationDefaults,
   labels: { '*': attrLabel.animationDefaults },
   color: {
     duration: 0.6,

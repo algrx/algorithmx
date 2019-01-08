@@ -1,6 +1,6 @@
 import { RenderEndpoint, RenderAttr } from './process'
 import { D3Selection, D3SelTrans } from './utils'
-import { ICommonAttr } from '../attributes/definitions/common'
+import { IElementAttr, ISvgCssAttr } from '../attributes/definitions/element'
 import { IAnimation } from '../attributes/definitions/animation'
 import { getEntry } from './process'
 import { Attr, AttrEval, PartialAttr, AttrLookup } from '../attributes/types'
@@ -8,35 +8,42 @@ import { Primitive } from '../utils'
 import * as renderProcess from './process'
 import * as renderFns from './render'
 
-export const renderVisibleLookup = <T extends ICommonAttr> (renderData: RenderAttr<AttrLookup<T>>,
+export const renderVisibleLookup = <T extends IElementAttr>(renderData: RenderAttr<AttrLookup<T>>,
                                                             renderFn: renderFns.RenderLookupFn<T>): void => {
   return renderFns.renderLookup(renderData, (k, data) => {
     if (data.attr.visible) renderFn(k, data)
   })
 }
 
-export function renderSvgAttr<T extends Attr> (selection: D3Selection, key: string,
-                                               valueFn: ((v: AttrEval<T>) => Primitive),
-                                               attr: RenderEndpoint<T>): D3SelTrans {
+export const renderSvgAttr = <T extends Attr>(selection: D3Selection, key: string,
+                                              valueFn: ((v: AttrEval<T>) => Primitive),
+                                              attr: RenderEndpoint<T>): D3SelTrans => {
   return renderFns.render(selection, attr, (s, a) => {
     return s.attr(key, valueFn(a))
   })
 }
 
-export const renderCustomSvg: renderFns.RenderAttrFn<ICommonAttr> = (selection, renderData) => {
+export const renderSvgCssMixin: renderFns.RenderAttrFn<ISvgCssAttr> = (selection, renderData) => {
   const precessKey = (sel, key) => [
     key.includes('@') ? sel.selectAll(key.split('@')[1]) : sel,
     key.includes('@') ? key.split('@')[0] : key
   ]
-  renderFns.renderLookup(getEntry(renderData, 'svg'), (_, d: RenderEndpoint<string>) => {
+  renderFns.renderLookup(getEntry(renderData, 'svgattr'), (_, d) => {
     const [s, k] = precessKey(selection, d.name)
     renderSvgAttr(s, k, v => v, d)
   })
-  renderFns.renderLookup(getEntry(renderData, 'css'), (_, d: RenderEndpoint<string>) => {
+  renderFns.renderLookupRemovals(getEntry(renderData, 'svgattr'), (_, d) => {
     const [s, k] = precessKey(selection, d.name)
-    renderFns.render(s, d, (styleSel, styleAttr) => {
-      return styleSel.style(k, styleAttr)
-    })
+    renderSvgAttr(s, k, v => null, d)
+  })
+
+  renderFns.renderLookup(getEntry(renderData, 'cssattr'), (_, d) => {
+    const [s, k] = precessKey(selection, d.name)
+    renderFns.render(s, d, (styleSel, styleAttr) => styleSel.style(k, styleAttr))
+  })
+  renderFns.renderLookupRemovals(getEntry(renderData, 'cssattr'), (_, d) => {
+    const [s, k] = precessKey(selection, d.name)
+    renderFns.render(s, d, (styleSel) => styleSel.style(k, null))
   })
 }
 
@@ -64,7 +71,7 @@ const animateRemove = (selection: D3Selection, animation: IAnimation): void => {
   }
 }
 
-export const renderVisible: renderFns.RenderAttrFn<ICommonAttr['visible']> = (selection, renderData) => {
+export const renderVisible: renderFns.RenderAttrFn<IElementAttr['visible']> = (selection, renderData) => {
   renderFns.onChanged(selection, renderData, (sel, visible) => {
     if (!renderFns.isAnimationImmediate(visible.animation)) {
       if (visible.attr === true) animateAdd(sel, visible.animation)
@@ -73,7 +80,7 @@ export const renderVisible: renderFns.RenderAttrFn<ICommonAttr['visible']> = (se
   })
 }
 
-export const renderRemove: renderFns.RenderAttrFn<ICommonAttr['visible']> = (selection, renderData) => {
+export const renderRemove: renderFns.RenderAttrFn<IElementAttr['visible']> = (selection, renderData) => {
   renderFns.onChanged(selection, renderData, (sel, visible) => {
     if (visible.attr === false) {
       if (renderFns.isAnimationImmediate(visible.animation)) sel.remove()
@@ -82,24 +89,24 @@ export const renderRemove: renderFns.RenderAttrFn<ICommonAttr['visible']> = (sel
   })
 }
 
-export const preprocessRenderData = <T extends ICommonAttr>(renderData: RenderAttr<T>): RenderAttr<T> => {
+export const preprocessRenderData = <T extends IElementAttr>(renderData: RenderAttr<T>): RenderAttr<T> => {
   const visibleData = getEntry(renderData, 'visible')
   return renderProcess.hasChanged(visibleData) && visibleData.attr === true
     ? renderProcess.markForUpdate(renderData) : renderData
 }
 
-export const renderCommonRemove = <T extends ICommonAttr>(selection: D3Selection, renderData: RenderAttr<T>,
-                                                          renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
-  const newVisible = { attr: { visible: false }, changes: { visible: false } } as RenderAttr<PartialAttr<ICommonAttr>>
+export const renderElementRemove = <T extends IElementAttr>(selection: D3Selection, renderData: RenderAttr<T>,
+                                                            renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
+  const newVisible = { attr: { visible: false }, changes: { visible: false } } as RenderAttr<PartialAttr<IElementAttr>>
   const visibleData = getEntry({...renderData, ...newVisible }, 'visible')
 
   renderVisibleFn(selection, visibleData)
   renderRemove(selection, visibleData)
 }
 
-export const renderCommon = <T extends ICommonAttr>(selector: () => D3Selection, renderData: RenderAttr<T>,
-                                                    renderFn: renderFns.RenderAttrFn<T>,
-                                                    renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
+export const renderElement = <T extends IElementAttr>(selector: () => D3Selection, renderData: RenderAttr<T>,
+                                                      renderFn: renderFns.RenderAttrFn<T>,
+                                                      renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
   const renderDataFull = preprocessRenderData(renderData)
   const visibleData = getEntry(renderData, 'visible')
 
@@ -111,13 +118,13 @@ export const renderCommon = <T extends ICommonAttr>(selector: () => D3Selection,
   renderRemove(selection, visibleData)
 }
 
-export const renderCommonLookup = <T extends ICommonAttr> (selector: (k: string) => D3Selection,
-                                                           renderData: RenderAttr<AttrLookup<T>>,
-                                                           renderFn: renderFns.RenderAttrFn<T>,
-                                                           renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
+export const renderElementLookup = <T extends IElementAttr>(selector: (k: string) => D3Selection,
+                                                            renderData: RenderAttr<AttrLookup<T>>,
+                                                            renderFn: renderFns.RenderAttrFn<T>,
+                                                            renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
   renderFns.renderLookup(renderData, (k, data) =>
-    renderCommon(() => selector(k), data, renderFn, renderVisibleFn))
+    renderElement(() => selector(k), data, renderFn, renderVisibleFn))
 
   renderFns.renderLookupRemovals(renderData, (k, data) =>
-    renderCommonRemove(selector(k), data, renderVisibleFn))
+    renderElementRemove(selector(k), data, renderVisibleFn))
 }

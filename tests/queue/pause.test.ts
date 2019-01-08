@@ -6,8 +6,8 @@ const DELAY = 50
 const DELTA = 10
 
 it('Queue | Pause in series', () => {
-  const svg = utils.createSvg()
-  const canvas = algorithmx.canvas(svg)
+  const div = utils.createDiv()
+  const canvas = algorithmx.canvas(div)
 
   return new Promise(resolve => {
     const nodes: ReadonlyArray<number> = [1, 2, 3]
@@ -15,7 +15,7 @@ it('Queue | Pause in series', () => {
     canvas.pause(DELAY / 1000).node(nodes[0]).duration(0).color(utils.GREEN)
     canvas.pause(DELAY / 1000).node(nodes[1]).duration(0).color(utils.GREEN)
     canvas.pause(DELAY / 1000).node(nodes[2]).duration(0).color(utils.GREEN)
-    const getNodeColors = () => nodes.map(n => utils.getNodeColor(svg, n))
+    const getNodeColors = () => nodes.map(n => utils.getNodeColor(div, n))
 
     setTimeout(() => expect(getNodeColors()).to.eql([utils.RED, utils.RED, utils.RED]), DELAY - DELTA)
     setTimeout(() => expect(getNodeColors()).to.eql([utils.GREEN, utils.RED, utils.RED]), 2 * DELAY - DELTA)
@@ -26,8 +26,8 @@ it('Queue | Pause in series', () => {
 })
 
 it('Queue | Pause in parallel', () => {
-  const svg = utils.createSvg()
-  const canvas = algorithmx.canvas(svg)
+  const div = utils.createDiv()
+  const canvas = algorithmx.canvas(div)
 
   return new Promise(resolve => {
     const nodes: ReadonlyArray<string> = ['A', 'B', 'C']
@@ -35,7 +35,7 @@ it('Queue | Pause in parallel', () => {
     canvas.eventQ(null).pause(DELAY / 1000).duration(0).node(nodes[0]).size(40)
     canvas.eventQ('q1').pause(DELAY / 1000).duration(0).node(nodes[1]).size(40)
     canvas.eventQ('q2').pause(DELAY / 1000).duration(0).node(nodes[2]).size(40)
-    const getNodeSizes = () => nodes.map(n => utils.getNodeAttr(svg, n, 'r'))
+    const getNodeSizes = () => nodes.map(n => utils.getNodeAttr(div, n, 'r'))
 
     setTimeout(() => expect(getNodeSizes()).to.eql(['40', '25', '25']), DELAY - DELTA)
     setTimeout(() => expect(getNodeSizes()).to.eql(['40', '40', '40']), 2 * DELAY - DELTA)

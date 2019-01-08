@@ -1,9 +1,10 @@
 import { AttrType } from '../definitions'
 import { AttrNum, AttrString, AttrBool, PartialAttr } from '../types'
 import { AnimationFull } from './animation'
-import { ICommonAttr } from './common'
-import * as attrCommon from './common'
 import { COLORS } from '../../render/utils'
+import { IElementAttr, ISvgCssAttr } from './element'
+import * as attrElement from './element'
+
 import * as attrDef from '../definitions'
 import * as math from '../../math'
 import * as utils from '../../utils'
@@ -22,7 +23,7 @@ export enum EnumAlign {
 }
 export type Align = keyof typeof EnumAlign
 
-export interface ILabelAttr extends ICommonAttr {
+export interface ILabelAttr extends IElementAttr, ISvgCssAttr {
   readonly text: AttrString
   readonly align: AttrString & Align
   readonly pos: {
@@ -50,7 +51,7 @@ export const ALIGN_ANGLES: { [k in Align]: number } = {
   'radial': 0
 }
 
-export const definition = attrDef.extendRecordDef<ILabelAttr, ICommonAttr>({
+export const definition = attrDef.extendRecordDef<ILabelAttr, IElementAttr>({
   entries: {
     text: { type: AttrType.String },
     align: { type: AttrType.String, validValues: utils.enumValues(EnumAlign) },
@@ -63,14 +64,16 @@ export const definition = attrDef.extendRecordDef<ILabelAttr, ICommonAttr>({
     rotate: { type: AttrType.Boolean },
     color: { type: AttrType.String },
     font: { type: AttrType.String },
-    size: { type: AttrType.Number }
+    size: { type: AttrType.Number },
+    ...attrElement.svgCssDefEntries
   },
   type: AttrType.Record,
-  keyOrder: ['text', 'align', 'pos', 'radius', 'angle', 'rotate', 'align', 'color', 'font', 'size']
-}, attrCommon.definition)
+  keyOrder: ['text', 'align', 'pos', 'radius', 'angle', 'rotate', 'align', 'color', 'font', 'size',
+    ...attrElement.svgCssDefKeys]
+}, attrElement.definition)
 
 export const defaults: ILabelAttr = {
-  ...attrCommon.defaults,
+  ...attrElement.defaults,
   text: '',
   align: 'bottom-middle',
   pos: { x: 0, y: 0 },
@@ -79,11 +82,12 @@ export const defaults: ILabelAttr = {
   rotate: false,
   color: COLORS.lightGray,
   font: 'Arial, Helvetica, sans-serif',
-  size: 12
+  size: 12,
+  ...attrElement.svgCssDefaults
 }
 
 export const animationDefaults: PartialAttr<AnimationFull<ILabelAttr>> = {
-  ...attrCommon.animationDefaults
+  ...attrElement.animationDefaults
 }
 
 export const alignFromAngle = (angle: number, rotate: boolean): Align => {

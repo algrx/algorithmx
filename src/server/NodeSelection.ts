@@ -64,7 +64,9 @@ const builder: ClassBuilder<NodeSelection, ISelContext<InputNodeAttr>> = (contex
       selection.addListener(context.listeners, `hoverout-node-${id}`, () => onHoverout(context.data[i], i))
     })
     return self()
-  }
+  },
+  ...(selection.svgCssMixinBuilder(context, self))
+
 }, selection.builder(context, self, construct))
 
 export const nodeSelection = (args: ISelContext<InputNodeAttr>) => {

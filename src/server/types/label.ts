@@ -87,4 +87,20 @@ export interface LabelSelection extends Selection<InputLabelAttr> {
    * @param size - The size of the label's text, in pixels.
    */
   size (size: ElementArg<NumExpr>): this
+
+  /**
+   * Sets a custom SVG attribute on the label's text.
+   *
+   * @param key - The name of the SVG attribute
+   * @param value - The value of the SVG attribute.
+   */
+  svgattr (key: string, value: ElementArg<string | number | null>): this
+
+  /**
+   * Sets a custom CSS attribute on the label's text.
+   *
+   * @param key - The name of the CSS attribute
+   * @param value - The value of the CSS attribute.
+   */
+  cssattr (key: string, value: ElementArg<string | number | null>): this
 }

@@ -4,7 +4,7 @@ import { RenderAttr, getEntry } from '../process'
 import * as edgeColor from './color'
 import * as renderLabel from '../label/render'
 import * as renderFns from '../render'
-import * as renderCommon from '../common'
+import * as renderElement from '../element'
 import * as renderUtils from '../utils'
 
 export const MARKER_SIZE = 10
@@ -62,7 +62,7 @@ export const renderMarkers = (selection: D3Selection, renderData: RenderAttr<IEd
 }
 
 export const renderVisible: renderFns.RenderAttrFn<IEdgeAttr['visible']> = (selection, renderData) => {
-  renderCommon.renderVisible(selection.select('.edge'), renderData)
+  renderElement.renderVisible(selection.select('.edge'), renderData)
 }
 
 export const render: renderFns.RenderAttrFn<IEdgeAttr> = (selection, renderData) => {
@@ -71,20 +71,21 @@ export const render: renderFns.RenderAttrFn<IEdgeAttr> = (selection, renderData)
     s.append('path').classed('edge-path', true).attr('fill', 'none').attr('stroke-linecap', 'round'))
   const labelGroup = selectLabelGroup(edgeSel)
 
-  renderCommon.renderCommonLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
+  renderElement.renderElementLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
     renderLabel.render, renderLabel.renderVisible)
 
-  renderCommon.renderCustomSvg(pathSel, renderData)
-  renderCommon.renderSvgAttr(pathSel, 'stroke-width', v => v, getEntry(renderData, 'thickness'))
+  renderElement.renderSvgAttr(pathSel, 'stroke-width', v => v, getEntry(renderData, 'thickness'))
 
   const edgeRenderId = selection.attr('id').substr('edge-'.length)
   renderMarkers(edgeSel, renderData, edgeRenderId)
 
-  renderCommon.renderSvgAttr(pathSel, 'marker-end', v =>
+  renderElement.renderSvgAttr(pathSel, 'marker-end', v =>
     v ? `url(#marker-edge-${edgeRenderId}-target)` : 'url()', getEntry(renderData, 'directed'))
 
   const markerTarget = selectMarker(edgeSel, edgeRenderId, 'target').select('path')
 
   const overlaySelector = () => edgeColor.selectOverlay(edgeSel, edgeRenderId)
   edgeColor.renderColor(pathSel, markerTarget, overlaySelector, renderData)
+
+  renderElement.renderSvgCssMixin(pathSel, renderData)
 }

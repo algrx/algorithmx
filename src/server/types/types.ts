@@ -2,7 +2,7 @@ import { INumExpr, AttrRecord, InputAttr } from '../../client/attributes/types'
 import { ICanvasAttr } from '../../client/attributes/definitions/canvas'
 import { INodeAttr } from '../../client/attributes/definitions/node'
 import { IEdgeAttr } from '../../client/attributes/definitions/edge'
-import { ICommonAttr } from '../../client/attributes/definitions/common'
+import { IElementAttr } from '../../client/attributes/definitions/element'
 
 /**
  * A function taking a selected element's data as input. This is typically provided as an argument in a selection method,

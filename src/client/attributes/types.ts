@@ -85,13 +85,12 @@ type InputStrNumTuple<S extends string> = S | [S, InputNum]
 export type InputAttr<T extends Attr> =
   T extends AttrNum ? InputNum
   : T extends AttrPrimitive ? T
+  : T extends AttrLookup<infer L> ? InputAttrRec<T>
 
 
   // this is a work-around to allow number records (such as size or pos) to be specified as tuples or individual values
   : T extends NumTuple<infer NK2, infer NK2> ? InputNumTuple | InputAttrRec<T>
   : T extends StrNumTuple<infer SNK1, infer SNK2, infer S> ? InputStrNumTuple<S> | InputAttrRec<T>
-
-  : T extends AttrLookup<infer L> ? InputAttrRec<T>
 
   : T extends AttrRecord ? InputAttrRec<T>
   : never

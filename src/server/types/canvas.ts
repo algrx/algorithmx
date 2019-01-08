@@ -1,7 +1,7 @@
 import { InputCanvasAttr } from '../../client/attributes/definitions/types'
 import { EdgeLengthType } from '../../client/attributes/definitions/canvas'
 import { Selection } from './selection'
-import { NumExpr } from './types'
+import { NumExpr, ElementArg } from './types'
 import { NodeSelection } from './node'
 import { EdgeSelection } from './edge'
 import { LabelSelection } from './label'
@@ -69,7 +69,7 @@ export interface CanvasSelection extends Selection<InputCanvasAttr> {
    *
    * @param size - A (width, height) tuple describing the size of the canvas.
    */
-  size (size: [NumExpr, NumExpr]): this
+  size (size: ElementArg<[NumExpr, NumExpr]>): this
 
   /**
    * Sets method used to calculate edge lengths. Edges can either specify individual length values (see [[EdgeSelection.length]]),
@@ -83,14 +83,14 @@ export interface CanvasSelection extends Selection<InputCanvasAttr> {
    * - "individual": Uses each edge's length attribute individually.
    * - "jaccard", "symmetric": Dynamic calculation using an 'average length' value.
    */
-  edgelengths (lengthInfo: EdgeLengthType | [EdgeLengthType, NumExpr]): this
+  edgelengths (lengthInfo: ElementArg<EdgeLengthType | [EdgeLengthType, NumExpr]>): this
 
   /**
    * Sets the location of the canvas camera. The canvas uses a Cartesian coordinate system with (0, 0) at the center.
    *
    * @param location - An (x, y) tuple describing the new pan location.
    */
-  pan (location: [NumExpr, NumExpr]): this
+  pan (location: ElementArg<[NumExpr, NumExpr]>): this
 
   /**
    * Sets the zoom level of the canvas camera. A zoom level of 2.0 will make objects appear twice as large, 0.5 will
@@ -98,7 +98,7 @@ export interface CanvasSelection extends Selection<InputCanvasAttr> {
    *
    * @param zoom - The new zoom level.
    */
-  zoom (zoom: NumExpr): this
+  zoom (zoom: ElementArg<NumExpr>): this
 
   /**
    * Restricts the movement of the canvas camera to the given bounding box, centered at (0, 0). The canvas will only
@@ -109,7 +109,7 @@ export interface CanvasSelection extends Selection<InputCanvasAttr> {
    *
    * @param box - A (width/2, height/2) tuple describing the bounding box.
    */
-  panlimit (box: [NumExpr, NumExpr]): this
+  panlimit (box: ElementArg<[NumExpr, NumExpr]>): this
 
   /**
    * Restricts the zoom level of the canvas camera to the given range. The lower bound describes how far
@@ -119,5 +119,21 @@ export interface CanvasSelection extends Selection<InputCanvasAttr> {
    *
    * @param limit - A (min, max) tuple describing the zoom limit.
    */
-  zoomlimit (limit: [NumExpr, NumExpr]): this
+  zoomlimit (limit: ElementArg<[NumExpr, NumExpr]>): this
+
+  /**
+   * Sets a custom SVG attribute on the canvas.
+   *
+   * @param key - The name of the SVG attribute
+   * @param value - The value of the SVG attribute.
+   */
+  svgattr (key: string, value: ElementArg<string | number | null>): this
+
+  /**
+   * Sets a custom CSS attribute on the canvas.
+   *
+   * @param key - The name of the CSS attribute
+   * @param value - The value of the CSS attribute.
+   */
+  cssattr (key: string, value: ElementArg<string | number |  null>): this
 }

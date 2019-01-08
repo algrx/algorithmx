@@ -12,7 +12,7 @@ export interface EdgeSelection extends Selection<InputEdgeAttr> {
    *
    * @return A new selection corresponding to the given label.
    */
-  label (id: string | number): LabelSelection
+  label (id?: string | number): LabelSelection
 
   /**
    * Selects multiple labels, attached to the edge, using a list of ID values.
@@ -88,4 +88,20 @@ export interface EdgeSelection extends Selection<InputEdgeAttr> {
    * @param path - A list of (x, y) tuples.
    */
   path (path: ElementArg<ReadonlyArray<[NumExpr, NumExpr]>>): this
+
+  /**
+   * Sets a custom SVG attribute on the edge's path.
+   *
+   * @param key - The name of the SVG attribute
+   * @param value - The value of the SVG attribute.
+   */
+  svgattr (key: string, value: ElementArg<string | number | null>): this
+
+  /**
+   * Sets a custom CSS attribute on the edge's path.
+   *
+   * @param key - The name of the CSS attribute
+   * @param value - The value of the CSS attribute.
+   */
+  cssattr (key: string, value: ElementArg<string | number | null>): this
 }

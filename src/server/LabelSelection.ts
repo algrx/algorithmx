@@ -44,7 +44,9 @@ const builder: ClassBuilder<LabelSelection, ISelContext<InputLabelAttr>> = (cont
   size: size => {
     context.client.dispatch(utils.attrEvent(context, size, d => ({ size: d })))
     return self()
-  }
+  },
+  ...(selection.svgCssMixinBuilder(context, self))
+
 }, selection.builder(context, self, construct))
 
 export const labelSelection = (args: ISelContext<InputLabelAttr>) => {

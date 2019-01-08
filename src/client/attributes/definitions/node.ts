@@ -1,18 +1,18 @@
 import { PartialAttr, AttrLookup, AttrString, AttrNum, EnumVarSymbol, AttrEvalPartial } from '../types'
 import { AnimationFull } from './animation'
-import { ICommonAttr } from './common'
+import { IElementAttr, ISvgCssAttr } from './element'
 import { ILabelAttr } from './label'
 import { AttrType } from '../definitions'
 import { COLORS } from '../../render/utils'
 import * as attrLabel from './label'
-import * as attrCommon from './common'
+import * as attrElement from './element'
 import * as attrDef from '../definitions'
 import * as attrUtils from '../utils'
 import * as attrExpr from '../expressions'
 import * as math from '../../math'
 import * as utils from '../../utils'
 
-export interface INodeAttr extends ICommonAttr {
+export interface INodeAttr extends IElementAttr, ISvgCssAttr {
   readonly labels: AttrLookup<ILabelAttr>
   readonly shape: Shape
   readonly corners: AttrNum
@@ -38,26 +38,7 @@ export enum EnumShape {
 }
 export type Shape = keyof typeof EnumShape
 
-export const VALUE_LABEL = 'value'
-
-export const defaults: INodeAttr = {
-  ...attrCommon.defaults,
-  labels: {} as AttrLookup<ILabelAttr>,
-  shape: 'circle',
-  corners: 4,
-  color: COLORS.gray,
-  size: {
-    width: 12,
-    height: 12
-  },
-  pos: { x: 0, y: 0 },
-  fixed: false,
-  draggable: true,
-  hover: false,
-  click: false
-}
-
-export const definition = attrDef.extendRecordDef<INodeAttr, ICommonAttr>({
+export const definition = attrDef.extendRecordDef<INodeAttr, IElementAttr>({
   entries: {
     labels: {
       type: AttrType.Lookup,
@@ -78,15 +59,37 @@ export const definition = attrDef.extendRecordDef<INodeAttr, ICommonAttr>({
     fixed: { type: AttrType.Boolean },
     draggable: { type: AttrType.Boolean },
     hover: { type: AttrType.Boolean },
-    click: { type: AttrType.Boolean }
+    click: { type: AttrType.Boolean },
+    ...attrElement.svgCssDefEntries
   },
   type: AttrType.Record,
-  keyOrder: ['labels', 'shape', 'color', 'size', 'corners', 'pos', 'fixed', 'draggable', 'hover', 'click'],
+  keyOrder: ['labels', 'shape', 'color', 'size', 'corners', 'pos', 'fixed', 'draggable', 'hover', 'click',
+    ...attrElement.svgCssDefKeys],
   validVars: [EnumVarSymbol.Width, EnumVarSymbol.Height]
-}, attrCommon.definition)
+}, attrElement.definition)
+
+export const VALUE_LABEL = 'value'
+
+export const defaults: INodeAttr = {
+  ...attrElement.defaults,
+  labels: {} as AttrLookup<ILabelAttr>,
+  shape: 'circle',
+  corners: 4,
+  color: COLORS.gray,
+  size: {
+    width: 12,
+    height: 12
+  },
+  pos: { x: 0, y: 0 },
+  fixed: false,
+  draggable: true,
+  hover: false,
+  click: false,
+  ...attrElement.svgCssDefaults
+}
 
 export const animationDefaults: PartialAttr<AnimationFull<INodeAttr>> = {
-  ...attrCommon.animationDefaults,
+  ...attrElement.animationDefaults,
   labels: { '*': attrLabel.animationDefaults }
 }
 

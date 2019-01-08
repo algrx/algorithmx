@@ -6,20 +6,19 @@ import { ILayoutState } from '../../layout/layout'
 import * as renderFns from '../render'
 import * as renderUtils from '../utils'
 import * as canvasUtils from './utils'
-import * as renderCommon from '../common'
+import * as renderElement from '../element'
 import * as renderNode from '../node/render'
 import * as renderEdge from '../edge/render'
 import * as renderLabel from '../label/render'
 import * as renderDrag from '../node/drag'
 
 export const renderVisible: renderFns.RenderAttrFn<ICanvasAttr['visible']> = (selection, renderData) => {
-  renderCommon.renderVisible(selection, renderData)
+  renderElement.renderVisible(selection, renderData)
 }
 
 const render: renderFns.RenderAttrFn<ICanvasAttr> = (selection, renderData) => {
-  renderCommon.renderCustomSvg(selection, renderData)
-  renderCommon.renderSvgAttr(selection, 'width', v => v, getEntry(getEntry(renderData, 'size'), 'width'))
-  renderCommon.renderSvgAttr(selection, 'height', v => v, getEntry(getEntry(renderData, 'size'), 'height'))
+  renderElement.renderSvgAttr(selection, 'width', v => v, getEntry(getEntry(renderData, 'size'), 'width'))
+  renderElement.renderSvgAttr(selection, 'height', v => v, getEntry(getEntry(renderData, 'size'), 'height'))
 
   // add an invisible rectangle to fix zooming on safari
   if (renderUtils.isSafari()) canvasUtils.selectSafariFix(selection)
@@ -29,25 +28,27 @@ const render: renderFns.RenderAttrFn<ICanvasAttr> = (selection, renderData) => {
   const edgeGroup = canvasUtils.selectEdgeGroup(canvasInner)
   const nodeGroup = canvasUtils.selectNodeGroup(canvasInner)
 
-  renderCommon.renderCommonLookup(k => canvasUtils.selectNode(nodeGroup, k), getEntry(renderData, 'nodes'),
+  renderElement.renderElementLookup(k => canvasUtils.selectNode(nodeGroup, k), getEntry(renderData, 'nodes'),
     renderNode.render, renderNode.renderVisible)
 
-  renderCommon.renderCommonLookup(k => canvasUtils.selectEdge(edgeGroup, k), getEntry(renderData, 'edges'),
+  renderElement.renderElementLookup(k => canvasUtils.selectEdge(edgeGroup, k), getEntry(renderData, 'edges'),
     renderEdge.render, renderEdge.renderVisible)
 
-  renderCommon.renderCommonLookup(k => canvasUtils.selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
+  renderElement.renderElementLookup(k => canvasUtils.selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
     renderLabel.render, renderLabel.renderVisible)
+
+  renderElement.renderSvgCssMixin(selection, renderData)
 }
 
 export function renderCanvas (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>): void {
-  renderCommon.renderCommon(() => canvasUtils.selectCanvas(canvas), renderData, render, renderVisible)
+  renderElement.renderElement(() => canvasUtils.selectCanvas(canvas), renderData, render, renderVisible)
 }
 
 export const renderLayout = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>, layoutState: ILayoutState): void => {
   const canvasSel = canvasUtils.selectCanvas(canvas)
   const nodeGroup = canvasUtils.selectNodeGroup(canvasUtils.selectCanvasInner(canvasSel))
 
-  renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeData) => {
+  renderElement.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeData) => {
     const sel = canvasUtils.selectNode(nodeGroup, k)
     const draggable = getEntry(nodeData, 'draggable').attr
     if (draggable) renderDrag.enableDrag(canvasSel, sel, layoutState.cola, layoutState.nodes[k])
@@ -63,7 +64,7 @@ export const renderWithLiveUpdate = (canvas: Canvas, renderData: RenderAttr<ICan
   const canvasSel = canvasUtils.selectCanvas(canvas)
   const nodeGroup = canvasUtils.selectNodeGroup(canvasUtils.selectCanvasInner(canvasSel))
 
-  renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
+  renderElement.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
     const nodeData = renderNode.preprocessRenderData(nodeDataInit)
     const selection = canvasUtils.selectNode(nodeGroup, k)
 

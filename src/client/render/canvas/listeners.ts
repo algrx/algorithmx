@@ -5,7 +5,7 @@ import { Canvas } from '../../types/events'
 import { selectCanvasInner, selectNodeGroup, selectNode } from './utils'
 import * as canvasUtils from './utils'
 import * as renderFns from '../render'
-import * as renderCommon from '../common'
+import * as renderElement from '../element'
 import * as renderDrag from '../node/drag'
 
 export const registerNodeHover = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>,
@@ -13,9 +13,9 @@ export const registerNodeHover = (canvas: Canvas, renderData: RenderAttr<ICanvas
   const canvasSel = canvasUtils.selectCanvas(canvas)
   const nodeGroup = selectNodeGroup(selectCanvasInner(canvasSel))
 
-  renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
+  renderElement.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
     const sel = selectNode(nodeGroup, k)
-    const nodeData = renderCommon.preprocessRenderData(nodeDataInit)
+    const nodeData = renderElement.preprocessRenderData(nodeDataInit)
     renderFns.onChanged(sel, getEntry(nodeData, 'hover'), (s, nodeHover) => {
       const hoverFn = nodeHover.attr
         ? (entered: boolean) => onHover(k, entered)
@@ -29,9 +29,9 @@ export const registerNodeClick = (canvas: Canvas, renderData: RenderAttr<ICanvas
                                   onClick: (id: string) => void) => {
   const nodeGroup = selectNodeGroup(selectCanvasInner(canvasUtils.selectCanvas(canvas)))
 
-  renderCommon.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
+  renderElement.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
     const sel = selectNode(nodeGroup, k)
-    const nodeData = renderCommon.preprocessRenderData(nodeDataInit)
+    const nodeData = renderElement.preprocessRenderData(nodeDataInit)
     renderFns.onChanged(sel, getEntry(nodeData, 'click'), (s, nodeClick) => {
       const clickFn = nodeClick.attr
         ? () => onClick(k)

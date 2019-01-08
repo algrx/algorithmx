@@ -3,7 +3,7 @@ import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
 
 it('Callback | Late', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.pause(0.05).callback(resolve)
     setTimeout(() => reject(new Error('callback was too late')), 60)
@@ -11,7 +11,7 @@ it('Callback | Late', () => {
 })
 
 it('Callback | Early', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     canvas.pause(0.02).callback(() => reject(new Error('callback was too early')))
     setTimeout(resolve, 10)
@@ -19,7 +19,7 @@ it('Callback | Early', () => {
 })
 
 it('Callback | Parallel', () => {
-  const canvas = algorithmx.canvas(utils.createSvg())
+  const canvas = algorithmx.canvas(utils.createDiv())
   return new Promise((resolve, reject) => {
     /* tslint:disable */
     let animal = 'cat'
