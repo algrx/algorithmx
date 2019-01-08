@@ -82,7 +82,7 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
     context.client.dispatch(utils.attrEvent(context, limit, d => ({ zoomlimit: d })))
     return self()
   },
-  ...(selection.svgCssMixinBuilder(context, self))
+  ...(selection.svgMixinBuilder(context, self))
 
 }, selection.builder(context, self, construct))
 

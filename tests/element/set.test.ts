@@ -44,15 +44,17 @@ it('Label | Setting multiple attributes', () => {
 
   canvas.node(1).label(1).duration(0).set({
     size: 20,
-    svgattr: { 'stroke': utils.GREEN },
-    cssattr: { 'text-decoration': 'underline' }
+    svgattr: {
+      'stroke': utils.GREEN,
+      'text-decoration': 'underline'
+    }
   })
 
   const labelSel = utils.selectNodeLabel(utils.selectNode(div, 1), 1)
 
   expect(utils.getLabelAttr(labelSel, 'font-size')).to.eq('20')
   expect(utils.getLabelAttr(labelSel, 'stroke')).to.eq(utils.GREEN)
-  expect(labelSel.select('text').style('text-decoration')).to.eq('underline')
+  expect(utils.getLabelAttr(labelSel, 'text-decoration')).to.eq('underline')
 })
 
 it('Node | Highlighting multiple attributes', () => {

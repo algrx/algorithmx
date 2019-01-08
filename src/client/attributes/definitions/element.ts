@@ -19,16 +19,13 @@ export const animationDefaults: PartialAttr<AnimationFull<IElementAttr>> = {
   visible: { type: 'fade' }
 }
 
-export interface ISvgCssAttr extends AttrRecord {
+export interface ISvgMixinAttr extends AttrRecord {
   readonly svgattr: AttrLookup<AttrString>
-  readonly cssattr: AttrLookup<AttrString>
 }
-export const svgCssDefEntries: AttrDef<ISvgCssAttr>['entries'] = {
-  svgattr: { type: AttrType.Lookup, entry: { type: AttrType.String } },
-  cssattr: { type: AttrType.Lookup, entry: { type: AttrType.String } }
+export const svgMixinDefEntries: AttrDef<ISvgMixinAttr>['entries'] = {
+  svgattr: { type: AttrType.Lookup, entry: { type: AttrType.String } }
 }
-export const svgCssDefKeys: ReadonlyArray<keyof ISvgCssAttr> = ['svgattr', 'cssattr']
-export const svgCssDefaults: ISvgCssAttr = {
-  svgattr: {} as AttrLookup<AttrString>,
-  cssattr: {} as AttrLookup<AttrString>
+export const svgMixinDefKeys: ReadonlyArray<keyof ISvgMixinAttr> = ['svgattr']
+export const svgMixinDefaults: ISvgMixinAttr = {
+  svgattr: {} as AttrLookup<AttrString>
 }

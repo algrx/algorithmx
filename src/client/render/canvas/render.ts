@@ -37,7 +37,7 @@ const render: renderFns.RenderAttrFn<ICanvasAttr> = (selection, renderData) => {
   renderElement.renderElementLookup(k => canvasUtils.selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
     renderLabel.render, renderLabel.renderVisible)
 
-  renderElement.renderSvgCssMixin(selection, renderData)
+  renderElement.renderSvgMixin(selection, renderData)
 }
 
 export function renderCanvas (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>): void {

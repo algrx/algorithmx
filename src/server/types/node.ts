@@ -116,12 +116,4 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
    * @param value - The value of the SVG attribute.
    */
   svgattr (key: string, value: ElementArg<string | number | null>): this
-
-  /**
-   * Sets a custom CSS attribute on the node's shape.
-   *
-   * @param key - The name of the CSS attribute
-   * @param value - The value of the CSS attribute.
-   */
-  cssattr (key: string, value: ElementArg<string | number | null>): this
 }

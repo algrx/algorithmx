@@ -1,6 +1,6 @@
 import { PartialAttr, AttrLookup, AttrNum, AttrString, EnumVarSymbol, AttrEvalPartial } from '../types'
 import { AnimationFull } from './animation'
-import { IElementAttr, ISvgCssAttr } from './element'
+import { IElementAttr, ISvgMixinAttr } from './element'
 import { ILabelAttr } from './label'
 import { INodeAttr } from './node'
 import { IEdgeAttr } from './edge'
@@ -22,7 +22,7 @@ export enum EnumEdgeLengthType {
 }
 export type EdgeLengthType = keyof typeof EnumEdgeLengthType
 
-export interface ICanvasAttr extends IElementAttr, ISvgCssAttr {
+export interface ICanvasAttr extends IElementAttr, ISvgMixinAttr {
   readonly nodes: AttrLookup<INodeAttr>
   readonly edges: AttrLookup<IEdgeAttr>
   readonly labels: AttrLookup<ILabelAttr>
@@ -76,10 +76,10 @@ export const definition = attrDef.extendRecordDef<ICanvasAttr, IElementAttr>({
       min: { type: AttrType.Number },
       max: { type: AttrType.Number }
     }, keyOrder: ['min', 'max'] },
-    ...attrElement.svgCssDefEntries
+    ...attrElement.svgMixinDefEntries
   },
   keyOrder: ['nodes', 'edges', 'labels', 'size', 'edgelengths', 'pan', 'zoom', 'panlimit', 'zoomlimit',
-    ...attrElement.svgCssDefKeys],
+    ...attrElement.svgMixinDefKeys],
   validVars: [EnumVarSymbol.CanvasWidth, EnumVarSymbol.CanvasHeight]
 }, attrElement.definition)
 
@@ -97,7 +97,7 @@ export const defaults: ICanvasAttr = {
   zoom: 1,
   panlimit: { horizontal: Infinity, vertical: Infinity },
   zoomlimit: { min: 0.1, max: 10 },
-  ...attrElement.svgCssDefaults
+  ...attrElement.svgMixinDefaults
 }
 
 const labelDefaults: PartialAttr<ILabelAttr> = {

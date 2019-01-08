@@ -65,7 +65,7 @@ const builder: ClassBuilder<NodeSelection, ISelContext<InputNodeAttr>> = (contex
     })
     return self()
   },
-  ...(selection.svgCssMixinBuilder(context, self))
+  ...(selection.svgMixinBuilder(context, self))
 
 }, selection.builder(context, self, construct))
 

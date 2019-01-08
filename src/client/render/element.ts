@@ -1,6 +1,6 @@
 import { RenderEndpoint, RenderAttr } from './process'
 import { D3Selection, D3SelTrans } from './utils'
-import { IElementAttr, ISvgCssAttr } from '../attributes/definitions/element'
+import { IElementAttr, ISvgMixinAttr } from '../attributes/definitions/element'
 import { IAnimation } from '../attributes/definitions/animation'
 import { getEntry } from './process'
 import { Attr, AttrEval, PartialAttr, AttrLookup } from '../attributes/types'
@@ -23,7 +23,7 @@ export const renderSvgAttr = <T extends Attr>(selection: D3Selection, key: strin
   })
 }
 
-export const renderSvgCssMixin: renderFns.RenderAttrFn<ISvgCssAttr> = (selection, renderData) => {
+export const renderSvgMixin: renderFns.RenderAttrFn<ISvgMixinAttr> = (selection, renderData) => {
   const precessKey = (sel, key) => [
     key.includes('@') ? sel.selectAll(key.split('@')[1]) : sel,
     key.includes('@') ? key.split('@')[0] : key
@@ -35,15 +35,6 @@ export const renderSvgCssMixin: renderFns.RenderAttrFn<ISvgCssAttr> = (selection
   renderFns.renderLookupRemovals(getEntry(renderData, 'svgattr'), (_, d) => {
     const [s, k] = precessKey(selection, d.name)
     renderSvgAttr(s, k, v => null, d)
-  })
-
-  renderFns.renderLookup(getEntry(renderData, 'cssattr'), (_, d) => {
-    const [s, k] = precessKey(selection, d.name)
-    renderFns.render(s, d, (styleSel, styleAttr) => styleSel.style(k, styleAttr))
-  })
-  renderFns.renderLookupRemovals(getEntry(renderData, 'cssattr'), (_, d) => {
-    const [s, k] = precessKey(selection, d.name)
-    renderFns.render(s, d, (styleSel) => styleSel.style(k, null))
   })
 }
 

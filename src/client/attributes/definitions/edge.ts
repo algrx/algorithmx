@@ -1,6 +1,6 @@
 import { PartialAttr, AttrLookup, AttrString, AttrNum, AttrArray, AttrBool } from '../types'
 import { AnimationFull } from './animation'
-import { IElementAttr, ISvgCssAttr } from './element'
+import { IElementAttr, ISvgMixinAttr } from './element'
 import { ILabelAttr } from './label'
 import { AttrType } from '../definitions'
 import { COLORS } from '../../render/utils'
@@ -12,7 +12,7 @@ import * as math from '../../math'
 import * as utils from '../../utils'
 
 
-export interface IEdgeAttr extends IElementAttr, ISvgCssAttr {
+export interface IEdgeAttr extends IElementAttr, ISvgMixinAttr {
   readonly labels: AttrLookup<ILabelAttr>
   readonly source: AttrString
   readonly target: AttrString
@@ -55,11 +55,11 @@ export const definition = attrDef.extendRecordDef<IEdgeAttr, IElementAttr>({
         y: { type: AttrType.Number }
       }, keyOrder: ['x', 'y'] }
     },
-    ...attrElement.svgCssDefEntries
+    ...attrElement.svgMixinDefEntries
   },
   type: AttrType.Record,
   keyOrder: ['labels', 'source', 'target', 'directed', 'length', 'thickness', 'color', 'flip', 'curve', 'path',
-    ...attrElement.svgCssDefKeys],
+    ...attrElement.svgMixinDefKeys],
   validVars: []
 }, attrElement.definition)
 
@@ -75,7 +75,7 @@ export const defaults: IEdgeAttr = {
   flip: true,
   curve: 'natural',
   path: [],
-  ...attrElement.svgCssDefaults
+  ...attrElement.svgMixinDefaults
 }
 
 const labelDefaults: PartialAttr<ILabelAttr> = {

@@ -1,6 +1,6 @@
 import { PartialAttr, AttrLookup, AttrString, AttrNum, EnumVarSymbol, AttrEvalPartial } from '../types'
 import { AnimationFull } from './animation'
-import { IElementAttr, ISvgCssAttr } from './element'
+import { IElementAttr, ISvgMixinAttr } from './element'
 import { ILabelAttr } from './label'
 import { AttrType } from '../definitions'
 import { COLORS } from '../../render/utils'
@@ -12,7 +12,7 @@ import * as attrExpr from '../expressions'
 import * as math from '../../math'
 import * as utils from '../../utils'
 
-export interface INodeAttr extends IElementAttr, ISvgCssAttr {
+export interface INodeAttr extends IElementAttr, ISvgMixinAttr {
   readonly labels: AttrLookup<ILabelAttr>
   readonly shape: Shape
   readonly corners: AttrNum
@@ -60,11 +60,11 @@ export const definition = attrDef.extendRecordDef<INodeAttr, IElementAttr>({
     draggable: { type: AttrType.Boolean },
     hover: { type: AttrType.Boolean },
     click: { type: AttrType.Boolean },
-    ...attrElement.svgCssDefEntries
+    ...attrElement.svgMixinDefEntries
   },
   type: AttrType.Record,
   keyOrder: ['labels', 'shape', 'color', 'size', 'corners', 'pos', 'fixed', 'draggable', 'hover', 'click',
-    ...attrElement.svgCssDefKeys],
+    ...attrElement.svgMixinDefKeys],
   validVars: [EnumVarSymbol.Width, EnumVarSymbol.Height]
 }, attrElement.definition)
 
@@ -85,7 +85,7 @@ export const defaults: INodeAttr = {
   draggable: true,
   hover: false,
   click: false,
-  ...attrElement.svgCssDefaults
+  ...attrElement.svgMixinDefaults
 }
 
 export const animationDefaults: PartialAttr<AnimationFull<INodeAttr>> = {

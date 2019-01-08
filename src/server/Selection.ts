@@ -1,4 +1,4 @@
-import { InputElementAttr, InputSvgCssAttr } from '../client/attributes/definitions/types'
+import { InputElementAttr, InputSvgMixinAttr } from '../client/attributes/definitions/types'
 import { IAnimation } from '../client/attributes/definitions/animation'
 import { IElementAttr } from '../client/attributes/definitions/element'
 import { Selection } from './types/selection'
@@ -161,15 +161,11 @@ export const builder: ClassBuilder<Selection<InputElementAttr>, ISelContext<Inpu
   }
 })
 
-export const svgCssMixinBuilder = <T extends InputSvgCssAttr & InputElementAttr, S extends Selection<T>>
+export const svgMixinBuilder = <T extends InputSvgMixinAttr & InputElementAttr, S extends Selection<T>>
   (context: ISelContext<T>, self: () => S) => ({
 
   svgattr: (key: string, value: ElementArg<string | number | null>) => {
     context.client.dispatch(utils.attrEvent(context, value, d => ({ svgattr: { [key]: d } } as T)))
-    return self()
-  },
-  cssattr: (key: string, value: ElementArg<string | number | null>) => {
-    context.client.dispatch(utils.attrEvent(context, value, d => ({ cssattr: { [key]: d } } as T)))
     return self()
   }
 })

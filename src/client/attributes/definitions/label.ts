@@ -2,7 +2,7 @@ import { AttrType } from '../definitions'
 import { AttrNum, AttrString, AttrBool, PartialAttr } from '../types'
 import { AnimationFull } from './animation'
 import { COLORS } from '../../render/utils'
-import { IElementAttr, ISvgCssAttr } from './element'
+import { IElementAttr, ISvgMixinAttr } from './element'
 import * as attrElement from './element'
 
 import * as attrDef from '../definitions'
@@ -23,7 +23,7 @@ export enum EnumAlign {
 }
 export type Align = keyof typeof EnumAlign
 
-export interface ILabelAttr extends IElementAttr, ISvgCssAttr {
+export interface ILabelAttr extends IElementAttr, ISvgMixinAttr {
   readonly text: AttrString
   readonly align: AttrString & Align
   readonly pos: {
@@ -65,11 +65,11 @@ export const definition = attrDef.extendRecordDef<ILabelAttr, IElementAttr>({
     color: { type: AttrType.String },
     font: { type: AttrType.String },
     size: { type: AttrType.Number },
-    ...attrElement.svgCssDefEntries
+    ...attrElement.svgMixinDefEntries
   },
   type: AttrType.Record,
   keyOrder: ['text', 'align', 'pos', 'radius', 'angle', 'rotate', 'align', 'color', 'font', 'size',
-    ...attrElement.svgCssDefKeys]
+    ...attrElement.svgMixinDefKeys]
 }, attrElement.definition)
 
 export const defaults: ILabelAttr = {
@@ -83,7 +83,7 @@ export const defaults: ILabelAttr = {
   color: COLORS.lightGray,
   font: 'Arial, Helvetica, sans-serif',
   size: 12,
-  ...attrElement.svgCssDefaults
+  ...attrElement.svgMixinDefaults
 }
 
 export const animationDefaults: PartialAttr<AnimationFull<ILabelAttr>> = {
