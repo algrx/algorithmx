@@ -13,8 +13,10 @@ export const createDiv = (width = 100, height = 100): HTMLDivElement => {
   return container
 }
 
+export const removeSpaces = (s: string): string => s.replace(/\s/g, '')
+
 export const selectCanvas = (canvas: Canvas): D3Selection =>
-  renderCanvasUtils.selectCanvas(canvas).select('g')
+  renderCanvasUtils.selectCanvas(canvas)
 
 
 export const selectNode = (canvas: Canvas, id: string | number): D3Selection => {
@@ -29,7 +31,7 @@ export const getNodeAttr = (canvas: Canvas, id: string | number, attr: string) =
   selectNode(canvas, id).select('.shape').attr(attr)
 
 export const getNodeColor = (canvas: Canvas, id: string | number) =>
-  getNodeAttr(canvas, id, 'fill').replace(/\s/g, '')
+  removeSpaces(getNodeAttr(canvas, id, 'fill'))
 
 
 type EdgeSelector = [string | number, string | number, (string | number)?]
@@ -44,7 +46,7 @@ export const getEdgeAttr = (canvas: Canvas, edge: EdgeSelector, attr: string) =>
   selectEdge(canvas, edge).select('.edge-path').attr(attr)
 
 export const getEdgeColor = (canvas: Canvas, edge: EdgeSelector) =>
-  getEdgeAttr(canvas, edge, 'stroke').replace(/\s/g, '')
+  removeSpaces(getEdgeAttr(canvas, edge, 'stroke'))
 
 
 export const getLabelAttr = (label: D3Selection, attr: string) =>

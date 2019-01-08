@@ -54,3 +54,24 @@ it('Label | Setting multiple attributes', () => {
   expect(utils.getLabelAttr(labelSel, 'stroke')).to.eq(utils.GREEN)
   expect(labelSel.select('text').style('text-decoration')).to.eq('underline')
 })
+
+it('Node | Highlighting multiple attributes', () => {
+  const div = utils.createDiv()
+  const canvas = algorithmx.canvas(div)
+
+  canvas.node(1).add().size(40).color(utils.GREEN)
+  canvas.node(1).duration(0).highlight(0.03).set({
+    size: '0.5x',
+    color: utils.RED
+  })
+  expect(utils.getNodeAttr(div, 1, 'r')).to.eq('20')
+  expect(utils.getNodeColor(div, 1)).to.eq(utils.RED)
+
+  return new Promise(resolve => {
+    setTimeout(() => {
+      expect(utils.getNodeAttr(div, 1, 'r')).to.eq('40')
+      expect(utils.getNodeColor(div, 1)).to.eq(utils.GREEN)
+      resolve()
+    }, 50)
+  })
+})

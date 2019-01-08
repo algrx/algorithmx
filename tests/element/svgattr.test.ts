@@ -2,12 +2,12 @@ import { expect } from 'chai'
 import * as algorithmx from '../../src/index'
 import * as utils from '../utils'
 
-it('Canvas | Setting CSS attributes', () => {
+it('Canvas | Setting SVG attributes', () => {
   const div = utils.createDiv()
   const canvas = algorithmx.canvas(div)
 
-  canvas.duration(0).cssattr('background-color', 'pink')
-  expect(utils.getD3().select(div).select('svg').style('background-color')).to.eq('pink')
+  canvas.duration(0).svgattr('opacity', '0.5')
+  expect(utils.selectCanvas(div).attr('opacity')).to.eq('0.5')
 })
 
 it('Node | Setting SVG attributes', () => {
@@ -44,9 +44,26 @@ it('Label | Setting SVG as CSS attributes', () => {
 
   canvas.node(1).label().duration(0)
     .svgattr('stroke', utils.RED)
-    .cssattr('text-decoration', 'line-through')
+    .svgattr('text-decoration', 'line-through')
 
   const labelSel = utils.selectNodeLabel(utils.selectNode(div, 1), 'value')
   expect(utils.getLabelAttr(labelSel, 'stroke')).to.eq(utils.RED)
-  expect(labelSel.select('text').style('text-decoration')).to.eq('line-through')
+  expect(utils.getLabelAttr(labelSel, 'text-decoration')).to.eq('line-through')
+})
+
+it('Node | Highlighting SVG attributes', () => {
+  const div = utils.createDiv()
+  const canvas = algorithmx.canvas(div)
+
+  canvas.node(1).add().svgattr('stroke', utils.RED)
+
+  canvas.node(1).duration(0).highlight(0.03).svgattr('stroke', utils.GREEN)
+  expect(utils.getNodeAttr(div, 1, 'stroke')).to.eq(utils.GREEN)
+
+  return new Promise(resolve => {
+    setTimeout(() => {
+      expect(utils.getNodeAttr(div, 1, 'stroke')).to.satisfy((s: string) => utils.removeSpaces(s) === utils.RED)
+      resolve()
+    }, 50)
+  })
 })
