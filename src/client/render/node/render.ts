@@ -45,7 +45,7 @@ const renderSize = (selection: D3Selection, sizeData: RenderAttr<INodeAttr['size
   }
 }
 
-export const preprocessRenderData = (renderData: RenderAttr<INodeAttr>): RenderAttr<INodeAttr> => {
+export const preprocess = (renderData: RenderAttr<INodeAttr>): RenderAttr<INodeAttr> => {
   const shapeUpdateKeys = nodeAttr.definition.keyOrder.filter(k => k !== 'pos' && k !== 'visible' && k !== 'labels')
   return renderProcess.hasChanged(getEntry(renderData, 'shape'))
     ? renderProcess.markKeysForUpdate(renderData, shapeUpdateKeys) : renderData
@@ -56,7 +56,7 @@ export const renderVisible: renderFns.RenderAttrFn<INodeAttr['visible']> = (sele
 }
 
 export const render: renderFns.RenderAttrFn<INodeAttr> = (selection, renderDataInit) => {
-  const renderData = preprocessRenderData(renderDataInit)
+  const renderData = preprocess(renderDataInit)
   const nodeSel = selectNodeInner(selection)
 
   renderFns.render(nodeSel, getEntry(renderData, 'shape'), (s, shape) => renderShape(nodeSel, shape))

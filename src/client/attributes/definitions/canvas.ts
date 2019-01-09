@@ -112,7 +112,11 @@ export const animationDefaults: PartialAttr<AnimationFull<ICanvasAttr>> = {
   ...attrElement.animationDefaults,
   nodes: { '*': attrNode.animationDefaults },
   edges: { '*': attrEdge.animationDefaults },
-  labels: { '*': attrLabel.animationDefaults }
+  labels: { '*': attrLabel.animationDefaults },
+  size: {
+    width: { duration: 0 },
+    height: { duration: 0 }
+  }
 }
 
 export const init = (canvasSize: [number, number]): ICanvasAttr => {

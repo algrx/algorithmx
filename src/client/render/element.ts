@@ -80,7 +80,7 @@ export const renderRemove: renderFns.RenderAttrFn<IElementAttr['visible']> = (se
   })
 }
 
-export const preprocessRenderData = <T extends IElementAttr>(renderData: RenderAttr<T>): RenderAttr<T> => {
+export const preprocess = <T extends IElementAttr>(renderData: RenderAttr<T>): RenderAttr<T> => {
   const visibleData = getEntry(renderData, 'visible')
   return renderProcess.hasChanged(visibleData) && visibleData.attr === true
     ? renderProcess.markForUpdate(renderData) : renderData
@@ -98,7 +98,7 @@ export const renderElementRemove = <T extends IElementAttr>(selection: D3Selecti
 export const renderElement = <T extends IElementAttr>(selector: () => D3Selection, renderData: RenderAttr<T>,
                                                       renderFn: renderFns.RenderAttrFn<T>,
                                                       renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
-  const renderDataFull = preprocessRenderData(renderData)
+  const renderDataFull = preprocess(renderData)
   const visibleData = getEntry(renderData, 'visible')
 
   if (renderProcess.hasChanged(visibleData) && visibleData.attr === true) selector().remove()

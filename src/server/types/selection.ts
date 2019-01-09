@@ -193,7 +193,8 @@ export interface Selection<T extends InputElementAttr> {
   /**
    * Registers a function to listen for a specific broadcast message (see [[Selection.broadcast]]). The function will
    * be called when the corresponding broadcast event is processed by the event queue. If the same message is broadcast
-   * multiple times, the function will be called each time.
+   * multiple times, the function will be called each time. This will also override any previous function listening for
+   * the same message.
    *
    * @param message - The message to listen for.
    * @param onReceive - The function to call when the message is received.

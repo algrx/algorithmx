@@ -9,6 +9,7 @@ import * as renderCanvas from './render/canvas/render'
 import * as renderCanvasBehavior from './render/canvas/behavior'
 import * as renderCanvasListeners from './render/canvas/listeners'
 import * as renderCanvasLive from './render/canvas/live'
+import * as renderCanvasMisc from './render/canvas/misc'
 import * as layout from './layout/layout'
 
 export const dispatchError = (message: string, type: events.EnumErrorType): events.IReceiveError =>
@@ -46,10 +47,10 @@ const render = (canvas: events.Canvas, renderData: RenderAttr<ICanvasAttr>,
   renderCanvas.renderCanvas(canvas, renderData)
   if (renderData.attr.visible === false) return
 
-  renderCanvas.renderLayout(canvas, renderData, layoutState)
+  renderCanvasMisc.renderLayout(canvas, renderData, layoutState)
 
   const updateLiveFn = () => renderCanvasLive.updateCanvas(canvas, renderData.attr, layoutState)
-  renderCanvas.renderWithLiveUpdate(canvas, renderData, updateLiveFn)
+  renderCanvasMisc.renderWithLiveUpdate(canvas, renderData, updateLiveFn)
   updateLiveFn()
 }
 
@@ -73,7 +74,7 @@ const executeUpdate = (state: IClientState, listener: ClientListener,
     return state
   }
 
-  const renderData = renderElement.preprocessRenderData(pipeline.getRenderData(processed))
+  const renderData = renderElement.preprocess(pipeline.getRenderData(processed))
   const layoutState = layout.update(state.layout, processed.attributes, processed.changes)
 
   render(state.canvas, renderData, layoutState)
@@ -108,7 +109,7 @@ const executeHighlight = (state: IClientState, listener: ClientListener,
     animation: processed.animation,
     highlight: processed.changes
   }
-  const renderData = renderElement.preprocessRenderData(renderDataInit)
+  const renderData = renderElement.preprocess(renderDataInit)
 
   render(state.canvas, renderData, state.layout)
   renderBehavior(state.canvas, renderData, state.renderBehavior)

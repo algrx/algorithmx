@@ -90,6 +90,7 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
 
   /**
    * Registers a function to listen for node click events.
+   * This will override any previous function listening for click events on the same node.
    *
    * @param onClick - A function taking the node's data (see [[Selection.data]]) and, optionally, index.
    */
@@ -97,6 +98,7 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
 
   /**
    * Registers a function to listen for node mouse-over events, triggered when the mouse enters the node.
+   * This will override any previous function listening for hover-in events on the same node.
    *
    * @param onHoverin - A function taking the node's data (see [[Selection.data]]) and, optionally, index.
    */
@@ -104,6 +106,7 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
 
   /**
    * Registers a function to listen for node mouse-over events, triggered when the mouse leaves the node.
+   * This will override any previous function listening for hover-out events on the same node.
    *
    * @param onHoverout - A function taking the node's data (see [[Selection.data]]) and, optionally, index.
    */
