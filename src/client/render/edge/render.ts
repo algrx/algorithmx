@@ -80,7 +80,7 @@ export const render: renderFns.RenderAttrFn<IEdgeAttr> = (selection, renderData)
   renderMarkers(edgeSel, renderData, edgeRenderId)
 
   renderElement.renderSvgAttr(pathSel, 'marker-end', v =>
-    v ? `url(#marker-edge-${edgeRenderId}-target)` : 'url()', getEntry(renderData, 'directed'))
+    v ? `url(#marker-edge-${edgeRenderId}-target)` : null, getEntry(renderData, 'directed'))
 
   const markerTarget = selectMarker(edgeSel, edgeRenderId, 'target').select('path')
 

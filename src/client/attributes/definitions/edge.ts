@@ -148,15 +148,18 @@ export const initLookup = (prevEdges: AttrLookup<IEdgeAttr>, changes: PartialAtt
     const target = edge.target || ''
 
     const newMatrix = incrementMatrix(result.matrix, source, target)
-    const i = newMatrix[source][target] - 1
+    const index = newMatrix[source][target] - 1
 
-    const path: IEdgeAttr['path'] =
-      source !== target ? [{
-        x: 0, y: Math.pow(-1, i + 1) * Math.ceil(i / 2) * 16
-      }]
-      : [{ x: -10 - i * 10, y: (i * 10) / 2 },
-         { x: 0, y: i * 10 },
-         { x: 10 + i * 10, y: (i * 10) / 2 }]
+    const loopingPath = (i: number) => [
+      { x: -(i + 1) * 8, y: 8 },
+      { x: -(i + 1) * 10, y: 14 + ((i + 1) * 6) },
+      { x: 0, y: 14 + (i + 1) * 14 },
+      { x: (i + 1) * 10, y: 14 + ((i + 1) * 6) },
+      { x: (i + 1) * 8, y: 8 }
+    ]
+
+    const path: IEdgeAttr['path'] = source === target ? loopingPath(index)
+      : [{ x: 0, y: Math.pow(-1, index + 1) * Math.ceil(index / 2) * 16 }]
 
     const edgeDefaults = {...init(), path: path }
     const initEdgeChildren = initChildren(edgeDefaults, edge)

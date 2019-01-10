@@ -1,5 +1,6 @@
 # AlgorithmX
-[![npm](https://travis-ci.com/algrx/algorithmx.svg)](https://travis-ci.com/algrx/algorithmx)
+
+[![travis](https://travis-ci.com/algrx/algorithmx.svg)](https://travis-ci.com/algrx/algorithmx)
 [![npm](https://img.shields.io/npm/v/algorithmx.svg)](https://www.npmjs.com/package/algorithmx)
 [![codecov](https://codecov.io/gh/algrx/algorithmx/branch/master/graph/badge.svg)](https://codecov.io/gh/algrx/algorithmx)
 
@@ -9,6 +10,9 @@
 <br><br>
 
 <img src="https://raw.githubusercontent.com/algrx/algorithmx/master/img/example.svg?sanitize=true" align="center" width="600px">
+
+## Resources
+  - <a href='https://algrx.github.io/algorithmx/docs/js'>Docs</a>
 
 ## Installing
 
@@ -46,5 +50,3 @@ canvas.pause(0.5)
 // temporarily make node 'B' 1.5 times as large
 canvas.node('B').highlight().size('1.5x')
 ```
-
-Refer to the <a href="https://algrx.github.io/algorithmx/docs/js">docs</a> for the full API.

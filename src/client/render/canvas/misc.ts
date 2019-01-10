@@ -14,16 +14,12 @@ export const renderLayout = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>
   const canvasSel = canvasUtils.selectCanvas(canvas)
   const nodeGroup = canvasUtils.selectNodeGroup(canvasUtils.selectCanvasInner(canvasSel))
 
-  renderElement.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeDataInit) => {
-    const nodeData = renderNode.preprocess(renderElement.preprocess(nodeDataInit))
+  renderElement.renderVisibleLookup(getEntry(renderData, 'nodes'), (k, nodeData) => {
     const selection = canvasUtils.selectNode(nodeGroup, k)
-    const draggableData = getEntry(nodeData, 'draggable')
+    const draggable = getEntry(nodeData, 'draggable').attr
 
-    renderFns.render(selection, draggableData, (sel, draggable) => {
-      if (draggable) renderNodeDrag.enableDrag(canvasSel, selection, layoutState.cola, layoutState.nodes[k])
-      else renderNodeDrag.disableDrag(selection)
-      return sel
-    })
+    if (draggable) renderNodeDrag.enableDrag(canvasSel, selection, layoutState.cola, layoutState.nodes[k])
+    else renderNodeDrag.disableDrag(selection)
   })
 }
 

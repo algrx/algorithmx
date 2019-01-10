@@ -1,4 +1,4 @@
-import { INodeAttr, Shape } from '../attributes/definitions/node'
+import { INodeAttr } from '../attributes/definitions/node'
 import { Lookup } from '../utils'
 import { AttrEval, AttrEvalPartial, AttrLookup } from '../attributes/types'
 import * as utils from '../utils'

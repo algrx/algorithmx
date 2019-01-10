@@ -27,6 +27,11 @@ it('Edge | Add multiple edges connecting the same nodes', () => {
   expect(utils.selectEdge(div, ['A', 'B'])).to.satisfy((s: D3Selection) => s.empty())
   expect(utils.selectEdge(div, ['A', 'B', 1])).to.satisfy((s: D3Selection) => !s.empty())
   expect(utils.selectEdge(div, ['A', 'B', 2])).to.satisfy((s: D3Selection) => !s.empty())
+
+  canvas.edges([['A', 'A', 1], ['A', 'A', 2]]).add()
+  expect(utils.selectEdge(div, ['A', 'A'])).to.satisfy((s: D3Selection) => s.empty())
+  expect(utils.selectEdge(div, ['A', 'A', 1])).to.satisfy((s: D3Selection) => !s.empty())
+  expect(utils.selectEdge(div, ['A', 'A', 2])).to.satisfy((s: D3Selection) => !s.empty())
 })
 
 it('Edge | Change (source, target) order', () => {
