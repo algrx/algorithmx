@@ -12,7 +12,7 @@ import * as utils from './utils'
 
 const receiveHandler = (event: events.ReceiveEvent, listeners: selection.SelListeners): void => {
   if (event.type === events.EnumReceiveType.broadcast)
-     selection.triggerListener(listeners, event.data.message)
+    selection.triggerListener(listeners, event.data.message)
 
   else if (event.type === events.EnumReceiveType.click)
     selection.triggerListener(listeners, `click-node-${event.data.id}`)
@@ -82,7 +82,12 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
     context.client.dispatch(utils.attrEvent(context, limit, d => ({ zoomlimit: d })))
     return self()
   },
-  ...(selection.svgMixinBuilder(context, self))
+
+  zoomkey: required => {
+    context.client.dispatch(utils.attrEvent(context, required, d => ({ zoomkey: d })))
+    return self()
+  },
+  ...(selection.svgMixinAttrBuilder(context, self))
 
 }, selection.builder(context, self, construct))
 

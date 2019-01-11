@@ -12,6 +12,12 @@ import * as renderCanvasLive from './render/canvas/live'
 import * as renderCanvasMisc from './render/canvas/misc'
 import * as layout from './layout/layout'
 
+export interface ExecuteContext {
+  readonly state: IClientState,
+  readonly listener: ClientListener,
+  readonly tick: () => void
+}
+
 export const dispatchError = (message: string, type: events.EnumErrorType): events.IReceiveError =>
   ({ type: events.EnumReceiveType.error, data: { message: message, type: type } })
 
@@ -21,13 +27,13 @@ const dispatchClick = (nodeId: string): events.IReceiveClick =>
 const dispatchHover = (nodeId: string, entered: boolean): events.IReceiveHover =>
   ({ type: events.EnumReceiveType.hover, data: { id: nodeId, entered: entered } })
 
-const executeReset = (state: IClientState, listener: ClientListener,
-                      event: events.IDispatchUpdate): IClientState => {
+const executeReset = (context: ExecuteContext, event: events.IDispatchUpdate): IClientState => {
+  const state = context.state
   if (state.attributes === undefined) return state
 
   const processed = pipeline.processReset(state.attributes, event.data)
   if (processed instanceof Error) {
-    listener(dispatchError(processed.message, events.EnumErrorType.attribute))
+    context.listener(dispatchError(processed.message, events.EnumErrorType.attribute))
     return state
   }
 
@@ -43,15 +49,14 @@ const executeReset = (state: IClientState, listener: ClientListener,
 }
 
 const render = (canvas: events.Canvas, renderData: RenderAttr<ICanvasAttr>,
-                layoutState: layout.ILayoutState): void => {
+                tick: () => void, layoutState: layout.ILayoutState): void => {
   renderCanvas.renderCanvas(canvas, renderData)
   if (renderData.attr.visible === false) return
 
-  renderCanvasMisc.renderLayout(canvas, renderData, layoutState)
+  renderCanvasMisc.renderWithLayout(canvas, renderData, layoutState)
 
-  const updateLiveFn = () => renderCanvasLive.updateCanvas(canvas, renderData.attr, layoutState)
-  renderCanvasMisc.renderWithLiveUpdate(canvas, renderData, updateLiveFn)
-  updateLiveFn()
+  renderCanvasMisc.renderWithTick(canvas, renderData, tick)
+  renderCanvasLive.updateCanvas(canvas, renderData.attr, layoutState)
 }
 
 const renderBehavior = (canvas: events.Canvas, renderData: RenderAttr<ICanvasAttr>,
@@ -64,25 +69,25 @@ const renderBehavior = (canvas: events.Canvas, renderData: RenderAttr<ICanvasAtt
   return newBehavior
 }
 
-const executeUpdate = (state: IClientState, listener: ClientListener,
-                       event: events.IDispatchUpdate): IClientState => {
-  if (event.data.attributes === null) return executeReset(state, listener, event)
+const executeUpdate = (context: ExecuteContext, event: events.IDispatchUpdate): IClientState => {
+  const state = context.state
+  if (event.data.attributes === null) return executeReset(context, event)
 
   const processed = pipeline.processUpdate(state.canvas, state.attributes, state.expressions, event.data)
   if (processed instanceof Error) {
-    listener(dispatchError(processed.message, events.EnumErrorType.attribute))
+    context.listener(dispatchError(processed.message, events.EnumErrorType.attribute))
     return state
   }
 
   const renderData = renderElement.preprocess(pipeline.getRenderData(processed))
   const layoutState = layout.update(state.layout, processed.attributes, processed.changes)
 
-  render(state.canvas, renderData, layoutState)
+  render(state.canvas, renderData, context.tick, layoutState)
   const newBehavior = renderBehavior(state.canvas, renderData, state.renderBehavior)
 
   if (processed.attributes.visible) {
-    const clickFn = (n: string) => listener(dispatchClick(n))
-    const hoverFn = (n: string, h: boolean) => listener(dispatchHover(n, h))
+    const clickFn = (n: string) => context.listener(dispatchClick(n))
+    const hoverFn = (n: string, h: boolean) => context.listener(dispatchHover(n, h))
     renderCanvasListeners.registerNodeClick(state.canvas, renderData, clickFn)
     renderCanvasListeners.registerNodeHover(state.canvas, renderData, hoverFn)
   }
@@ -95,11 +100,11 @@ const executeUpdate = (state: IClientState, listener: ClientListener,
   }
 }
 
-const executeHighlight = (state: IClientState, listener: ClientListener,
-                          event: events.IDispatchHighlight): void => {
+const executeHighlight = (context: ExecuteContext, event: events.IDispatchHighlight): void => {
+  const state = context.state
   const processed = pipeline.processHighlight(state.attributes, state.expressions, event.data)
   if (processed instanceof Error) {
-    listener(dispatchError(processed.message, events.EnumErrorType.attribute))
+    context.listener(dispatchError(processed.message, events.EnumErrorType.attribute))
     return
   }
 
@@ -111,25 +116,24 @@ const executeHighlight = (state: IClientState, listener: ClientListener,
   }
   const renderData = renderElement.preprocess(renderDataInit)
 
-  render(state.canvas, renderData, state.layout)
+  render(state.canvas, renderData, context.tick, state.layout)
   renderBehavior(state.canvas, renderData, state.renderBehavior)
 }
 
-export const executeEvent = (state: IClientState, listener: ClientListener,
-                             event: events.DispatchEvent): IClientState => {
+export const executeEvent = (context: ExecuteContext, event: events.DispatchEvent): IClientState => {
   if (event.type === events.EnumDispatchType.broadcast) {
-    listener({
+    context.listener({
       type: events.EnumReceiveType.broadcast,
       data: { message: event.data.message }
     })
-    return state
+    return context.state
 
   } else if (event.type === events.EnumDispatchType.update) {
-    return executeUpdate(state, listener, event)
+    return executeUpdate(context, event)
 
   } else if (event.type === events.EnumDispatchType.highlight) {
-    executeHighlight(state, listener, event)
-    return state
+    executeHighlight(context, event)
+    return context.state
 
-  } else return state
+  } else return context.state
 }

@@ -10,7 +10,8 @@ import * as renderElement from '../element'
 import * as renderNode from '../node/render'
 import * as renderNodeDrag from '../node/drag'
 
-export const renderLayout = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>, layoutState: ILayoutState): void => {
+export const renderWithLayout = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>,
+                                 layoutState: ILayoutState): void => {
   const canvasSel = canvasUtils.selectCanvas(canvas)
   const nodeGroup = canvasUtils.selectNodeGroup(canvasUtils.selectCanvasInner(canvasSel))
 
@@ -23,8 +24,8 @@ export const renderLayout = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>
   })
 }
 
-export const renderWithLiveUpdate = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>,
-                                     liveUpdate: () => void): void => {
+export const renderWithTick = (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>,
+                               tick: () => void): void => {
   // changing node size requires the live layout function to be called continuously,
   // so that connected edges are animated as well
   const canvasSel = canvasUtils.selectCanvas(canvas)
@@ -41,12 +42,12 @@ export const renderWithLiveUpdate = (canvas: Canvas, renderData: RenderAttr<ICan
 
     renderFns.render(selection, width, (liveSel, w) => {
       if (renderUtils.isTransition(liveSel))
-        return liveSel.attr('_width', w).tween(name, () => () => { liveUpdate() })
+        return liveSel.attr('_width', w).tween(name, () => () => { tick() })
       else return liveSel.attr('_width', w)
     })
     renderFns.render(selection, height, (liveSel, h) => {
       if (renderUtils.isTransition(liveSel))
-        return liveSel.attr('_height', h).tween(name, () => () => { liveUpdate() })
+        return liveSel.attr('_height', h).tween(name, () => () => { tick() })
       else return liveSel.attr('_height', h)
     })
   })

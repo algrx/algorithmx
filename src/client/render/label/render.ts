@@ -104,5 +104,5 @@ export const render: renderFns.RenderAttrFn<ILabelAttr> = (selection, renderData
   renderElement.renderSvgAttr(textSel, 'font-family', v => v, getEntry(renderData, 'font'))
   renderElement.renderSvgAttr(textSel, 'font-size', v => v, getEntry(renderData, 'size'))
 
-  renderElement.renderSvgMixin(textSel, renderData)
+  renderElement.renderSvgMixinAttr(textSel, renderData)
 }

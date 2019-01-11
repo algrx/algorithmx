@@ -45,7 +45,7 @@ const builder: ClassBuilder<LabelSelection, ISelContext<InputLabelAttr>> = (cont
     context.client.dispatch(utils.attrEvent(context, size, d => ({ size: d })))
     return self()
   },
-  ...(selection.svgMixinBuilder(context, self))
+  ...(selection.svgMixinAttrBuilder(context, self))
 
 }, selection.builder(context, self, construct))
 

@@ -161,7 +161,7 @@ export const builder: ClassBuilder<Selection<InputElementAttr>, ISelContext<Inpu
   }
 })
 
-export const svgMixinBuilder = <T extends InputSvgMixinAttr & InputElementAttr, S extends Selection<T>>
+export const svgMixinAttrBuilder = <T extends InputSvgMixinAttr & InputElementAttr, S extends Selection<T>>
   (context: ISelContext<T>, self: () => S) => ({
 
   svgattr: (key: string, value: ElementArg<string | number | null>) => {

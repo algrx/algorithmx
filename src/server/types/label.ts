@@ -91,7 +91,7 @@ export interface LabelSelection extends Selection<InputLabelAttr> {
   /**
    * Sets a custom SVG attribute on the label's text.
    *
-   * @param key - The name of the SVG attribute
+   * @param key - The name of the SVG attribute.
    * @param value - The value of the SVG attribute.
    */
   svgattr (key: string, value: ElementArg<string | number | null>): this

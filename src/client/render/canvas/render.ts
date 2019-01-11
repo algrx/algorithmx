@@ -2,6 +2,7 @@ import { Canvas } from '../../types/events'
 import { ICanvasAttr } from '../../attributes/definitions/canvas'
 import { RenderAttr } from '../process'
 import { getEntry } from '../process'
+import * as renderProcess from '../process'
 import * as renderFns from '../render'
 import * as renderUtils from '../utils'
 import * as canvasUtils from './utils'
@@ -35,7 +36,10 @@ const render: renderFns.RenderAttrFn<ICanvasAttr> = (selection, renderData) => {
   renderElement.renderElementLookup(k => canvasUtils.selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
     renderLabel.render, renderLabel.renderVisible)
 
-  renderElement.renderSvgMixin(selection, renderData)
+  // re-render svg attributes when size changes
+  const updatedRenderData = renderProcess.hasChanged(getEntry(renderData, 'size'))
+    ? renderProcess.markKeysForUpdate(renderData, ['svgattr']) : renderData
+  renderElement.renderSvgMixinAttr(selection, updatedRenderData)
 }
 
 export function renderCanvas (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>): void {

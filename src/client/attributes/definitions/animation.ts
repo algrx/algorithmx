@@ -52,7 +52,7 @@ export const defaults: IAnimation = {
   type: 'normal',
   duration: 0.35,
   ease: 'poly',
-  linger: 1
+  linger: 0.5
 }
 
 export const createFullDef = <T extends Attr, A extends Attr>(bodyDef: AttrDef<T>, endDef: AttrDef<A>):

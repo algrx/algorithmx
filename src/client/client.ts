@@ -76,13 +76,20 @@ export const client = (canvas: Canvas): Client => {
       task.execute()
     },
     executeEvent: event => {
-      const state = clientEvents.executeEvent(self().state, self().listener, event)
+      const executeContext: clientEvents.ExecuteContext = {
+        state: self().state,
+        listener: self().listener,
+        tick: self().tick
+      }
+      const state = clientEvents.executeEvent(executeContext, event)
       self().setState(state)
+      self().tick()
     },
 
     tick: () => {
       const state = self().state
-      renderCanvasLive.updateCanvas(canvas, state.attributes, state.layout)
+      if (state !== undefined && state.attributes !== undefined)
+        renderCanvasLive.updateCanvas(canvas, state.attributes, state.layout)
     }
   })
 

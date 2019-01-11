@@ -1,4 +1,4 @@
-import { PartialAttr, AttrLookup, AttrNum, AttrString, EnumVarSymbol, AttrEvalPartial } from '../types'
+import { PartialAttr, AttrLookup, AttrNum, AttrString, AttrBool, EnumVarSymbol, AttrEvalPartial } from '../types'
 import { AnimationFull } from './animation'
 import { IElementAttr, ISvgMixinAttr } from './element'
 import { ILabelAttr } from './label'
@@ -47,6 +47,7 @@ export interface ICanvasAttr extends IElementAttr, ISvgMixinAttr {
     readonly min: AttrNum
     readonly max: AttrNum
   }
+  readonly zoomkey: AttrBool
 }
 
 export const definition = attrDef.extendRecordDef<ICanvasAttr, IElementAttr>({
@@ -76,9 +77,10 @@ export const definition = attrDef.extendRecordDef<ICanvasAttr, IElementAttr>({
       min: { type: AttrType.Number },
       max: { type: AttrType.Number }
     }, keyOrder: ['min', 'max'] },
+    zoomkey: { type: AttrType.Boolean },
     ...attrElement.svgMixinDefEntries
   },
-  keyOrder: ['nodes', 'edges', 'labels', 'size', 'edgelengths', 'pan', 'zoom', 'panlimit', 'zoomlimit',
+  keyOrder: ['nodes', 'edges', 'labels', 'size', 'edgelengths', 'pan', 'zoom', 'panlimit', 'zoomlimit', 'zoomkey',
     ...attrElement.svgMixinDefKeys],
   validVars: [EnumVarSymbol.CanvasWidth, EnumVarSymbol.CanvasHeight]
 }, attrElement.definition)
@@ -97,6 +99,7 @@ export const defaults: ICanvasAttr = {
   zoom: 1,
   panlimit: { horizontal: Infinity, vertical: Infinity },
   zoomlimit: { min: 0.1, max: 10 },
+  zoomkey: false,
   ...attrElement.svgMixinDefaults
 }
 

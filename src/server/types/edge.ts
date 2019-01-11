@@ -92,7 +92,7 @@ export interface EdgeSelection extends Selection<InputEdgeAttr> {
   /**
    * Sets a custom SVG attribute on the edge's path.
    *
-   * @param key - The name of the SVG attribute
+   * @param key - The name of the SVG attribute.
    * @param value - The value of the SVG attribute.
    */
   svgattr (key: string, value: ElementArg<string | number | null>): this

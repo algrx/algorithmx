@@ -26,13 +26,13 @@ export interface Selection<T extends InputElementAttr> {
    * @example
    * ```typescript
    *
-   * node.color('red').size([20, 30]).svgattr('fill-opacity', 0.5)
+   * node.color('red').size([20, 30]).svgattr('stroke', 'blue')
    * // is equivalent to
    * node.set({
    *  color: 'red',
    *  size: [20, 30],
    *  svgattr: {
-   *    'fill-opacity': 0.5
+   *    stroke: 'blue'
    *  }
    * })
    * ```

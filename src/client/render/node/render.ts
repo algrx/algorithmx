@@ -77,5 +77,5 @@ export const render: renderFns.RenderAttrFn<INodeAttr> = (selection, renderDataI
     renderElement.renderSvgAttr(shapeSelection, 'ry', v => v, {...cornerData, name: cornerData.name + '-y' })
   }
 
-  renderElement.renderSvgMixin(shapeSelection, renderData)
+  renderElement.renderSvgMixinAttr(shapeSelection, renderData)
 }

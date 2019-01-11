@@ -16,19 +16,31 @@ const updatePanZoomLimit = (selection: D3Selection, renderData: RenderAttr<ICanv
                             behavior: RenderBehavior['zoom'] | undefined): RenderBehavior['zoom'] => {
   if (renderProcess.hasChanged(getEntry(renderData, 'zoomlimit'))
       || renderProcess.hasChanged(getEntry(renderData, 'panlimit'))
+      || renderProcess.hasChanged(getEntry(renderData, 'zoomkey'))
       || behavior === undefined) {
 
-    const onZoom = () => canvasUtils.selectCanvasInner(selection)
-      .attr('transform', d3.event ? d3.event.transform : '')
+    const onZoom = () => {
+      canvasUtils.selectCanvasInner(selection)
+        .attr('transform', d3.event ? d3.event.transform : '')
+    }
+
+    const zoomFilter = (requiresKey: boolean) => {
+      if (d3.event && d3.event.type === 'wheel' && requiresKey) {
+        return d3.event.ctrlKey || d3.event.metaKey
+      } else return true
+    }
 
     const panH = renderData.attr.panlimit.horizontal
     const panV = renderData.attr.panlimit.vertical
+    const zoomKey = renderData.attr.zoomkey
     const newBehavior = d3.zoom()
       .translateExtent([[-panH, -panV], [panH, panV]])
       .scaleExtent([renderData.attr.zoomlimit.min, renderData.attr.zoomlimit.max])
       .on('zoom', onZoom)
+      .filter(() => zoomFilter(zoomKey))
 
     selection.call(newBehavior)
+
     return newBehavior
 
   } else return behavior

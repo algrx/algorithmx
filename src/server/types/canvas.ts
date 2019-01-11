@@ -64,8 +64,8 @@ export interface CanvasSelection extends Selection<InputCanvasAttr> {
   labels (ids: ReadonlyArray<string | number>): LabelSelection
 
   /**
-   * Sets the width and height of the canvas. This will only update the `width` and `height` attributes of the SVG
-   * element displaying the canvas, not the enclosing HTML element.
+   * Sets the width and height of the canvas. This will determine the coordinate system, and will update the `width` and
+   * `height` attributes of the main SVG element, unless otherwise specified with [[CanvasSelection.svgattr]].
    *
    * @param size - A (width, height) tuple describing the size of the canvas.
    */
@@ -122,9 +122,16 @@ export interface CanvasSelection extends Selection<InputCanvasAttr> {
   zoomlimit (limit: ElementArg<[NumExpr, NumExpr]>): this
 
   /**
+   * Sets whether or not zooming requires the `ctrl`/`cmd` key to be held down. Disabled by default.
+   *
+   * @param required - True if the `ctrl`/`cmd` key is required, false otherwise.
+   */
+  zoomkey (required: ElementArg<boolean>): this
+
+  /**
    * Sets a custom SVG attribute on the canvas.
    *
-   * @param key - The name of the SVG attribute
+   * @param key - The name of the SVG attribute.
    * @param value - The value of the SVG attribute.
    */
   svgattr (key: string, value: ElementArg<string | number | null>): this
