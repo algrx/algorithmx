@@ -2,15 +2,18 @@ import { IEdgeAttr } from '../../attributes/definitions/edge'
 import { D3Selection, D3SelTrans } from '../utils'
 import { RenderAttr, getEntry } from '../process'
 import { IAnimation } from '../../attributes/definitions/animation'
+import * as renderMarker from './marker'
 import * as renderFns from '../render'
 import * as renderElement from '../element'
 import * as renderUtils from '../utils'
 
-export const selectOverlay = (edgeSel: D3Selection, edgeRenderId: string): D3Selection => {
+export const selectOverlay = (edgeSel: D3Selection, renderData: RenderAttr<IEdgeAttr>): D3Selection => {
   edgeSel.select('.edge-path-overlay').remove()
-  return edgeSel.append('path').classed('edge-path-overlay', true)
+  const overlay = edgeSel.append('path').classed('edge-path-overlay', true)
     .attr('fill', 'none').attr('stroke-linecap', 'butt')
-    .attr('marker-end', `url(#marker-edge-${edgeRenderId}-target)`)
+
+  if (renderData.attr.directed) overlay.attr('marker-end', `url(#${renderMarker.getFullId(edgeSel, 'target')}`)
+  return overlay
 }
 
 const getPathLength = (pathSel: D3Selection) => (pathSel.node() as SVGPathElement).getTotalLength()
@@ -79,7 +82,7 @@ export const renderTraverse = (pathSel: D3Selection, renderData: RenderAttr<IEdg
   }
 }
 
-export const renderColor = (pathSel: D3Selection, markerSel: D3Selection, overlaySelector: () => D3Selection,
+export const renderColor = (pathSel: D3Selection, markerSelector: () => D3Selection, overlaySelector: () => D3Selection,
                             renderData: RenderAttr<IEdgeAttr>): void => {
   const colorData = getEntry(renderData, 'color')
   const doTraverse = colorData.animation && (colorData.animation.type === 'traverse'
@@ -88,5 +91,6 @@ export const renderColor = (pathSel: D3Selection, markerSel: D3Selection, overla
   if (doTraverse) renderTraverse(pathSel, renderData, overlaySelector)
   else renderElement.renderSvgAttr(pathSel, 'stroke', v => renderUtils.parseColor(v), colorData)
 
-  renderElement.renderSvgAttr(markerSel, 'fill', v => renderUtils.parseColor(v), colorData)
+  if (renderData.attr.directed)
+    renderElement.renderSvgAttr(markerSelector(), 'fill', v => renderUtils.parseColor(v), colorData)
 }

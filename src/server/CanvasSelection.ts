@@ -96,6 +96,7 @@ export const canvasSelection = (canvas: events.Canvas, handler: EventHandler) =>
     ...selection.defaultContext,
     client: handler,
     name: 'canvas',
+    ids: [String(canvas)],
     data: [canvas]
   }
   handler.subscribe(event => receiveHandler(event, context.listeners))

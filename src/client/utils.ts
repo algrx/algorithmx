@@ -15,7 +15,7 @@ export const mapDict = <T, M>(dict: T, func: ((k: keyof T, v: T[keyof T], i: num
     const k = keys[i]
     newDict[k] = func(k as keyof T, dict[k], i)
   }
-  return newDict as MapDict<T, M> 
+  return newDict as MapDict<T, M>
   /* tslint:enable */
 }
 
@@ -45,3 +45,5 @@ export const filterDict = <T extends object>(dict: T, filterFn: FilterFn<T>): Pa
 }
 
 export const removeWhitespace = (s: string) => s.replace(/\s/g, '')
+
+export const randomId = (): string => Math.random().toString(36).substr(2, 9)
