@@ -24,7 +24,7 @@ const tweenOverlay = (overlaySel: D3SelTrans, animation: IAnimation, pathLengthF
     return overlaySel.attrTween('stroke-dashoffset', () => {
       const pathLength = pathLengthFn()
       if (beginTraverse) return t => (pathLength - (animation.type === 'traverse' ? t : -t) * pathLength).toString()
-      else return t => ((animation.type === 'traverse' ? -t : t) * pathLength).toString()
+      else return t => (pathLength * 2 - (animation.type === 'traverse' ? t : -t) * pathLength).toString()
     })
   } else return overlaySel.attr('stroke-dashoffset', beginTraverse ? 0 : pathLengthFn())
 }
@@ -57,7 +57,7 @@ export const renderTraverse = (pathSel: D3Selection, renderData: RenderAttr<IEdg
   const overlaySel = overlaySelector()
   const pathLengthInit = getPathLength(pathSel)
 
-  overlaySel.attr('stroke-dasharray', pathLengthInit).attr('stroke-offset', pathLengthInit)
+  overlaySel.attr('stroke-dasharray', pathLengthInit).attr('stroke-dashoffset', pathLengthInit)
 
   if (colorData.highlight !== undefined) highlightTraverse(pathSel, overlaySel, renderData)
   else {
