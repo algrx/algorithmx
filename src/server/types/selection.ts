@@ -72,22 +72,21 @@ export interface Selection<T extends InputElementAttr> {
    * - "scale": Animates the size of elements being added/removed.
    * - "fade": Animates the opacity of elements being added/removed.
    * - "scale-face": Animates both the size and opacity of elements being added/removed.
-   * - "traverse": Changes the color of edges using a traversal animation (from source to target).
-   * - "traverse-reverse": Changes the color of edges using a reversed traversal animation (from target to source).
+   * - "traverse": Changes the color of edges using a traversal animation.
    *
    * @return A new instance of the current selection using the specified animation type. Defaults to "normal".
    */
-  animate (type: AnimationType): this
+  animate (type: ElementArg<AnimationType>): this
 
   /**
-   * Configures the duration of all animations triggered by the selection. A duration of 0 will ensure that changes
-   * occur immediately.
+   * Configures the duration of all animations triggered by the selection. A duration of `0` will ensure that changes
+   * occur immediately. The default duration is `0.35`.
    *
    * @param seconds - The animation duration, in seconds.
    *
    * @return A new instance of the current selection using the specified animation duration.
    */
-  duration (seconds: number): this
+  duration (seconds: ElementArg<number>): this
 
   /**
    * Configures the ease function used in all animations triggered by the selection. This will affect the way attributes
@@ -108,18 +107,18 @@ export interface Selection<T extends InputElementAttr> {
    *
    * @return A new instance of the current selection using the specified animation ease.
    */
-  ease (ease: AnimationEase): this
+  ease (ease: ElementArg<AnimationEase>): this
 
   /**
    * Returns a new selection through which all attribute changes are temporary. This is typically used to draw attention
    * to a certain element without permanently changing its attributes.
    *
    * @param seconds - The amount of time attributes should remain 'highlighted', in seconds, before
-   * changing back to their original values. If not provided, an appropriate default will be used.
+   * changing back to their original values. Defaults to `0.5`.
    *
    * @return A new instance of the current selection, where all attribute changes are temporary.
    */
-  highlight (seconds?: number): this
+  highlight (seconds?: ElementArg<number>): this
 
   /**
    * Binds the selection to a list of data values. This will decide the arguments provided whenever an attribute is
@@ -127,10 +126,11 @@ export interface Selection<T extends InputElementAttr> {
    *
    * @param data - A list of values to use as the data of this selection, which should have the same length as the number
    * of elements in the selection. Alternatively, a function transforming the selection's previous data.
+   * Use `null` to unbind the selection from its data, in which case the selection will fall back on its parent's data.
    *
    * @return A new instance of the current selection bound to the given data.
    */
-  data (data: ReadonlyArray<unknown> | ElementFn<unknown>): this
+  data (data: ReadonlyArray<unknown> | ElementFn<unknown> | null): this
 
   /**
    * Adds a pause to the event queue, delaying the next event by the given number of seconds.

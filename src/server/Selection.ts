@@ -1,4 +1,4 @@
-import { InputElementAttr, InputSvgMixinAttr } from '../client/attributes/definitions/types'
+import { InputElementAttr, InputSvgMixinAttr, InputCanvasAnimAttr } from '../client/attributes/definitions/types'
 import { IAnimation } from '../client/attributes/definitions/animation'
 import { IElementAttr } from '../client/attributes/definitions/element'
 import { Selection } from './types/selection'
@@ -32,16 +32,16 @@ export interface ISelContext<T extends InputElementAttr> {
   readonly client: EventHandler
   readonly name: string
   readonly ids: ReadonlyArray<string | number>
-  readonly data?: ReadonlyArray<unknown>
+  readonly data: ReadonlyArray<unknown> | null
   readonly parent?: ISelContext<InputElementAttr>
   readonly listeners: SelListeners
   readonly initattr?: ReadonlyArray<T>
   readonly queue: string | null
-  readonly animation: Partial<IAnimation>
+  readonly animation: InputCanvasAnimAttr
   readonly highlight: boolean
 }
 
-export const defaultContext: Omit<ISelContext<IElementAttr>, 'client' | 'initattr'> = {
+export const defaultContext: Omit<ISelContext<IElementAttr>, 'client' | 'initattr' | 'data'> = {
   name: '',
   ids: [],
   listeners: {},
@@ -80,22 +80,22 @@ export const builder: ClassBuilder<Selection<InputElementAttr>, ISelContext<Inpu
   }),
 
   animate: (type = 'normal') => construct({...context,
-    animation: {...context.animation, type: type }
+    animation: utils.updateAnimation(context, type, d => ({ type: d, data: {} }))
   }),
   duration: seconds => construct({...context,
-    animation: {...context.animation, duration: seconds }
+    animation: utils.updateAnimation(context, seconds, d => ({ duration: d }))
   }),
   ease: ease => construct({...context,
-    animation: {...context.animation, ease: ease }
+    animation: utils.updateAnimation(context, ease, d => ({ ease: d }))
   }),
   highlight: seconds => construct({...context,
     highlight: true,
-    animation: seconds !== undefined ? {...context.animation, linger: seconds } : context.animation
+    animation: seconds !== undefined ? utils.updateAnimation(context, seconds, d => ({ linger: d })) : context.animation
   }),
 
   data: data => construct({...context,
-    data: context.ids.map((id, i) =>
-      typeof data === 'function' && context.data !== undefined ? data(context.data[i], i)
+    data: data === null ? null : context.ids.map((id, i) =>
+      typeof data === 'function' ? data(context.data === null ? null : context.data[i], i)
       : Array.isArray(data) ? data[i]
       : data)
   }),

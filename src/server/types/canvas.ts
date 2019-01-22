@@ -65,7 +65,8 @@ export interface CanvasSelection extends Selection<InputCanvasAttr> {
 
   /**
    * Sets the width and height of the canvas. This will determine the coordinate system, and will update the `width` and
-   * `height` attributes of the main SVG element, unless otherwise specified with [[CanvasSelection.svgattr]].
+   * `height` attributes of the main SVG element, unless otherwise specified with [[CanvasSelection.svgattr]]. Note that
+   * size is not animated by default.
    *
    * @param size - A (width, height) tuple describing the size of the canvas.
    */

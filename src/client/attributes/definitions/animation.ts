@@ -1,6 +1,6 @@
-import { AttrType, IAttrDefRecord, AttrDef, IAttrDef, IAttrDefLookup, IAttrDefArray } from '../definitions'
-import { MapEndpoints, AttrEndpoint } from '../utils'
-import { Attr, AttrRecord, AttrEntry } from '../types'
+import { AttrType, IAttrDefRecord, AttrDef, IAttrDefLookup, IAttrDefArray } from '../definitions'
+import { MapEndpoints } from '../utils'
+import { Attr, AttrRecord } from '../types'
 import * as attrUtils from '../utils'
 import * as utils from '../../utils'
 
@@ -9,8 +9,7 @@ export enum EnumAnimationType {
   scale = 'scale',
   fade = 'fade',
   'scale-fade' = 'scale-fade',
-  traverse = 'traverse',
-  'traverse-reverse' = 'traverse-reverse'
+  traverse = 'traverse'
 }
 export type AnimationType = keyof typeof EnumAnimationType
 
@@ -28,11 +27,17 @@ export enum EnumAnimationEase {
 }
 export type AnimationEase = keyof typeof EnumAnimationEase
 
+
+export interface AnimationData {
+  readonly source?: string
+}
+
 export interface IAnimation extends AttrRecord {
   readonly type: AnimationType
   readonly duration: number
   readonly ease: AnimationEase
   readonly linger: number
+  readonly data: AnimationData
 }
 
 export type AnimationFull<T extends Attr> = attrUtils.MapEndpoints<T, IAnimation>
@@ -43,7 +48,10 @@ export const definition: IAttrDefRecord<IAnimation> = {
     type: { type: AttrType.String, validValues: utils.enumValues(EnumAnimationType) },
     duration: { type: AttrType.Number },
     ease: { type: AttrType.String, validValues: utils.enumValues(EnumAnimationEase) },
-    linger: { type: AttrType.Number }
+    linger: { type: AttrType.Number },
+    data: { type: AttrType.Record, entries: {
+      source: { type: AttrType.String }
+    }, keyOrder: ['source'] }
   },
   keyOrder: ['type', 'duration', 'ease', 'linger']
 }
@@ -52,7 +60,8 @@ export const defaults: IAnimation = {
   type: 'normal',
   duration: 0.35,
   ease: 'poly',
-  linger: 0.5
+  linger: 0.5,
+  data: {}
 }
 
 export const createFullDef = <T extends Attr, A extends Attr>(bodyDef: AttrDef<T>, endDef: AttrDef<A>):

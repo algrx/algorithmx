@@ -6,6 +6,17 @@ import { ElementArg, NumExpr } from './types'
 
 export interface EdgeSelection extends Selection<InputEdgeAttr> {
   /**
+   * Sets the animation type to "traverse" (see [[Selection.animate]]), and configures the node at which the traversal
+   * should begin. This will typically be followed by [[EdgeSelection.color]].
+   *
+   * If no source is given, the first node in each edge tuple used to construct the selection will be used.
+   * If the source is not connected, the edge's actual source will be used.
+   *
+   * @param source - The ID of the node at which the traversal animation should begin.
+   */
+  traverse (source?: ElementArg<string | number>): this
+
+  /**
    * Selects a single label, attached to the edge, by its ID.
    *
    * @param id - The ID of the label. Defaults to "weight".
@@ -45,8 +56,7 @@ export interface EdgeSelection extends Selection<InputEdgeAttr> {
   thickness (thickness: ElementArg<NumExpr>): this
 
   /**
-   * Sets color of the edge. Note that this can be animated with a traversal animation ("traverse" or
-   * "traverse-reverse", see [[Selection.animate]]).
+   * Sets color of the edge. Note that this can be animated with a traversal animation (see [[EdgeSelection.traverse]]).
    *
    * @param color - A CSS color string.
    */

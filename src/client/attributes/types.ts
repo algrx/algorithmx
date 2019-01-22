@@ -25,11 +25,6 @@ export interface AttrRecord {}
 export type AttrLookup<T extends AttrPrimitive | AttrRecord> = Lookup<T> & { readonly '*': T }
 export type AttrArray<T extends AttrPrimitive | AttrRecord> = ReadonlyArray<T>
 
-export interface AttrObject { readonly [k: string]: Attr }
-
-export type AttrLookupAny = AttrLookup<AttrPrimitive | AttrRecord>
-export type AttrArrayAny = AttrArray<AttrPrimitive | AttrRecord>
-
 export type Attr = AttrPrimitive | AttrRecord
   | AttrLookup<AttrPrimitive | AttrRecord>
   | AttrArray<AttrPrimitive | AttrRecord>
@@ -68,7 +63,7 @@ export type PartialAttr<T extends Attr> =
 
 // INPUT ATTRIBUTES
 
-type InputAttrRec<T> = { [k in keyof T]?: InputAttr<T[k]> }
+type InputAttrRec<T extends Attr> = { [k in keyof T]?: InputAttr<T[k]> }
 
 type InputNum = AttrNum | string
 

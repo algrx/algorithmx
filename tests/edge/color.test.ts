@@ -11,7 +11,7 @@ it('Edge | Set color with traverse animation', () => {
   canvas.edges([[1, 2, 'a'], [2, 1, 'b']]).add()
 
   canvas.edge([1, 2, 'a']).duration(0.02).animate('traverse').color(utils.RED)
-  canvas.edge([2, 1, 'b']).duration(0.02).animate('traverse-reverse').color(utils.RED)
+  canvas.edge([2, 1, 'b']).duration(0.02).traverse().color(utils.RED)
 
   expect(utils.selectEdge(div, [1, 2, 'a']).select('.edge-path-overlay')).to.satisfy((s: D3Selection) => !s.empty())
   expect(utils.selectEdge(div, [2, 1, 'b']).select('.edge-path-overlay')).to.satisfy((s: D3Selection) => !s.empty())

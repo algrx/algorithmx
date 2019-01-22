@@ -1,7 +1,8 @@
-import { InputElementAttr, InputCanvasAttr } from '../client/attributes/definitions/types'
+import { InputElementAttr, InputCanvasAttr, InputCanvasAnimAttr } from '../client/attributes/definitions/types'
 import { ISelContext } from './Selection'
-import { Omit } from '../client/utils'
+import { Omit, isDict, isDictEmpty } from '../client/utils'
 import { ElementArg, ElementFn } from './types/types'
+import { IAnimation } from '../client/attributes/definitions/animation'
 import * as events from '../client/types/events'
 
 export type ClassBuilder<T, C> = (context: C, self: () => T, construct: (args: C) => T) => T
@@ -33,7 +34,7 @@ const getAttrEntry = <T extends InputElementAttr, A>
 const createParentAttr = <T extends InputElementAttr, P extends InputElementAttr, A>
   (sel: ISelContext<T>, arg: ElementArg<A>, attr: AttrFromArg<T, A>): AttrFromArg<P, A> => {
 
-  if (typeof attr === 'function' && sel.data === undefined) {
+  if (typeof attr === 'function' && sel.data === null) {
     return ((a: A) => ({
       [sel.name]: sel.ids.reduce((result, id) =>
         ({...result, [id]: (attr as AttrFromArgFn<T, A>)(a) }), {})
@@ -47,24 +48,22 @@ const createParentAttr = <T extends InputElementAttr, P extends InputElementAttr
   }
 }
 
-const getFullAttributes = <T extends InputElementAttr, R extends InputElementAttr, A>
+export const createFullAttr = <T extends InputElementAttr, A, R extends InputElementAttr>
   (sel: ISelContext<T>, arg: ElementArg<A>, attr: AttrFromArg<T, A>): R => {
 
   if (sel.parent === undefined) return getAttrEntry(sel, arg, attr, 0) as unknown as R
-  else return getFullAttributes(sel.parent, arg, createParentAttr(sel, arg, attr))
+  else return createFullAttr(sel.parent, arg, createParentAttr(sel, arg, attr))
 }
 
 export const attrEvent = <T extends InputElementAttr, A>
   (sel: ISelContext<T>, arg: ElementArg<A>, attr: (a: A) => T): events.IDispatchUpdate | events.IDispatchHighlight => {
 
   const eventData = {
-    attributes: getFullAttributes<T, InputCanvasAttr, A>(sel, arg, attr),
+    attributes: createFullAttr<T, A, InputCanvasAttr>(sel, arg, attr),
     animation: sel.animation
   }
-  if (sel.highlight)
-    return { type: events.EnumDispatchType.highlight, queue: sel.queue, data: eventData }
-  else
-    return { type: events.EnumDispatchType.update, queue: sel.queue, data: eventData }
+  if (sel.highlight) return { type: 'highlight', queue: sel.queue, data: eventData }
+  else return { type: 'update', queue: sel.queue, data: eventData }
 }
 
 type EventQueues = string | number | ReadonlyArray<string | number> | null
@@ -76,5 +75,24 @@ export const queueEvent = <T extends InputElementAttr>(sel: ISelContext<T>,
     type: type,
     queue: sel.queue,
     data: { queues: queueList }
+  }
+}
+
+export const mergeDictRec = (a: object, b: object): object => {
+  const merged = Object.keys(a).reduce((res, k) =>
+    ({...res, [k]: isDict(a[k]) && isDict(b[k]) ? mergeDictRec(a[k], b[k]) : b[k] !== undefined ? b[k] : a[k] }), {})
+  return {...b, ...merged }
+}
+
+export const updateAnimation = <T extends InputElementAttr, A>
+  (sel: ISelContext<T>, arg: ElementArg<A>, attr: (a: A) => Partial<IAnimation>): InputCanvasAnimAttr => {
+
+  if ((isDictEmpty(sel.animation) || Object.keys(sel.animation).length === 1 && sel.animation['**'] !== undefined)
+    && typeof arg !== 'function')
+    // optimization to minimize the amount of transmitted data
+    return mergeDictRec(sel.animation, { '**': attr(arg) })
+  else {
+    const animationAttr = createFullAttr(sel, arg, (a: A) => ({ '**': attr(a) }) as unknown as T) as InputCanvasAnimAttr
+    return mergeDictRec(sel.animation, animationAttr)
   }
 }

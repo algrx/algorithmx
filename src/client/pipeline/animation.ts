@@ -6,17 +6,23 @@ import { ICanvasAttr, definition as canvasDef } from '../attributes/definitions/
 import * as attrAnim from '../attributes/definitions/animation'
 import * as attrCanvas from '../attributes/definitions/canvas'
 import * as attrUtils from '../attributes/utils'
+import { InputCanvasAnimAttr, InputAnimAttr } from '../attributes/definitions/types'
 
 export const definition: AttrDef<AnimationFull<ICanvasAttr>> =
   attrAnim.createFullDef(attrCanvas.definition, attrAnim.definition)
 
-const addEndpoints = <T extends Attr, A> (animation: A, attr: PartialAttr<T>, def: AttrDef<T>):
-                                                 MapEndpoints<PartialAttr<T>, A> => {
-  if (attrUtils.isDefPrimitive(def)) return animation as MapEndpoints<PartialAttr<T>, A>
+type InputAnimFull<T> = MapEndpoints<PartialAttr<T>, PartialAttr<IAnimation>>
+const addEndpoints = <T extends Attr>(anim: InputAnimAttr<T> | null, attr: PartialAttr<T>, def: AttrDef<T>,
+                                      curAnim: PartialAttr<IAnimation> = {}): InputAnimFull<T> => {
+  if (attrUtils.isDefPrimitive(def)) return (anim !== null ? anim : curAnim) as InputAnimFull<T>
   else {
-    return attrUtils.reduceChanges(attr, def, (k, v, d) =>
-      addEndpoints(animation, v, d) as unknown as AttrEntryPartial<T>
-    ) as unknown as MapEndpoints<PartialAttr<T>, A>
+    return attrUtils.reduceChanges(attr, def, (k, v, d) => {
+      const newAnim = anim !== null && anim[k] !== undefined ? anim[k] : null
+      const newCurAnim = anim !== null && anim['**'] !== undefined
+        ? attrUtils.merge(curAnim, anim['**'], attrAnim.definition) : curAnim
+      return addEndpoints(newAnim, v, d, newCurAnim) as unknown as AttrEntryPartial<T>
+
+    }) as unknown as InputAnimFull<T>
   }
 }
 
@@ -34,7 +40,7 @@ const getRelevantChanges = <T extends Attr>(prevAttr: T | undefined, changes: Pa
   }
 }
 
-export const process = (animation: PartialAttr<IAnimation>, prevState: ICanvasAttr | undefined,
+export const process = (animation: InputCanvasAnimAttr, prevState: ICanvasAttr | undefined,
                         changes: PartialAttr<ICanvasAttr>, changesForced: PartialAttr<ICanvasAttr>):
                         AnimationFull<ICanvasAttr> => {
   const changesMain = getRelevantChanges(prevState, changes, canvasDef)
@@ -42,7 +48,7 @@ export const process = (animation: PartialAttr<IAnimation>, prevState: ICanvasAt
 
   const animChanges = addEndpoints(animation, changesFull, canvasDef)
 
-  const animDefaultsRegular = addEndpoints(attrAnim.defaults, changesFull, canvasDef)
+  const animDefaultsRegular = addEndpoints({ '**': attrAnim.defaults }, changesFull, canvasDef)
   const animDefaultsExtra = attrUtils.fillLookupEntries(attrCanvas.animationDefaults,
     animDefaultsRegular, definition)
 

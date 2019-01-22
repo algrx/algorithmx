@@ -1,7 +1,6 @@
 import { IEdgeAttr } from '../../attributes/definitions/edge'
 import { D3Selection, D3SelTrans } from '../utils'
 import { RenderAttr, getEntry } from '../process'
-import { IAnimation } from '../../attributes/definitions/animation'
 import * as renderMarker from './marker'
 import * as renderFns from '../render'
 import * as renderElement from '../element'
@@ -18,13 +17,20 @@ export const selectOverlay = (edgeSel: D3Selection, renderData: RenderAttr<IEdge
 
 const getPathLength = (pathSel: D3Selection) => (pathSel.node() as SVGPathElement).getTotalLength()
 
-const tweenOverlay = (overlaySel: D3SelTrans, animation: IAnimation, pathLengthFn: () => number,
+const reverseDirection = (renderData: RenderAttr<IEdgeAttr>): boolean => {
+  const colorData = getEntry(renderData, 'color')
+  if (!colorData.animation || !colorData.animation.data || !colorData.animation.data.source)
+    return false
+  else return renderData.attr.source !== renderData.animation.color.data.source
+}
+
+const tweenOverlay = (overlaySel: D3SelTrans, reverse: boolean, pathLengthFn: () => number,
                       beginTraverse: boolean): D3SelTrans => {
   if (renderUtils.isTransition(overlaySel)) {
     return overlaySel.attrTween('stroke-dashoffset', () => {
       const pathLength = pathLengthFn()
-      if (beginTraverse) return t => (pathLength - (animation.type === 'traverse' ? t : -t) * pathLength).toString()
-      else return t => (pathLength * 2 - (animation.type === 'traverse' ? t : -t) * pathLength).toString()
+      if (beginTraverse) return t => (pathLength - (reverse ? -t : t) * pathLength).toString()
+      else return t => (pathLength * 2 - (reverse ? -t : t) * pathLength).toString()
     })
   } else return overlaySel.attr('stroke-dashoffset', beginTraverse ? 0 : pathLengthFn())
 }
@@ -32,20 +38,21 @@ const tweenOverlay = (overlaySel: D3SelTrans, animation: IAnimation, pathLengthF
 const highlightTraverse = (pathSel: D3Selection, overlaySel: D3Selection,
                            renderData: RenderAttr<IEdgeAttr>): void => {
   const colorData = getEntry(renderData, 'color')
+  const reverse = reverseDirection(renderData)
 
   overlaySel.attr('stroke', renderUtils.parseColor(colorData.highlight))
     .attr('stroke-width', renderData.attr.thickness + 2)
 
   const startFn = (sel: D3SelTrans): D3SelTrans => {
     const trans = sel.attr('stroke-width', renderData.attr.thickness)
-    return tweenOverlay(trans, colorData.animation, () => getPathLength(pathSel), true)
+    return tweenOverlay(trans, reverse, () => getPathLength(pathSel), true)
   }
   const endFn = (sel: D3SelTrans): D3SelTrans => {
     sel.on('start', () => {
       const pathLength = getPathLength(pathSel)
       overlaySel.attr('stroke-dasharray', pathLength)
     })
-    const trans = tweenOverlay(sel, colorData.animation, () => getPathLength(pathSel), false)
+    const trans = tweenOverlay(sel, reverse, () => getPathLength(pathSel), false)
     return renderFns.newTransition(trans, t => t.duration(0)).remove()
   }
   renderFns.renderHighlight(overlaySel, colorData, startFn, endFn)
@@ -54,6 +61,7 @@ const highlightTraverse = (pathSel: D3Selection, overlaySel: D3Selection,
 export const renderTraverse = (pathSel: D3Selection, renderData: RenderAttr<IEdgeAttr>,
                                overlaySelector: () => D3Selection): void => {
   const colorData = getEntry(renderData, 'color')
+  const reverse = reverseDirection(renderData)
   const overlaySel = overlaySelector()
   const pathLengthInit = getPathLength(pathSel)
 
@@ -66,7 +74,7 @@ export const renderTraverse = (pathSel: D3Selection, renderData: RenderAttr<IEdg
 
     renderFns.render(overlaySel, colorData, sel => {
       const trans = sel.attr('stroke-width', renderData.attr.thickness)
-      return tweenOverlay(trans, colorData.animation, () => getPathLength(pathSel), true)
+      return tweenOverlay(trans, reverse, () => getPathLength(pathSel), true)
     })
 
     const animDuration = renderFns.parseTime(colorData.animation.duration)
@@ -85,8 +93,7 @@ export const renderTraverse = (pathSel: D3Selection, renderData: RenderAttr<IEdg
 export const renderColor = (pathSel: D3Selection, markerSelector: () => D3Selection, overlaySelector: () => D3Selection,
                             renderData: RenderAttr<IEdgeAttr>): void => {
   const colorData = getEntry(renderData, 'color')
-  const doTraverse = colorData.animation && (colorData.animation.type === 'traverse'
-    || colorData.animation.type === 'traverse-reverse')
+  const doTraverse = colorData.animation && colorData.animation.type === 'traverse'
 
   if (doTraverse) renderTraverse(pathSel, renderData, overlaySelector)
   else renderElement.renderSvgAttr(pathSel, 'stroke', v => renderUtils.parseColor(v), colorData)

@@ -1,6 +1,6 @@
-import { InputAttr, PartialAttr } from '../attributes/types'
+import { InputAttr } from '../attributes/types'
 import { ICanvasAttr } from '../attributes/definitions/canvas'
-import { IAnimation } from '../attributes/definitions/animation'
+import { InputCanvasAnimAttr } from '../attributes/definitions/types'
 
 export type Canvas = string | Element
 
@@ -24,14 +24,14 @@ export interface IDispatchUpdate extends IDispatchBase {
   readonly type: 'update'
   readonly data: {
     readonly attributes: InputAttr<ICanvasAttr>
-    readonly animation: PartialAttr<IAnimation>
+    readonly animation: InputCanvasAnimAttr
   }
 }
 export interface IDispatchHighlight extends IDispatchBase {
   readonly type: 'highlight'
   readonly data: {
     readonly attributes: InputAttr<ICanvasAttr>
-    readonly animation: PartialAttr<IAnimation>
+    readonly animation: InputCanvasAnimAttr
   }
 }
 

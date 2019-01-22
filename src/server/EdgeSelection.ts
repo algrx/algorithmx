@@ -10,11 +10,16 @@ import * as utils from './utils'
 const builder: ClassBuilder<EdgeSelection, ISelContext<InputEdgeAttr>> = (context, self, construct) =>
   utils.inherit<EdgeSelection, Selection<InputEdgeAttr>>({
 
+  traverse: (source = (e, i) => context.initattr[i].source) => {
+    return construct({...context, animation: utils.updateAnimation(context, source, d =>
+      ({ type: 'traverse', data: { source: String(d) } })) })
+  },
+
   label: (id = 'weight') => {
     return self().labels([id])
   },
   labels: ids => {
-    return labelSelection({...context, parent: context, ids: ids, data: undefined, initattr: undefined })
+    return labelSelection({...context, parent: context, ids: ids, data: null, initattr: undefined })
   },
   directed: directed => {
     context.client.dispatch(utils.attrEvent(context, directed, d => ({ directed: d })))

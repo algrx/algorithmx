@@ -53,7 +53,7 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
     return self().labels([id])
   },
   labels: ids => {
-    return labelSelection({...context, parent: context, ids: ids, data: undefined, initattr: undefined })
+    return labelSelection({...context, parent: context, ids: ids, data: null, initattr: undefined })
   },
 
   size: size => {
