@@ -23,7 +23,7 @@ export const renderSvgAttr = <T extends Attr>(selection: D3Selection, key: strin
   })
 }
 
-export const renderSvgMixinAttr: renderFns.RenderAttrFn<ISvgMixinAttr> = (selection, renderData) => {
+export const renderSvgAttrMixin: renderFns.RenderAttrFn<ISvgMixinAttr> = (selection, renderData) => {
   const precessKey = (sel, key) => [
     key.includes('@') ? sel.selectAll(key.split('@')[1]) : sel,
     key.includes('@') ? key.split('@')[0] : key

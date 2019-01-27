@@ -22,7 +22,9 @@ export const selectLabel = (sel: D3Selection, id: string): D3Selection => {
 
 const renderShape: renderFns.RenderFn<INodeAttr['shape']> = (selection: D3Selection, shape) => {
   selection.select('.shape').remove()
-  return selection.insert(shape, ':first-child').classed('shape', true)
+  const shapeSel = selection.insert(shape, ':first-child').classed('shape', true)
+  if (shape === 'rect') shapeSel.attr('rx', 4).attr('ry', 4)
+  return shapeSel
 }
 
 const renderSize = (selection: D3Selection, sizeData: RenderAttr<INodeAttr['size']>, shape: Shape): void => {
@@ -68,14 +70,7 @@ export const render: renderFns.RenderAttrFn<INodeAttr> = (selection, renderDataI
     renderLabel.render, renderLabel.renderVisible)
 
   renderElement.renderSvgAttr(shapeSelection, 'fill', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
-
   renderSize(shapeSelection, getEntry(renderData, 'size'), getEntry(renderData, 'shape').attr)
 
-  if (renderData.attr.shape === 'rect') {
-    const cornerData = getEntry(renderData, 'corners')
-    renderElement.renderSvgAttr(shapeSelection, 'rx', v => v, {...cornerData, name: cornerData.name + '-x' })
-    renderElement.renderSvgAttr(shapeSelection, 'ry', v => v, {...cornerData, name: cornerData.name + '-y' })
-  }
-
-  renderElement.renderSvgMixinAttr(shapeSelection, renderData)
+  renderElement.renderSvgAttrMixin(shapeSelection, renderData)
 }

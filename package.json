@@ -1,6 +1,6 @@
 {
   "name": "algorithmx",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "description": "An event-driven library for network visualization.",
   "main": "dist/algorithmx.js",
   "module": "dist/algorithmx.es.js",

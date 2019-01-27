@@ -15,7 +15,6 @@ import * as utils from '../../utils'
 export interface INodeAttr extends IElementAttr, ISvgMixinAttr {
   readonly labels: AttrLookup<ILabelAttr>
   readonly shape: Shape
-  readonly corners: AttrNum
   readonly color: AttrString
   readonly size: {
     readonly width: AttrNum
@@ -46,7 +45,6 @@ export const definition = attrDef.extendRecordDef<INodeAttr, IElementAttr>({
       validVars: [EnumVarSymbol.Radius]
     },
     shape: { type: AttrType.String, validValues: utils.enumValues(EnumShape) },
-    corners: { type: AttrType.Number },
     color: { type: AttrType.String },
     size: { type: AttrType.Record, entries: {
       width: { type: AttrType.Number, symbol: EnumVarSymbol.Width },
@@ -63,7 +61,7 @@ export const definition = attrDef.extendRecordDef<INodeAttr, IElementAttr>({
     ...attrElement.svgMixinDefEntries
   },
   type: AttrType.Record,
-  keyOrder: ['labels', 'shape', 'color', 'size', 'corners', 'pos', 'fixed', 'draggable', 'hover', 'click',
+  keyOrder: ['labels', 'shape', 'color', 'size', 'pos', 'fixed', 'draggable', 'hover', 'click',
     ...attrElement.svgMixinDefKeys],
   validVars: [EnumVarSymbol.Width, EnumVarSymbol.Height]
 }, attrElement.definition)
@@ -74,7 +72,6 @@ export const defaults: INodeAttr = {
   ...attrElement.defaults,
   labels: {} as AttrLookup<ILabelAttr>,
   shape: 'circle',
-  corners: 4,
   color: COLORS.gray,
   size: {
     width: 12,

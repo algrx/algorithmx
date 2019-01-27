@@ -39,7 +39,7 @@ const render: renderFns.RenderAttrFn<ICanvasAttr> = (selection, renderData) => {
   // re-render svg attributes when size changes
   const updatedRenderData = renderProcess.hasChanged(getEntry(renderData, 'size'))
     ? renderProcess.markKeysForUpdate(renderData, ['svgattr']) : renderData
-  renderElement.renderSvgMixinAttr(selection, updatedRenderData)
+  renderElement.renderSvgAttrMixin(selection, updatedRenderData)
 }
 
 export function renderCanvas (canvas: Canvas, renderData: RenderAttr<ICanvasAttr>): void {

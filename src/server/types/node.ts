@@ -42,14 +42,7 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
   shape (shape: ElementArg<Shape>): this
 
   /**
-   * Sets the rounding of the node's corners. This only applies to rectangular nodes.
-   *
-   * @param radius - The radial corner rounding.
-   */
-  corners (radius: ElementArg<NumExpr>): this
-
-  /**
-   * Sets the color of the node.
+   * Sets the color of the node. The default color is "gray".
    *
    * @param color - A CSS color string.
    */

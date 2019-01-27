@@ -44,5 +44,5 @@ export const render: renderFns.RenderAttrFn<IEdgeAttr> = (selection, renderData)
 
   edgeColor.renderColor(pathSel, markerSelector, overlaySelector, renderData)
 
-  renderElement.renderSvgMixinAttr(pathSel, renderData)
+  renderElement.renderSvgAttrMixin(pathSel, renderData)
 }

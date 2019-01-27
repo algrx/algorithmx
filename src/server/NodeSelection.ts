@@ -20,10 +20,6 @@ const builder: ClassBuilder<NodeSelection, ISelContext<InputNodeAttr>> = (contex
     context.client.dispatch(utils.attrEvent(context, shape, d => ({ shape: d })))
     return self()
   },
-  corners: radius => {
-    context.client.dispatch(utils.attrEvent(context, radius, d => ({ corners: d })))
-    return self()
-  },
   color: color => {
     context.client.dispatch(utils.attrEvent(context, color, d => ({ color: d })))
     return self()
