@@ -16,20 +16,20 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
    * By default, each node is initialized with a "value" label, located at the center of the node and displaying its ID.
    * Any additional labels will be automatically positioned along the boundary of the node.
    *
-   * @param id - The ID of the label. Defaults to "value".
+   * @param id - The ID of the label, which will be converted to a string. Defaults to "value".
    *
    * @return A new selection corresponding to the given label.
    */
-  label (id?: string | number): LabelSelection
+  label (id?: unknown): LabelSelection
 
   /**
    * Selects multiple labels, attached to the node, using a list of ID values.
    *
-   * @param ids - A list of label IDs.
+   * @param ids - A list of label IDs, which will be converted to strings.
    *
    * @return A new selection corresponding to the given labels.
    */
-  labels (ids: ReadonlyArray<string | number>): LabelSelection
+  labels (ids: ReadonlyArray<unknown>): LabelSelection
 
   /**
    * Sets the shape of the node. Note that shape cannot be animated or highlighted.

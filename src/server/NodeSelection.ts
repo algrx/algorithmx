@@ -14,7 +14,8 @@ const builder: ClassBuilder<NodeSelection, ISelContext<InputNodeAttr>> = (contex
     return self().labels([id])
   },
   labels: ids => {
-    return labelSelection({...context, parent: context, ids: ids, data: null, initattr: undefined })
+    return labelSelection({...context, parent: context, ids: ids.map(k => String(k)),
+      data: null, initattr: undefined })
   },
   shape: shape => {
     context.client.dispatch(utils.attrEvent(context, shape, d => ({ shape: d })))

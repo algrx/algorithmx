@@ -140,12 +140,12 @@ export interface Selection<T extends InputElementAttr> {
   pause (seconds: number): this
 
   /**
-   * Stops the execution of all scheduled events on one or more event queues.
+   * Stops the execution of all scheduled events on the given event queue.
    * Note that this will still be added as an event onto the current queue.
    *
-   * @param queue - The name of the queue to stop, or list of names. Defaults to "default".
+   * @param queue - The ID of the queue to stop, which will be converted to a string. Defaults to "default".
    */
-  stop (queue?: string | number | ReadonlyArray<string | number>): this
+  stop (queue?: unknown): this
 
   /**
    * Stops the execution of all scheduled events on all event queues.
@@ -154,12 +154,12 @@ export interface Selection<T extends InputElementAttr> {
   stopall (): this
 
   /**
-   * Starts/resumes the execution of all scheduled events on one or more event queues.
+   * Starts/resumes the execution of all scheduled events on the given event queue.
    * Note that this will still be added as an event onto the current queue.
    *
-   * @param queue - The name of the queue to start, or list of names. Defaults to "default".
+   * @param queue - The ID of the queue to start, which will be converted to a string. Defaults to "default".
    */
-  start (queue?: string | number | ReadonlyArray<string | number>): this
+  start (queue?: unknown): this
 
   /**
    * Starts/resumes the execution of all scheduled events on all event queues.
@@ -168,12 +168,12 @@ export interface Selection<T extends InputElementAttr> {
   startall (): this
 
   /**
-   * Cancels all scheduled events on one or more event queues.
+   * Cancels all scheduled events on the given event queue.
    * Note that this will still be added as an event onto the current queue.
    *
-   * @param queue - The name of the queue to cancel, or list of names. Defaults to "default".
+   * @param queue - The ID of the queue to cancel, which will be converted to a string. Defaults to "default".
    */
-  cancel (queue?: string | number | ReadonlyArray<string | number>): this
+  cancel (queue?: unknown): this
 
   /**
    * Cancels all scheduled events on all event queues.

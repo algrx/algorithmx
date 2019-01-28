@@ -58,8 +58,8 @@ it('Queue | Stop and start multiple', () => {
     canvas.eventQ(1).pause(0.01).callback(() => count += 1)
     canvas.eventQ(2).pause(0.01).callback(() => count += 1)
 
-    canvas.stop([1, 2])
-    canvas.pause(0.02).start([1, 2])
+    canvas.stop(1).stop(2)
+    canvas.pause(0.02).start(1).start(2)
 
     expect(count).to.eq(0)
     setTimeout(() => {
@@ -74,7 +74,7 @@ it('Queue | Cancel multiple', () => {
   return new Promise((resolve, reject) => {
     canvas.eventQ('q1').pause(0.01).callback(() => reject(new Error('queue 1 didn\'t cancel')))
     canvas.eventQ('q2').pause(0.01).callback(() => reject(new Error('queue 2 didn\'t cancel')))
-    canvas.cancel(['q1', 'q2'])
+    canvas.cancel('q1').cancel('q2')
     setTimeout(resolve, 20)
   })
 })

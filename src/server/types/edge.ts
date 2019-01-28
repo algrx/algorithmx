@@ -12,27 +12,28 @@ export interface EdgeSelection extends Selection<InputEdgeAttr> {
    * If no source is given, the first node in each edge tuple used to construct the selection will be used.
    * If the source is not connected, the edge's actual source will be used.
    *
-   * @param source - The ID of the node at which the traversal animation should begin.
+   * @param source - The ID of the node at which the traversal animation should begin,
+   * which will be converted to a string.
    */
-  traverse (source?: ElementArg<string | number>): this
+  traverse (source?: ElementArg<unknown>): this
 
   /**
    * Selects a single label, attached to the edge, by its ID.
    *
-   * @param id - The ID of the label. Defaults to "weight".
+   * @param id - The ID of the label, which will be converted to a string. Defaults to "weight".
    *
    * @return A new selection corresponding to the given label.
    */
-  label (id?: string | number): LabelSelection
+  label (id?: unknown): LabelSelection
 
   /**
    * Selects multiple labels, attached to the edge, using a list of ID values.
    *
-   * @param ids - A list of label IDs.
+   * @param ids - A list of label IDs, which will be converted to strings.
    *
    * @return A new selection corresponding to the given labels.
    */
-  labels (ids: ReadonlyArray<string | number>): LabelSelection
+  labels (ids: ReadonlyArray<unknown>): LabelSelection
 
   /**
    * Sets whether or not the edge should include an arrow pointing towards its target node.

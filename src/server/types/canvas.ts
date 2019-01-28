@@ -11,57 +11,61 @@ export interface CanvasSelection extends Selection<InputCanvasAttr> {
   /**
    * Selects a single node by its ID.
    *
-   * @param id - The ID of the node.
+   * @param id - The ID of the node, which will be converted to a string.
    *
    * @return A new selection corresponding to the given node.
    */
-  node (id: string | number): NodeSelection
+  node (id: unknown): NodeSelection
 
   /**
    * Selects multiple nodes using an list of ID values.
    *
-   * @param ids - A list of node IDs.
+   * @param ids - A list of node IDs, which will be converted to strings.
    *
    * @return A new selection corresponding to the given nodes.
    */
-  nodes (ids: ReadonlyArray<string | number>): NodeSelection
+  nodes (ids: ReadonlyArray<unknown>): NodeSelection
 
   /**
    * Selects a single edge by its source, target, and optional ID. The additional ID value will distinguish edges
    * connected to the same nodes. Once the edge has been added, source and target nodes can be provided in any order.
    *
    * @param edge - A (source, target) or (source, target, ID) tuple.
+   * All values will be converted to strings.
    *
    * @return A new selection corresponding to the given edge.
    */
-  edge (edge: [string | number, string | number, (string | number)?]): EdgeSelection
+  edge (edge: [unknown, unknown, unknown?]): EdgeSelection
 
   /**
    * Selects multiple edges using a list of source, target, and optional ID tuples.
    *
    * @param edges - A list of (source, target) or (source, target, ID) tuples.
+   * All values will be converted to strings.
    *
    * @return A new selection corresponding to the given edges.
    */
-  edges (edges: ReadonlyArray<[string | number, string | number, (string | number)?]>): EdgeSelection
+  edges (edges: ReadonlyArray<[unknown, unknown, unknown?]>): EdgeSelection
 
   /**
    * Selects a single label, attached to the canvas, by its ID.
    *
-   * @param id - The ID of the label. Defaults to "title".
+   * @param id - The ID of the label, which will be converted to a string. Defaults to "title".
    *
    * @return A new selection corresponding to the given label.
    */
-  label (id?: string | number): LabelSelection
+  label (id?: unknown): LabelSelection
 
   /**
    * Selects multiple labels, attached to the canvas, using an array of ID values.
    *
-   * @param ids - A list of labels IDs.
+   * @param ids - A list of labels IDs, which will be converted to strings.
    *
    * @return A new selection corresponding to the given labels.
    */
-  labels (ids: ReadonlyArray<string | number>): LabelSelection
+  /* tslint:disable */
+  labels (ids: Array<unknown>): LabelSelection
+  /* tslint:enable */
 
   /**
    * Sets the width and height of the canvas. This will determine the coordinate system, and will update the `width` and

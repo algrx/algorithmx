@@ -31,7 +31,8 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
     return self().nodes([id])
   },
   nodes: ids => {
-    return nodeSelection({...context, parent: context, ids: ids, data: ids, initattr: undefined })
+    return nodeSelection({...context, parent: context, ids: ids.map(k => String(k)),
+      data: ids.slice(), initattr: undefined })
   },
 
   edge: edge => {
@@ -39,21 +40,22 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
   },
   edges: edges => {
     const ids = edges.map(([source, target, edgeId]) => {
-      const orderedNodes = [source, target].sort()
-      return `${orderedNodes[0]}-${orderedNodes[1]}${edgeId !== undefined ? '-' + edgeId : ''}`
+      const orderedNodes = [String(source), String(target)].sort()
+      return `${orderedNodes[0]}-${orderedNodes[1]}${edgeId !== undefined ? '-' + String(edgeId) : ''}`
     })
 
     const initAttr = edges.map(([source, target]) =>
       ({ source: String(source), target: String(target) }))
 
-    return edgeSelection({...context, parent: context, ids: ids, data: edges, initattr: initAttr })
+    return edgeSelection({...context, parent: context, ids: ids, data: edges.slice(), initattr: initAttr })
   },
 
   label: (id = 'title') => {
     return self().labels([id])
   },
   labels: ids => {
-    return labelSelection({...context, parent: context, ids: ids, data: null, initattr: undefined })
+    return labelSelection({...context, parent: context, ids: ids.map(k => String(k)),
+      data: null, initattr: undefined })
   },
 
   size: size => {

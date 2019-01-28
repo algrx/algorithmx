@@ -66,15 +66,14 @@ export const attrEvent = <T extends InputElementAttr, A>
   else return { type: 'update', queue: sel.queue, data: eventData }
 }
 
-type EventQueues = string | number | ReadonlyArray<string | number> | null
 export const queueEvent = <T extends InputElementAttr>(sel: ISelContext<T>,
                                                        type: events.IDispatchQueueUpdate['type'],
-                                                       queues: EventQueues): events.IDispatchQueueUpdate => {
-  const queueList = queues === null ? null : (Array.isArray(queues) ? queues : [queues]).map(q => String(q))
+                                                       queue: unknown | null): events.IDispatchQueueUpdate => {
+  const queues = queue === null ? null : [String(queue)]
   return {
     type: type,
     queue: sel.queue,
-    data: { queues: queueList }
+    data: { queues: queues }
   }
 }
 
