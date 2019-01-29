@@ -104,7 +104,7 @@ export const init = (name: string, index: number): INodeAttr => {
     angle: 90,
     rotate: false,
     color: COLORS.white,
-    size: 13
+    size: 12
   }
   return {...defaults,
     labels: { [VALUE_LABEL]: defaultLabel } as unknown as AttrLookup<ILabelAttr>,

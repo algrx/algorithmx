@@ -58,7 +58,7 @@ export const definition: IAttrDefRecord<IAnimation> = {
 
 export const defaults: IAnimation = {
   type: 'normal',
-  duration: 0.35,
+  duration: 0.5,
   ease: 'poly',
   linger: 0.5,
   data: {}
