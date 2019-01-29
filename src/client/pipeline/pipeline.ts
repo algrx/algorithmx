@@ -37,7 +37,7 @@ export const processUpdate = (canvas: Canvas, prevAttr: AttrEval<ICanvasAttr> | 
   const attributes = attrUtils.subtractFull(attrMerged, attrRemoved, canvasDef) as AttrEval<ICanvasAttr>
 
   const exprChanged = attrExpr.getPermanentExpr(changesInit, canvasDef)
-  const prevExprCleared = attrUtils.subtractChanges(prevExpr || {}, changesInit, canvasDef)
+  const prevExprCleared = attrUtils.subtractPartial(prevExpr || {}, changesInit, canvasDef)
   const expressions = attrUtils.merge(prevExprCleared, exprChanged, canvasDef)
 
   const animation = processAnim.process(attrData.animation, prevAttr, changes, changesForced)

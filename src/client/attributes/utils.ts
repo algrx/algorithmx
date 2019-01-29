@@ -129,12 +129,12 @@ export const reduceChanges = <T extends Attr>(attr: PartialAttr<T>, def: AttrDef
     : fn(k, v, d))
 }
 
-export const subtractChanges = <T extends Attr>(attr: PartialAttr<T>, subtract: PartialAttr<T>,
+export const subtractPartial = <T extends Attr>(attr: PartialAttr<T>, subtract: PartialAttr<T>,
                                                 def: AttrDef<T>): PartialAttr<T> => {
   return reduceAttr(attr, def, (k, v, d) =>
     subtract[k] === undefined ? v
     : isDefLookup(def) && (v === null || subtract[k] === null) ? undefined
-    : subtractChanges(v, subtract[k], d))
+    : subtractPartial(v, subtract[k], d))
 }
 
 export const subtractFull = <T extends Attr>(attr: T, subtract: PartialAttr<T>, def: AttrDef<T>): T => {
@@ -149,6 +149,12 @@ export const subtractFull = <T extends Attr>(attr: T, subtract: PartialAttr<T>, 
       subtract[k] === undefined ? v
       : subtractFull(v, subtract[k], d))
   }
+}
+
+export const keepIfDifferent = <T extends Attr>(newAttr: PartialAttr<T>, prevAttr: PartialAttr<T>,
+                                                def: AttrDef<T>): PartialAttr<T> => {
+  if (isDefPrimitive(def)) return newAttr !== prevAttr ? newAttr : emptyAttr(def)
+  return reduceChanges(newAttr, def, (k, v, d) => keepIfDifferent(v, prevAttr[k], d))
 }
 
 export const getNullEntries = <T extends Attr>(attr: PartialAttr<T>, def: AttrDef<T>): PartialAttr<T> => {

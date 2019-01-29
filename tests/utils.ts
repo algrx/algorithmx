@@ -3,6 +3,7 @@ import { Canvas } from '../src/client/types/events'
 import * as renderUtils from '../src/client/render/utils'
 import * as renderCanvasUtils from '../src/client/render/canvas/utils'
 import * as d3 from '../src/client/render/d3.modules'
+import 'mocha'
 
 export const GREEN = 'rgb(0,255,0)'
 export const RED = 'rgb(255,0,0)'

@@ -28,10 +28,11 @@ export const evaluate = (prevState: AttrEval<ICanvasAttr> | undefined, prevExpr:
   // evaluate permanent expressions
   const fullNonExpr = attrUtils.merge(fullNonExprInit, changedExprEval, canvasDef) as AttrEvalPartial<ICanvasAttr>
   const permanentExprEval = attrCanvas.evaluate(fullNonExpr, prevExpr || {}, changes)
+  const permanentExprChanges = attrUtils.keepIfDifferent(permanentExprEval, prevState || {}, canvasDef)
 
   // combine all changes
   const changesEval = attrUtils.merge(changes, changedExprEval, canvasDef)
-  const allChangesEval = attrUtils.merge(permanentExprEval, changesEval, canvasDef) as AttrEvalPartial<ICanvasAttr>
+  const allChangesEval = attrUtils.merge(permanentExprChanges, changesEval, canvasDef) as AttrEvalPartial<ICanvasAttr>
 
   return allChangesEval
 }

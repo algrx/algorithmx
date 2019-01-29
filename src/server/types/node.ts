@@ -53,7 +53,9 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
    * Otherwise, a tuple containing both the horizontal and vertical radius should be provided.
    *
    * Note that size can be set relative to the node's current size using string expressions, e.g. "1.5x" for circles
-   * or ["1.5x", "1.5y"] for rectangles and other shapes.
+   * or ("1.5x", "1.5y") for rectangles and other shapes.
+   *
+   * The default size is (12, 12).
    *
    * @param size - The radius of the node, or a (width/2, height/2) tuple.
    */
