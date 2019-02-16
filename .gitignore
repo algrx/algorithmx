@@ -4,7 +4,7 @@ docs/
 public/
 coverage/
 .vscode/
-/*_cache
+*_cache
 package-lock.json
 *.log
 .DS_Store
