@@ -1,16 +1,4 @@
-const pkg = require('../package.json')
 const exec = require('child_process').exec;
-
-const versionSplit = pkg.version.split('.')
-const versionMajorMinor = versionSplit[0] + '.' + versionSplit[1]
-
-const htmlRedirect = `<!DOCTYPE HTML>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=${versionMajorMinor}/">
-  </head>
-</html>`
 
 const script = `
 rm -rf public
@@ -27,17 +15,14 @@ git remote add origin "https://\${GITHUB_TOKEN}@github.com/\${GITHUB_REPO}.git"
 git pull origin gh-pages
 
 # copy
-rm -rf docs/js/${versionMajorMinor}
-mkdir -p docs/js/${versionMajorMinor}
-cp -rf ../docs/. docs/js/${versionMajorMinor}
-
-# redirect
-echo '${htmlRedirect}' > docs/js/index.html
+rm -rf docs/js
+mkdir -p docs/js
+cp -rf ../docs/. docs/js
 
 # deploy
 git add .
 git commit -m "Deploy docs"
-git push -u origin master:gh-pages 
+git push -u origin master:gh-pages
 `
 
 exec(script, (error, stdout, stderr) => {
