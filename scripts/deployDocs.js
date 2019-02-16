@@ -22,7 +22,7 @@ cp -rf ../docs/. docs/js
 # deploy
 git add .
 git commit -m "Deploy docs"
-git push -u origin master:gh-pages
+git push -u origin master:gh-pages --force
 `
 
 exec(script, (error, stdout, stderr) => {
