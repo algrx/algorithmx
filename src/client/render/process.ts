@@ -38,13 +38,15 @@ export const combine = <T extends object>(renderDict: { readonly [k in keyof T]:
   const changesDict = utils.filterDict(utils.mapDict(renderDict, (k, v) => v.changes), (k, v) => v !== undefined)
   const changes = utils.isDictEmpty(changesDict) ? undefined : changesDict as RenderEndpoint<T>['changes']
 
-  const animation = Object.entries(renderDict).reduce(
-    (result: IAnimation, [k, renderData]: [string, RenderEndpoint<T[keyof T]>], i) => {
+  const animation = Object.entries(renderDict).reduce( // result = [animation, lockedIn]
+    (result: [IAnimation | undefined, boolean], [k, renderData]: [string, RenderEndpoint<T[keyof T]>], i) => {
 
-    const shouldTake = renderData.changes !== undefined && renderData.animation !== undefined
-    if (result === undefined && (shouldTake || i === Object.keys(renderDict).length - 1)) return renderData.animation
+    if (result[1] === false && renderData.changes !== undefined && renderData.animation !== undefined)
+      return [renderData.animation, true]
+    else if (result[0] === undefined && renderData.animation !== undefined)
+      return [renderData.animation, false]
     else return result
-  }, undefined)
+  }, [undefined, false])[0]
 
   const attr = utils.mapDict(renderDict, (k, v) => v.attr) as RenderEndpoint<T>['attr']
 
