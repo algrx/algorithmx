@@ -21,7 +21,9 @@ const receiveHandler = (event: events.ReceiveEvent, listeners: selection.SelList
     selection.triggerListener(listeners, `${event.data.entered ? 'hoverin' : 'hoverout'}-node-${event.data.id}`)
 
   else if (event.type === events.EnumReceiveType.error)
-    throw Error(event.data.message)
+    /* tslint:disable */
+    console.error(event.data.message)
+    /* tslint:enable */
 }
 
 const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (context, self, construct) =>

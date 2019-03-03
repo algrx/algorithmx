@@ -42,7 +42,7 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
   shape (shape: ElementArg<Shape>): this
 
   /**
-   * Sets the color of the node. The default color is "gray".
+   * Sets the color of the node. The default color is "dark-gray".
    *
    * @param color - A CSS color string.
    */
@@ -70,14 +70,14 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
 
   /**
    * When set to true, this prevents the node from being automatically moved during the layout process.
-   * This does not affect manual dragging. Defaults to false.
+   * This does not affect manual dragging.
    *
    * @param fixed - True if the position of the node should be fixed, false otherwise.
    */
   fixed (fixed: ElementArg<boolean>): this
 
   /**
-   * Sets whether or not the node can be manually dragged around. Defaults to true.
+   * Sets whether or not the node can be manually dragged around.
    *
    * @param draggable - True if the node should be draggable, false otherwise.
    */
