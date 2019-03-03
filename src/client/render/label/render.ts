@@ -68,10 +68,6 @@ export const preprocessAlign = (labelData: RenderAttr<ILabelAttr>): RenderAttr<I
   }
 }
 
-export const renderVisible: renderFns.RenderAttrFn<ILabelAttr['visible']> = (selection, renderData) => {
-  renderElement.renderVisible(selection, renderData)
-}
-
 export const render: renderFns.RenderAttrFn<ILabelAttr> = (selection, renderData) => {
   const alignData = preprocessAlign(renderData)
 

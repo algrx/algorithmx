@@ -79,9 +79,6 @@ export const builder: ClassBuilder<Selection<InputElementAttr>, ISelContext<Inpu
     queue: queue === null ? null : String(queue)
   }),
 
-  animate: (type = 'normal') => construct({...context,
-    animation: utils.updateAnimation(context, type, d => ({ type: d, data: {} }))
-  }),
   duration: seconds => construct({...context,
     animation: utils.updateAnimation(context, seconds, d => ({ duration: d }))
   }),

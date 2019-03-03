@@ -16,7 +16,7 @@ export const definition: AttrDef<IElementAttr> = {
   keyOrder: ['visible']
 }
 export const animationDefaults: PartialAttr<AnimationFull<IElementAttr>> = {
-  visible: { type: 'fade' }
+  visible: { type: 'normal' }
 }
 
 export interface ISvgMixinAttr extends AttrRecord {

@@ -9,9 +9,6 @@ import * as renderFns from '../render'
 import * as renderElement from '../element'
 import * as renderUtils from '../utils'
 
-export const selectNodeInner = (sel: D3Selection): D3Selection =>
-  renderUtils.selectOrAdd(sel, '.node', s => s.append('g').classed('node', true))
-
 export const selectLabelGroup = (sel: D3Selection): D3Selection =>
   renderUtils.selectOrAdd(sel, '.node-labels', s => s.append('g').classed('node-labels', true))
 
@@ -59,15 +56,13 @@ export const renderVisible: renderFns.RenderAttrFn<INodeAttr['visible']> = (sele
 
 export const render: renderFns.RenderAttrFn<INodeAttr> = (selection, renderDataInit) => {
   const renderData = preprocess(renderDataInit)
-  const nodeSel = selectNodeInner(selection)
 
-  renderFns.render(nodeSel, getEntry(renderData, 'shape'), (s, shape) => renderShape(nodeSel, shape))
+  renderFns.render(selection, getEntry(renderData, 'shape'), (s, shape) => renderShape(selection, shape))
 
-  const shapeSelection = nodeSel.select('.shape')
-  const labelGroup = selectLabelGroup(nodeSel)
+  const shapeSelection = selection.select('.shape')
+  const labelGroup = selectLabelGroup(selection)
 
-  renderElement.renderElementLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
-    renderLabel.render, renderLabel.renderVisible)
+  renderElement.renderElementLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'), renderLabel.render)
 
   renderElement.renderSvgAttr(shapeSelection, 'fill', v => renderUtils.parseColor(v), getEntry(renderData, 'color'))
   renderSize(shapeSelection, getEntry(renderData, 'size'), getEntry(renderData, 'shape').attr)

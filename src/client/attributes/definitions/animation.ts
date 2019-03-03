@@ -6,9 +6,6 @@ import * as utils from '../../utils'
 
 export enum EnumAnimationType {
   normal = 'normal',
-  scale = 'scale',
-  fade = 'fade',
-  'scale-fade' = 'scale-fade',
   traverse = 'traverse'
 }
 export type AnimationType = keyof typeof EnumAnimationType

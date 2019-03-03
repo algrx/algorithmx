@@ -39,27 +39,14 @@ export const renderSvgAttrMixin: renderFns.RenderAttrFn<ISvgMixinAttr> = (select
 }
 
 const animateAdd = (selection: D3Selection, animation: IAnimation): void => {
-  if (animation.type === 'scale' || animation.type === 'scale-fade') {
-    selection.attr('transform', 'scale(0,0)')
-    const transition = renderFns.animate(selection, 'visible-scale', animation).attr('transform', 'scale(1,1)')
-    renderFns.newTransition(transition, t => t).attr('transform', null)
-  }
-  if (animation.type === 'fade' || animation.type === 'scale-fade') {
-    selection.attr('opacity', '0')
-    const transition = renderFns.animate(selection, 'visible-fade', animation).attr('opacity', '1')
-    renderFns.newTransition(transition, t => t).attr('opacity', null)
-  }
+  selection.attr('opacity', '0')
+  const transition = renderFns.animate(selection, 'visible-fade', animation).attr('opacity', '1')
+  renderFns.newTransition(transition, t => t).attr('opacity', null)
 }
 
 const animateRemove = (selection: D3Selection, animation: IAnimation): void => {
-  if (animation.type === 'scale' || animation.type === 'scale-fade') {
-    selection.attr('transform', 'scale(1,1)')
-    renderFns.animate(selection, 'visible-scale', animation).attr('transform', 'scale(0,0)')
-  }
-  if (animation.type === 'fade' || animation.type === 'scale-fade') {
-    selection.attr('opacity', '1')
-    renderFns.animate(selection, 'visible-fade', animation).attr('opacity', '0')
-  }
+  selection.attr('opacity', '1')
+  renderFns.animate(selection, 'visible-fade', animation).attr('opacity', '0')
 }
 
 export const renderVisible: renderFns.RenderAttrFn<IElementAttr['visible']> = (selection, renderData) => {
@@ -86,18 +73,16 @@ export const preprocess = <T extends IElementAttr>(renderData: RenderAttr<T>): R
     ? renderProcess.markForUpdate(renderData) : renderData
 }
 
-export const renderElementRemove = <T extends IElementAttr>(selection: D3Selection, renderData: RenderAttr<T>,
-                                                            renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
+export const renderElementRemove = <T extends IElementAttr>(selection: D3Selection, renderData: RenderAttr<T>) => {
   const newVisible = { attr: { visible: false }, changes: { visible: false } } as RenderAttr<PartialAttr<IElementAttr>>
   const visibleData = getEntry({...renderData, ...newVisible }, 'visible')
 
-  renderVisibleFn(selection, visibleData)
+  renderVisible(selection, visibleData)
   renderRemove(selection, visibleData)
 }
 
 export const renderElement = <T extends IElementAttr>(selector: () => D3Selection, renderData: RenderAttr<T>,
-                                                      renderFn: renderFns.RenderAttrFn<T>,
-                                                      renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
+                                                      renderFn: renderFns.RenderAttrFn<T>) => {
   const renderDataFull = preprocess(renderData)
   const visibleData = getEntry(renderData, 'visible')
 
@@ -105,17 +90,16 @@ export const renderElement = <T extends IElementAttr>(selector: () => D3Selectio
   const selection = selector()
 
   renderFn(selection, renderDataFull)
-  renderVisibleFn(selection, visibleData)
+  renderVisible(selection, visibleData)
   renderRemove(selection, visibleData)
 }
 
 export const renderElementLookup = <T extends IElementAttr>(selector: (k: string) => D3Selection,
                                                             renderData: RenderAttr<AttrLookup<T>>,
-                                                            renderFn: renderFns.RenderAttrFn<T>,
-                                                            renderVisibleFn: renderFns.RenderAttrFn<T['visible']>) => {
+                                                            renderFn: renderFns.RenderAttrFn<T>) => {
   renderFns.renderLookup(renderData, (k, data) =>
-    renderElement(() => selector(k), data, renderFn, renderVisibleFn))
+    renderElement(() => selector(k), data, renderFn))
 
   renderFns.renderLookupRemovals(renderData, (k, data) =>
-    renderElementRemove(selector(k), data, renderVisibleFn))
+    renderElementRemove(selector(k), data))
 }

@@ -65,20 +65,6 @@ export interface Selection<T extends InputElementAttr> {
   eventQ (queue?: string | number | null): this
 
   /**
-   * Configures the type of animation which should be used for all attribute changes triggered by the selection.
-   *
-   * @param type - One of the following strings:
-   * - "normal": The standard animation, applicable in most cases.
-   * - "scale": Animates the size of elements being added/removed.
-   * - "fade": Animates the opacity of elements being added/removed.
-   * - "scale-face": Animates both the size and opacity of elements being added/removed.
-   * - "traverse": Changes the color of edges using a traversal animation.
-   *
-   * @return A new instance of the current selection using the specified animation type. Defaults to "normal".
-   */
-  animate (type: ElementArg<AnimationType>): this
-
-  /**
    * Configures the duration of all animations triggered by the selection. A duration of `0` will ensure that changes
    * occur immediately. The default duration is `0.5`.
    *

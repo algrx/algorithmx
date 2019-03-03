@@ -6,8 +6,8 @@ import { ElementArg, NumExpr } from './types'
 
 export interface EdgeSelection extends Selection<InputEdgeAttr> {
   /**
-   * Sets the animation type to "traverse" (see [[Selection.animate]]), and configures the node at which the traversal
-   * should begin. This will typically be followed by [[EdgeSelection.color]].
+   * Sets the selection's animation type such that color ([[EdgeSelection.color]]) is animated with a traversal,
+   * and configures the node at which the traversal should begin.
    *
    * If no source is given, the first node in each edge tuple used to construct the selection will be used.
    * If the source is not connected, the edge's actual source will be used.
@@ -57,7 +57,7 @@ export interface EdgeSelection extends Selection<InputEdgeAttr> {
   thickness (thickness: ElementArg<NumExpr>): this
 
   /**
-   * Sets color of the edge. Note that this can be animated with a traversal animation (see [[EdgeSelection.traverse]]).
+   * Sets color of the edge. Note that this can be animated with a traversal (see [[EdgeSelection.traverse]]).
    * The default color is "lightgray".
    *
    * @param color - A CSS color string.

@@ -1,8 +1,4 @@
-import { INumExpr, AttrRecord, InputAttr } from '../../client/attributes/types'
-import { ICanvasAttr } from '../../client/attributes/definitions/canvas'
-import { INodeAttr } from '../../client/attributes/definitions/node'
-import { IEdgeAttr } from '../../client/attributes/definitions/edge'
-import { IElementAttr } from '../../client/attributes/definitions/element'
+import { INumExpr } from '../../client/attributes/types'
 
 /**
  * A function taking a selected element's data as input. This is typically provided as an argument in a selection method,

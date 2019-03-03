@@ -8,9 +8,6 @@ import * as renderElement from '../element'
 import * as renderMarker from './marker'
 import * as renderUtils from '../utils'
 
-export const selectEdgeInner = (sel: D3Selection): D3Selection =>
-  renderUtils.selectOrAdd(sel, '.edge', s => s.append('g').classed('edge', true))
-
 export const selectLabelGroup = (sel: D3Selection): D3Selection =>
   renderUtils.selectOrAdd(sel, '.edge-labels', s => s.append('g').classed('edge-labels', true))
 
@@ -24,23 +21,21 @@ export const renderVisible: renderFns.RenderAttrFn<IEdgeAttr['visible']> = (sele
 }
 
 export const render: renderFns.RenderAttrFn<IEdgeAttr> = (selection, renderData) => {
-  const edgeSel = selectEdgeInner(selection)
-  const pathSel = renderUtils.selectOrAdd(edgeSel, '.edge-path', s =>
+  const pathSel = renderUtils.selectOrAdd(selection, '.edge-path', s =>
     s.append('path').classed('edge-path', true).attr('fill', 'none').attr('stroke-linecap', 'round'))
-  const labelGroup = selectLabelGroup(edgeSel)
+  const labelGroup = selectLabelGroup(selection)
 
-  renderElement.renderElementLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'),
-    renderLabel.render, renderLabel.renderVisible)
+  renderElement.renderElementLookup(k => selectLabel(labelGroup, k), getEntry(renderData, 'labels'), renderLabel.render)
 
   renderElement.renderSvgAttr(pathSel, 'stroke-width', v => v, getEntry(renderData, 'thickness'))
 
-  renderMarker.render(edgeSel, renderData)
+  renderMarker.render(selection, renderData)
 
   renderElement.renderSvgAttr(pathSel, 'marker-end', v =>
-    v ? `url(#${renderMarker.getFullId(edgeSel, 'target')})` : null, getEntry(renderData, 'directed'))
+    v ? `url(#${renderMarker.getFullId(selection, 'target')})` : null, getEntry(renderData, 'directed'))
 
-  const markerSelector = () => renderMarker.select(edgeSel, 'target').select('path')
-  const overlaySelector = () => edgeColor.selectOverlay(edgeSel, renderData)
+  const markerSelector = () => renderMarker.select(selection, 'target').select('path')
+  const overlaySelector = () => edgeColor.selectOverlay(selection, renderData)
 
   edgeColor.renderColor(pathSel, markerSelector, overlaySelector, renderData)
 
