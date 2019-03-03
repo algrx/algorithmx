@@ -70,14 +70,14 @@ export interface NodeSelection extends Selection<InputNodeAttr> {
 
   /**
    * When set to true, this prevents the node from being automatically moved during the layout process.
-   * This does not affect manual dragging.
+   * This does not affect manual dragging. Defaults to false.
    *
    * @param fixed - True if the position of the node should be fixed, false otherwise.
    */
   fixed (fixed: ElementArg<boolean>): this
 
   /**
-   * Sets whether or not the node can be manually dragged around.
+   * Sets whether or not the node can be manually dragged around. Defaults to true.
    *
    * @param draggable - True if the node should be draggable, false otherwise.
    */

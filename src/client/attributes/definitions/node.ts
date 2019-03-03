@@ -72,7 +72,7 @@ export const defaults: INodeAttr = {
   ...attrElement.defaults,
   labels: {} as AttrLookup<ILabelAttr>,
   shape: 'circle',
-  color: COLORS.gray,
+  color: COLORS.darkgray,
   size: {
     width: 12,
     height: 12

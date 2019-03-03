@@ -58,7 +58,7 @@ export interface EdgeSelection extends Selection<InputEdgeAttr> {
 
   /**
    * Sets color of the edge. Note that this can be animated with a traversal (see [[EdgeSelection.traverse]]).
-   * The default color is "lightgray".
+   * The default color is "light-gray".
    *
    * @param color - A CSS color string.
    */

@@ -71,7 +71,7 @@ export const defaults: IEdgeAttr = {
   directed: false,
   length: 70,
   thickness: 2.5,
-  color: COLORS.silver,
+  color: COLORS.lightgray,
   flip: true,
   curve: 'natural',
   path: [],

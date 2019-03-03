@@ -68,7 +68,7 @@ export interface LabelSelection extends Selection<InputLabelAttr> {
   rotate (rotate: ElementArg<boolean>): this
 
   /**
-   * Sets the color of the label's text.
+   * Sets the color of the label's text. The default color is "gray".
    *
    * @param color - A CSS color string.
    */

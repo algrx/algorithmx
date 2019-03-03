@@ -29,16 +29,18 @@ export const COLORS = {
   purple: '#a31578',
   maroon: '#7c0606',
   white: '#ffffff',
-  silver: '#b5b5b5',
-  lightGray: '#969696',
-  lightGrey: '#969696',
-  gray: '#323232',
-  grey: '#323232',
+  lightgray: '#b5b5b5',
+  lightgrey: '#b5b5b5',
+  gray: '#969696',
+  grey: '#969696',
+  darkgray: '#323232',
+  darkgrey: '#323232',
   black: '#111111'
 }
 
 export const parseColor = (color: string): string => {
-  if (Object.keys(COLORS).includes(color.trim())) return COLORS[color]
+  const parsedColor = dashToUpperCamel(color.trim()).toLowerCase()
+  if (Object.keys(COLORS).includes(parsedColor)) return COLORS[parsedColor]
   else return color
 }
 

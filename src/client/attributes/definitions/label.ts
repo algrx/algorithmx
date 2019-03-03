@@ -80,7 +80,7 @@ export const defaults: ILabelAttr = {
   radius: 0,
   angle: 90,
   rotate: false,
-  color: COLORS.lightGray,
+  color: COLORS.gray,
   font: 'Arial, Helvetica, sans-serif',
   size: 12,
   ...attrElement.svgMixinDefaults
