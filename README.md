@@ -12,6 +12,7 @@
 <img src="https://raw.githubusercontent.com/algrx/algorithmx/master/img/example.svg?sanitize=true" align="center" width="600px">
 
 ## Resources
+  - <a href="https://algrx.github.io/">Website</a>
   - <a href='https://algrx.github.io/algorithmx/docs/js'>Documentation</a>
   - <a href="https://github.com/algrx/algorithmx-python">Python version</a>
 
