@@ -6,7 +6,9 @@ import { NodeSelection } from './server/types/node'
 import { EdgeSelection } from './server/types/edge'
 import { LabelSelection } from './server/types/label'
 import { Canvas } from './client/types/events'
-import * as clientApp from './server/Client'
+import * as clientBridge from './server/ClientBridge'
+import { EventHandler } from './server/Selection'
+import { canvasSelection } from './server/CanvasSelection'
 
 /**
  * Creates a new [[Client]], responsible for rendering the network, storing application state, and dispatching and receiving
@@ -18,7 +20,7 @@ import * as clientApp from './server/Client'
  * @return A new [[Client]].
  */
 export const client = (output: Canvas): Client => {
-  return clientApp.client(output)
+  return clientBridge.client(output)
 }
 
 /**
@@ -38,6 +40,8 @@ export {
   Client,
   DispatchEvent,
   ReceiveEvent,
+  EventHandler,
+  canvasSelection,
 
   CanvasSelection,
   NodeSelection,

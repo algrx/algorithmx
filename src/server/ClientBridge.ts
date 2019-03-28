@@ -2,36 +2,36 @@ import { Client } from './types/client'
 import { ClassBuilder } from './utils'
 import { ReceiveEvent, DispatchEvent, Canvas } from '../client/types/events'
 import { canvasSelection } from './CanvasSelection'
-import * as clientApp from '../client/client'
+import * as realClient from '../client/client'
 import * as utils from './utils'
 
-interface IClientContext {
-  readonly app: clientApp.Client
-  readonly canvas: Canvas
+interface ClientBridgeContext {
+  readonly realClient: realClient.Client
+  readonly realCanvas: Canvas
   /* tslint:disable */
   readonly subscriptions: Array<(event: ReceiveEvent) => void>
   /* tslint:enable */
 }
 
-const builder: ClassBuilder<Client, IClientContext> = (context, self) => ({
+const builder: ClassBuilder<Client, ClientBridgeContext> = (context, self) => ({
   dispatch: event => {
-    context.app.dispatch(event)
+    context.realClient.dispatch(event)
   },
   subscribe: listener => {
     context.subscriptions.push(listener)
-    context.app.onReceive(event => {
+    context.realClient.onReceive(event => {
       context.subscriptions.forEach(fn => fn(event))
     })
   },
   canvas: () => {
-    return canvasSelection(context.canvas, self())
+    return canvasSelection(context.realCanvas, self())
   }
 })
 
 export const client = (canvas: Canvas): Client => {
-  const context: IClientContext = {
-    app: clientApp.client(canvas),
-    canvas: canvas,
+  const context: ClientBridgeContext = {
+    realClient: realClient.client(canvas),
+    realCanvas: canvas,
     subscriptions: []
   }
   return utils.build(builder, context)

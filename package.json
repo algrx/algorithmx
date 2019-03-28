@@ -1,7 +1,7 @@
 {
   "name": "algorithmx",
-  "version": "1.0.0",
-  "description": "An event-driven library for network visualization.",
+  "version": "1.1.0",
+  "description": "A library for network visualization and algorithm simulation.",
   "main": "dist/algorithmx.js",
   "module": "dist/algorithmx.es.js",
   "unpkg": "dist/algorithmx.min.js",
@@ -36,7 +36,8 @@
     "visualization"
   ],
   "author": {
-    "name": "Alex Socha"
+    "name": "Alex Socha",
+    "url": "https://github.com/alexsocha"
   },
   "license": "MIT",
   "bugs": {

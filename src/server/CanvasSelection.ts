@@ -95,13 +95,13 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
 
 }, selection.builder(context, self, construct))
 
-export const canvasSelection = (canvas: events.Canvas, handler: EventHandler) => {
+export const canvasSelection = (id: events.Canvas, handler: EventHandler) => {
   const context: ISelContext<InputCanvasAttr> = {
     ...selection.defaultContext,
     client: handler,
     name: 'canvas',
-    ids: [String(canvas)],
-    data: [canvas]
+    ids: [String(id)],
+    data: [id]
   }
   handler.subscribe(event => receiveHandler(event, context.listeners))
   return utils.build(builder, context)
