@@ -97,7 +97,7 @@ const builder: ClassBuilder<CanvasSelection, ISelContext<InputCanvasAttr>> = (co
 
 export const canvasSelection = (id: events.Canvas, handler: EventHandler) => {
   const context: ISelContext<InputCanvasAttr> = {
-    ...selection.defaultContext,
+    ...selection.defaultContext(),
     client: handler,
     name: 'canvas',
     ids: [String(id)],

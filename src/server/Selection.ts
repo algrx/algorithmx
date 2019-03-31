@@ -41,14 +41,14 @@ export interface ISelContext<T extends InputElementAttr> {
   readonly highlight: boolean
 }
 
-export const defaultContext: Omit<ISelContext<IElementAttr>, 'client' | 'initattr' | 'data'> = {
+export const defaultContext = (): Omit<ISelContext<IElementAttr>, 'client' | 'initattr' | 'data'> => ({
   name: '',
   ids: [],
   listeners: {},
   queue: 'default',
   animation: {},
   highlight: false
-}
+})
 
 export const builder: ClassBuilder<Selection<InputElementAttr>, ISelContext<InputElementAttr>> =
   (context, self, construct) => ({
