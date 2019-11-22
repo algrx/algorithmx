@@ -19,7 +19,7 @@
     "build:umd:dev": "npx rollup -c --sourcemap --environment format:umd",
     "build": "npm run build:es && npm run build:iife && npm run build:iife:min && npm run build:umd && npm run build:umd:min",
     "typecheck": "npx tsc --noEmit",
-    "docs": "npx typedoc --out docs/ --module umd --mode file --excludeExternals --excludePrivate --excludeProtected src/server/types src/index.ts",
+    "docs": "npx typedoc --out docs/ --module umd --mode file --excludeExternals --excludePrivate --excludeProtected src/api/types src/index.ts",
     "karma": "npx karma start karma.config.js",
     "lint": "npx tslint --project . 'src/**/*.ts'",
     "test": "npm run lint && npm run karma",
