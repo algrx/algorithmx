@@ -1,14 +1,14 @@
 import { InputCanvasAttr, InputNodeAttr, InputEdgeAttr, InputLabelAttr} from './client/attributes/definitions/types'
 import { DispatchEvent, ReceiveEvent } from './client/types/events'
-import { Client } from './server/types/client'
-import { CanvasSelection } from './server/types/canvas'
-import { NodeSelection } from './server/types/node'
-import { EdgeSelection } from './server/types/edge'
-import { LabelSelection } from './server/types/label'
+import { Client } from './api/types/client'
+import { CanvasSelection } from './api/types/canvas'
+import { NodeSelection } from './api/types/node'
+import { EdgeSelection } from './api/types/edge'
+import { LabelSelection } from './api/types/label'
+import * as clientBridge from './api/ClientBridge'
+import { EventHandler } from './api/Selection'
+import { canvasSelection } from './api/CanvasSelection'
 import { Canvas } from './client/types/events'
-import * as clientBridge from './server/ClientBridge'
-import { EventHandler } from './server/Selection'
-import { canvasSelection } from './server/CanvasSelection'
 
 /**
  * Creates a new [[Client]], responsible for rendering the network, storing application state, and dispatching and receiving

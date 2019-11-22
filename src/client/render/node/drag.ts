@@ -37,8 +37,6 @@ export const enableDrag = (canvasSel: D3Selection, nodeSel: D3Selection,
   }).on('start', () => {
     _dragging = true
     canvasSel.style('cursor', 'pointer')
-    d3.event.sourceEvent.stopPropagation()
-    d3.event.sourceEvent.preventDefault()
     webcola.Layout.dragStart(nodeLayout)
   }).on('drag', () => {
     webcola.Layout.drag(nodeLayout, { x: d3.event.x, y: -d3.event.y })
@@ -51,12 +49,12 @@ export const enableDrag = (canvasSel: D3Selection, nodeSel: D3Selection,
 }
 
 export const disableDrag = (selection: D3Selection): void => {
-  selection.call(d3.drag().on('start', () => {
-    d3.event.sourceEvent.stopPropagation()
-    d3.event.sourceEvent.preventDefault()
-  }))
+  selection.on('.drag', undefined)
 }
 
 export const enableClick = (selection: D3Selection, onClick: () => void): void => {
-  selection.on('click', onClick)
+  selection.on('click', () => {
+    if (d3.event.defaultPrevented) return
+    onClick()
+  })
 }

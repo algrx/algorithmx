@@ -169,8 +169,7 @@ export interface Selection<T extends InputElementAttr> {
 
   /**
    * Adds a message to the event queue, which will trigger a corresponding listener (see [[Selection.listen]]).
-   * This can be used to detect when a queue reaches a certain point in execution, or to enable communication between
-   * a server.
+   * This can be used to detect when a queue reaches a certain point in execution, or to enable two-way communication.
    *
    * @param message - The message.
    */

@@ -50,11 +50,3 @@ export const getPointAtNodeBoundary = (node: IRenderLiveNode, angle: number, off
     node.pos[1] + fullOffset * Math.sin(angle)
   ]
 }
-
-/*
-export const getActualPos = (selection: D3Selection): [number, number] => {
-  const transform = selection.attr('transform')
-  const pos = transform.substr(10, transform.length - 11).split(',')
-  return [parseFloat(pos[0]), -parseFloat(pos[1])]
-}
-*/
