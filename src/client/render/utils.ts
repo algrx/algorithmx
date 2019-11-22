@@ -2,10 +2,8 @@ import { AnimationEase } from '../attributes/definitions/animation'
 import * as d3 from './d3.modules'
 
 type BaseType = import ('d3-selection').BaseType
-export type D3Selection = import ('d3-selection').Selection
-  <BaseType, unknown, BaseType, unknown>
-export type D3Transition = import ('d3-transition').Transition
-  <BaseType, unknown, BaseType, unknown>
+export type D3Selection = import ('d3-selection').Selection<BaseType, unknown, BaseType, unknown>
+export type D3Transition = import ('d3-transition').Transition<BaseType, unknown, BaseType, unknown>
 
 export type D3SelTrans = D3Selection | D3Transition
 export type D3Zoom = import ('d3-zoom').ZoomBehavior<Element, unknown>

@@ -10,18 +10,18 @@
     "dist/"
   ],
   "scripts": {
-    "build:es": "./node_modules/.bin/rollup -c --environment format:es",
-    "build:cjs": "./node_modules/.bin/rollup -c --environment format:cjs",
-    "build:iife": "./node_modules/.bin/rollup -c --environment format:iife",
-    "build:iife:min": "./node_modules/.bin/rollup -c --environment format:iife,min:true",
-    "build:umd": "./node_modules/.bin/rollup -c --environment format:umd",
-    "build:umd:min": "./node_modules/.bin/rollup -c --environment format:umd,min:true",
-    "build:umd:dev": "./node_modules/.bin/rollup -c --sourcemap --environment format:umd",
+    "build:es": "npx rollup -c --environment format:es",
+    "build:cjs": "npx rollup -c --environment format:cjs",
+    "build:iife": "npx rollup -c --environment format:iife",
+    "build:iife:min": "npx rollup -c --environment format:iife,min:true",
+    "build:umd": "npx rollup -c --environment format:umd",
+    "build:umd:min": "npx rollup -c --environment format:umd,min:true",
+    "build:umd:dev": "npx rollup -c --sourcemap --environment format:umd",
     "build": "npm run build:es && npm run build:iife && npm run build:iife:min && npm run build:umd && npm run build:umd:min",
-    "typecheck": "./node_modules/typescript/bin/tsc --noEmit",
-    "docs": "./node_modules/typedoc/bin/typedoc --out docs/ --module umd --mode file --excludeExternals --excludePrivate --excludeProtected src/server/types src/index.ts",
-    "karma": "./node_modules/.bin/karma start karma.config.js",
-    "lint": "./node_modules/.bin/tslint --project . 'src/**/*.ts'",
+    "typecheck": "npx tsc --noEmit",
+    "docs": "npx typedoc --out docs/ --module umd --mode file --excludeExternals --excludePrivate --excludeProtected src/server/types src/index.ts",
+    "karma": "npx karma start karma.config.js",
+    "lint": "npx tslint --project . 'src/**/*.ts'",
     "test": "npm run lint && npm run karma",
     "prepare": "npm run build",
     "prepublishOnly": "npm run test && npm run build"
@@ -78,7 +78,7 @@
     "tslint": "^5.12.0",
     "tslint-config-standard": "^8.0.1",
     "tslint-immutable": "^5.0.0",
-    "typedoc": "^0.14.0",
-    "typescript": "^3.2.2"
+    "typedoc": "0.14.2",
+    "typescript": "3.2.2"
   }
 }
