@@ -1,4 +1,4 @@
-import { INumExpr } from '../../client/attributes/types'
+import { INumExpr } from '../../client/attributes/types';
 
 /**
  * A function taking a selected element's data as input. This is typically provided as an argument in a selection method,
@@ -12,13 +12,13 @@ import { INumExpr } from '../../client/attributes/types'
  * @param ElementFn.index - The index of the element in the selection, beginning at 0, determined by its
  * position in the list initially used to construct the selection.
  */
-export type ElementFn<T> = (data: unknown, index?: number) => T
+export type ElementFn<T> = (data: unknown, index?: number) => T;
 
 /**
  * Allows an argument to be provided either directly, or as a function of each element's data
  * (see [[ElementFn]] and [[Selection.data]]).
  */
-export type ElementArg<T> = ElementFn<T> | T
+export type ElementArg<T> = ElementFn<T> | T;
 
 /**
  * A number, or an expression evaluating to a number. Expressions must be in the form `mx+c`, described by either an
@@ -34,4 +34,4 @@ export type ElementArg<T> = ElementFn<T> | T
  *   - **labels**
  *     - "r": Distance from the center of the node to its boundary given the angle attribute of the label.
  */
-export type NumExpr = number | string | INumExpr
+export type NumExpr = number | string | INumExpr;

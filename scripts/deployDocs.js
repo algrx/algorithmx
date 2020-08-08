@@ -1,4 +1,4 @@
-const exec = require('child_process').exec
+const exec = require('child_process').exec;
 
 const script = `
 rm -rf public
@@ -23,9 +23,9 @@ cp -rf ../docs/. docs/js
 git add .
 git commit -m "Deploy docs"
 git push -u origin master:gh-pages --force
-`
+`;
 
 exec(script, (error, stdout, stderr) => {
-  console.log(stdout)
-  console.log(stderr)
-})
+    console.log(stdout);
+    console.log(stderr);
+});
