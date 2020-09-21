@@ -20,7 +20,7 @@ import {
 import { WithCommonSpec, withCommonSpec, commonDefaults } from './common';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { NodeSpec, nodeSpec, createNodeDictDefaults, evalNode } from './node';
-import { EdgeSpec, edgeSpec, createEdgeDictDefaults } from './edge';
+import { EdgeSpec, edgeSpec, createEdgeDictDefaults, edgeDefaults } from './edge';
 import { COLORS } from '../../render/utils';
 import { FullAttr, PartialAttr } from '../derived-attr';
 import { mergeDiff, mapDict } from '../../utils';
@@ -174,35 +174,33 @@ export const evalCanvas = (
     );
 };
 
-/*
+// remove edges connected to nodes which are being removed
 export const removeInvalidEdges = (
-    attrs: FullAttr<CanvasSpec> | undefined,
+    attrs: FullAttr<CanvasSpec>,
     changes: PartialAttr<CanvasSpec>
 ): PartialAttr<CanvasSpec> => {
-    // remove edges connecting non-existent nodes
-    const prevEdges = prevAttr ? prevAttr.edges : ({} as AttrLookup<IEdgeAttr>);
-    const newEdges = attrUtils.newLookupEntries(prevEdges, changes.edges || {}) as AttrLookup<
-        IEdgeAttr
-    >;
-    const prevNodes = prevAttr ? prevAttr.nodes : ({} as AttrLookup<NodeSpec>);
-    const changedNodes = changes.nodes || {};
+    const isValid = (edgeId: string): boolean => {
+        if (!changes.nodes) return true;
 
-    const invalidEdges = Object.entries(prevEdges)
-        .concat(Object.entries(newEdges))
-        .reduce((result, [k, edge]) => {
-            if (
-                changedNodes[edge.source] === null ||
-                (!prevNodes[edge.source] && !changedNodes[edge.source])
-            )
-                return { ...result, [k]: null };
-            else if (
-                changedNodes[edge.target] === null ||
-                (!prevNodes[edge.target] && !changedNodes[edge.target])
-            )
-                return { ...result, [k]: null };
-            else return result;
-        }, {} as PartialAttr<CanvasSpec['edges']>);
+        const source = changes.edges?.[edgeId].source?.value ?? attrs.edges[edgeId].source.value;
+        const target = changes.edges?.[edgeId].target?.value ?? attrs.edges[edgeId].target.value;
 
-    return { edges: invalidEdges };
+        // check if the node is being removed
+        if (changes.nodes[source]?.visible?.value === false) return false;
+        if (changes.nodes[target]?.visible?.value === false) return false;
+
+        return true;
+    };
+
+    return combineAttrs(
+        canvasSpec.entries.edges,
+        attrs?.edges,
+        changes.edges,
+        (edgeAttrs, edgeChanges, k) => {
+            if (edgeAttrs && !isValid(k))
+                return { visible: { ...edgeDefaults.visible, value: false } };
+
+            return edgeChanges;
+        }
+    );
 };
-*/
