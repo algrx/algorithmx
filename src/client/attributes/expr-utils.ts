@@ -133,7 +133,7 @@ export type VarDict<V extends string> = Dict<
 >;
 
 export const evalAttr = (
-    attr: NumExpr<string> | number,
+    attr: NumExpr<string> | number | undefined,
     changes: NumExpr<string> | number | undefined,
     vars: VarDict<string>
 ): { readonly value: number; readonly changed: boolean } => {
@@ -145,18 +145,15 @@ export const evalAttr = (
             return { value: evalNum(changes, varValues), changed: true };
     }
 
-    return { value: evalNum(attr, varValues), changed: false };
+    return { value: evalNum(attr!, varValues), changed: false };
 };
 
-export const evalDeep = <T extends AttrSpec, V extends string>(
+const evalDeepAux = <T extends AttrSpec, V extends string>(
     spec: T,
-    permExpr: PartialAttr<T> | undefined, // attributes containing 'permanent' expressions
+    permExpr: PartialAttr<T> | undefined,
     changes: PartialAttr<T> | undefined,
     vars: VarDict<V>
 ): PartialAttr<T> | undefined => {
-    // optimisation: stop evaluating if there are no changed attributes or changed variables
-    if (!changes && dictValues(vars).every((v) => !v.changed)) return changes;
-
     if (spec.type === AttrType.Number) {
         const varValues = mapDict(vars, (v) => v.value);
 
@@ -184,91 +181,15 @@ export const evalDeep = <T extends AttrSpec, V extends string>(
     });
     return children === {} ? undefined : children;
 };
-/*
-export const getNodeVarsFromAttr = (
-    attrs: PartialAttr<NodeSpec>
-): PartialDict<NodeVar, number> => {
 
-    return reduceDict(attrs, (acc, v, k) => {
-        if (k === 'size' && attrs.size && attrs.size.value) {
-            return {...acc, 'x': attrs.size.value[0], 'y': attrs.size.value[1] }
-        }
-        return acc;
-    }, {})
-}
-*/
-
-/*
-export const evalExpr = <T extends AttrSpec, V extends string>(
+export const evalDeep = <T extends AttrSpec, V extends string>(
     spec: T,
-    attr: PartialAttr<T>,
-    varValues: VarDictDict<V>,
-): PartialAttr<T> => {
-    return mapAttr(spec, attr, (v, k, s) => {
-        return evalExpr(s, v, varValues);
-    })
-}
-*/
+    permExpr: PartialAttr<T> | undefined, // attributes containing 'permanent' expressions
+    changes: PartialAttr<T> | undefined,
+    vars: VarDict<V>
+): PartialAttr<T> | undefined => {
+    // optimisation: stop evaluating if there are no changed attributes or changed variables
+    if (!changes && dictValues(vars).every((v) => !v.changed)) return changes;
 
-//export const evalCanvas()
-
-/*
-export const getExpressionVars = (
-    attr: AttrPrimitive,
-    def: BaseAttrType
-): ReadonlyArray<VarSymbol> => {
-    if (def.type === AttrType.Number && isExpression(attr, def)) {
-        return [(attr as NumExpr).x];
-    } else return [];
+    return evalDeepAux(spec, permExpr, changes, vars);
 };
-
-export const evaluate = <T extends Attr>(
-    attr: T,
-    vars: VarLookup,
-    definition: AnyAttrDef<T>
-): T => {
-    if (definition.type === AttrType.Number) return evaluateNum(attr as AttrNum, vars) as T;
-    else return attrUtils.map(attr, definition, (k, v, def) => evaluate(v, vars, def));
-};
-
-export function getEvaluatedChanges<T extends Attr>(
-    attr: PartialAttr<T>,
-    vars: VarLookup,
-    def: AnyAttrDef<T>
-): PartialAttr<T> {
-    if (def.type === AttrType.Number && isNumExpr(attr as AttrNum)) {
-        const varSymbols = getExpressionVars(attr as AttrNum, def);
-        const shouldUpdate =
-            Object.keys(vars).findIndex((k: VarSymbol) => varSymbols.includes(k)) >= 0;
-        if (shouldUpdate) return evaluateNum(attr as AttrNum, vars) as PartialAttr<T>;
-        else return undefined;
-    } else return attrUtils.reduceChanges(attr, def, (k, v, d) => getEvaluatedChanges(v, vars, d));
-}
-
-export const getExpr = <T extends Attr>(
-    attr: PartialAttr<T>,
-    def: AnyAttrDef<T>
-): PartialAttr<T> => {
-    if (attrUtils.isDefPrimitive(def) && isExpression(attr as AttrPrimitive, def)) return attr;
-    else return attrUtils.reduceChanges(attr, def, (k, v, d) => getExpr(v, d));
-};
-
-export const getNonExpr = <T extends Attr>(
-    attr: PartialAttr<T>,
-    def: AnyAttrDef<T>
-): PartialAttr<T> => {
-    if (attrUtils.isDefPrimitive(def) && !isExpression(attr as AttrPrimitive, def)) return attr;
-    else return attrUtils.reduceChanges(attr, def, (k, v, d) => getNonExpr(v, d));
-};
-
-export const getPermanentExpr = <T extends Attr>(
-    attr: PartialAttr<T>,
-    def: AnyAttrDef<T>
-): PartialAttr<T> => {
-    if (attrUtils.isDefPrimitive(def) && isExpression(attr as AttrPrimitive, def)) {
-        const vars = getExpressionVars(attr as AttrPrimitive, def);
-        const symbol = (def as PrimitiveAttrDef<T & AttrPrimitive>).symbol;
-        return symbol !== undefined && vars.includes(symbol) ? undefined : attr;
-    } else return attrUtils.reduceChanges(attr, def, (k, v, d) => getPermanentExpr(v, d));
-};
-*/

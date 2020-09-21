@@ -19,13 +19,14 @@ import {
 } from './element';
 import { WithCommonSpec, withCommonSpec, commonDefaults } from './common';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
-import { NodeSpec, nodeSpec, createNodeDictDefaults } from './node';
+import { NodeSpec, nodeSpec, createNodeDictDefaults, evalNode } from './node';
 import { EdgeSpec, edgeSpec, createEdgeDictDefaults } from './edge';
 import { COLORS } from '../../render/utils';
-import * as attrUtils from '../utils';
-import * as utils from '../../utils';
 import { FullAttr, PartialAttr } from '../derived-attr';
 import { mergeDiff, mapDict } from '../../utils';
+import { VarDict, evalAttr, usesVars, evalDeep } from '../expr-utils';
+import { CanvasVar } from './expression';
+import { combineAttrs } from '../attr-utils';
 
 export const edgeLengthType = <const>['individual', 'symmetric', 'jaccard'];
 export type EdgeLengthType = typeof edgeLengthType[number];
@@ -114,47 +115,68 @@ export const createCanvasDefaults = (
         ),
     };
 };
-/*
 
-export const evaluate = (
-    evaluated: AttrEvalPartial<CanvasSpec>,
-    expr: PartialAttr<CanvasSpec>,
-    changes: PartialAttr<CanvasSpec>
-): AttrEvalPartial<CanvasSpec> => {
-    const evalChanges = attrExpr.getEvaluatedChanges(expr, getVariables(evaluated), canvasSpec);
-    const newEval = attrUtils.merge(evaluated, evalChanges, canvasSpec) as AttrEvalPartial<
-        CanvasSpec
-    >;
-    const newChanges = attrUtils.merge(changes, evalChanges, canvasSpec);
-
-    const evalNodeChanges = attrUtils.reduceChanges<CanvasSpec['nodes']>(
-        newChanges.nodes || {},
-        canvasSpec.entries.nodes,
-        (k, node) =>
-            newEval.nodes && newEval.nodes[k] && expr.nodes && expr.nodes[k]
-                ? attrNode.evaluate(newEval.nodes[k], expr.nodes[k], node)
-                : undefined
-    );
-
-    const evalChildChanges: PartialAttr<CanvasSpec> = { nodes: evalNodeChanges || {} };
-    return attrUtils.merge(evalChanges, evalChildChanges, canvasSpec) as AttrEvalPartial<
-        CanvasSpec
-    >;
-};
-
-export const getVariables = (attr: AttrEvalPartial<CanvasSpec>): attrExpr.VarLookup => {
-    return {
-        ...(attr.size && attr.size.width !== undefined
-            ? { [EnumVarSymbol.CanvasWidth]: attr.size.width / 2 }
-            : {}),
-        ...(attr.size && attr.size.height !== undefined
-            ? { [EnumVarSymbol.CanvasHeight]: attr.size.height / 2 }
-            : {}),
+export const evalCanvas = (
+    attrs: FullAttr<CanvasSpec> | undefined,
+    changes: PartialAttr<CanvasSpec>,
+    selfRefOnly: boolean
+): PartialAttr<NodeSpec> => {
+    // get node variables from attributes
+    const canvasVars: VarDict<CanvasVar> = {
+        cx: evalAttr(attrs?.size.value[0], changes.size?.value?.[0], {}),
+        cy: evalAttr(attrs?.size.value[1], changes.size?.value?.[1], {}),
     };
+
+    // evaluate child attributes
+    return combineAttrs(
+        canvasSpec,
+        attrs,
+        changes,
+        (childAttr, childChanges, childKey, childSpec) => {
+            if (childKey === 'nodes') {
+                return combineAttrs(
+                    canvasSpec.entries.nodes,
+                    attrs?.nodes,
+                    changes.nodes,
+                    (nodeAttrs, nodeChanges) => {
+                        if (nodeChanges)
+                            return evalNode(
+                                nodeAttrs as FullAttr<NodeSpec> | undefined,
+                                nodeChanges,
+                                canvasVars,
+                                selfRefOnly
+                            );
+
+                        if (!selfRefOnly)
+                            return evalDeep(nodeSpec, nodeAttrs, nodeChanges, canvasVars);
+
+                        return undefined;
+                    }
+                );
+            }
+
+            if (selfRefOnly) {
+                // only evaluate self-referential attributes (e.g. size = '2cx')
+                if (
+                    childKey === 'size' &&
+                    changes.size!.value &&
+                    (usesVars(changes.size!.value[0], ['cx', 'cy']) ||
+                        usesVars(changes.size!.value[1], ['cx', 'cy']))
+                ) {
+                    return evalDeep(childSpec, childAttr, childChanges, canvasVars);
+                }
+
+                return childChanges;
+            }
+
+            return evalDeep(childSpec, childAttr, childChanges, canvasVars);
+        }
+    );
 };
 
+/*
 export const removeInvalidEdges = (
-    prevAttr: CanvasSpec | undefined,
+    attrs: FullAttr<CanvasSpec> | undefined,
     changes: PartialAttr<CanvasSpec>
 ): PartialAttr<CanvasSpec> => {
     // remove edges connecting non-existent nodes

@@ -195,18 +195,18 @@ export const createNodeDictDefaults = (
 };
 
 export const evalNodeLabels = (
-    attrs: FullAttr<NodeSpec>,
+    attrs: FullAttr<NodeSpec> | undefined,
     changes: PartialAttr<NodeSpec>,
     nodeVars: VarDict<NodeVar>
 ): PartialAttr<DictSpec<LabelSpec>> => {
     return combineAttrs(
         nodeSpec.entries.labels,
-        attrs.labels,
+        attrs?.labels,
         changes.labels!,
         (labelAttr, labelChanges, _, labelSpec) => {
             // calculate the 'r' variable based on the angle of the label and the size of the node
             const labelAngle = evalAttr(
-                labelAttr!.angle!.value!,
+                labelAttr?.angle?.value,
                 labelChanges?.angle?.value,
                 nodeVars
             );
@@ -218,7 +218,7 @@ export const evalNodeLabels = (
                         angleToRad(labelAngle.value),
                         nodeVars.x.value,
                         nodeVars.y.value,
-                        attrs.shape.value
+                        attrs?.shape?.value ?? changes.shape!.value!
                     ),
                     changed:
                         labelAngle.changed ||
@@ -233,16 +233,16 @@ export const evalNodeLabels = (
 };
 
 export const evalNode = (
-    attrs: FullAttr<NodeSpec>,
+    attrs: FullAttr<NodeSpec> | undefined,
     changes: PartialAttr<NodeSpec>,
     canvasVars: VarDict<CanvasVar>,
-    onlySelfRef: boolean
+    selfRefOnly: boolean
 ): PartialAttr<NodeSpec> => {
     // get node variables from attributes
     const nodeVars: VarDict<NodeVar> = {
         ...canvasVars,
-        x: evalAttr(attrs.pos.value[0], changes.pos?.value?.[0], canvasVars),
-        y: evalAttr(attrs.pos.value[1], changes.pos?.value?.[1], canvasVars),
+        x: evalAttr(attrs?.pos.value[0], changes.pos?.value?.[0], canvasVars),
+        y: evalAttr(attrs?.pos.value[1], changes.pos?.value?.[1], canvasVars),
     };
 
     // evaluate child attributes
@@ -251,7 +251,7 @@ export const evalNode = (
         attrs,
         changes,
         (childAttr, childChanges, childKey, childSpec) => {
-            if (onlySelfRef) {
+            if (selfRefOnly) {
                 // only evaluate self-referential attributes (e.g. size = '2x')
                 if (
                     childKey === 'size' &&
