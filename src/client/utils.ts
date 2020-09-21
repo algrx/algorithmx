@@ -1,3 +1,107 @@
+export type Dict<K extends string, V> = { readonly [k in K]: V };
+export type PartialDict<K extends string, V> = Partial<Dict<K, V>>;
+
+export const dictValues = <V>(dict: Dict<string, V>): ReadonlyArray<V> => {
+    return Object.values(dict);
+};
+
+/*
+export const mapObj = <T extends {}, V extends Dict<keyof T & string, unknown> = T>(
+    dict: T,
+    fn: <K extends keyof T>(v: T[K], k: K & string, i: number) => V[keyof V] | undefined
+): V => {
+    let newDict = {} as Partial<V>;
+    const keys = Object.keys(dict);
+    for (let i = 0; i < keys.length; i++) {
+        const k = keys[i] as keyof T & string;
+        const v = fn(dict[k], k, i);
+        if (v !== undefined) newDict[k as keyof V] = v;
+    }
+    return newDict as V;
+};
+
+export const mapDict: <T extends Dict<string, unknown>, VE>(
+    dict: T,
+    fn: <K extends keyof T>(v: T[K], k: K & string, i: number) => VE
+) => { readonly [k in keyof T]: VE } = mapObj;
+*/
+
+export const mapDict = <K extends string, V1, V2>(
+    dict: Dict<K, V1>,
+    fn: (v: V1, k: K, i: number) => V2
+): Dict<K, V2> => {
+    let newDict = {} as Partial<Dict<K, V2>>;
+    const keys = Object.keys(dict);
+    for (let i = 0; i < keys.length; i++) {
+        const k = keys[i] as K;
+        const v = fn(dict[k], k, i);
+        if (v !== undefined) newDict[k] = v;
+    }
+    return newDict as Dict<K, V2>;
+};
+
+export const filterDict = <T extends Dict<string, unknown>>(
+    dict: T,
+    fn: <K extends keyof T>(v: T[K], k: K & string, i: number) => boolean
+): Partial<T> => {
+    let newDict = {} as Partial<T>;
+    const keys = Object.keys(dict);
+    for (let i = 0; i < keys.length; i++) {
+        const k = keys[i] as keyof T & string;
+        if (fn(dict[k], k, i)) newDict[k] = dict[k];
+    }
+    return newDict;
+};
+
+export const reduceDict = <T extends Dict<string, unknown>, V>(
+    dict: T,
+    fn: <K extends keyof T>(acc: V, v: T[K], k: K & string, i: number) => V,
+    init: V
+): V => {
+    const keys = Object.keys(dict);
+    let acc = init;
+    for (let i = 0; i < keys.length; i++) {
+        const k = keys[i] as keyof T & string;
+        acc = fn(acc, dict[k], k, i);
+    }
+    return acc;
+};
+
+export const dictFromArray = <K extends string, V>(
+    keys: ReadonlyArray<K>,
+    fn: (k: K) => V | undefined
+): Dict<K, V> => {
+    let dict = {} as Partial<Dict<K, V>>;
+    for (let i = 0; i < keys.length; i++) {
+        const v = fn(keys[i]);
+        if (v !== undefined) dict[keys[i]] = v;
+    }
+    return dict as Dict<K, V>;
+};
+
+export const isNumericalStr = (value: string): boolean => {
+    return !isNaN((value as unknown) as number) && value !== '';
+};
+
+type RPartial<T> = T extends {} ? { readonly [k in keyof T]?: RPartial<T[k]> } : T;
+
+export const mergeDiff = <T>(obj: T, diff: RPartial<T>): T => {
+    if (typeof obj === 'object') {
+        let newObj = {} as T;
+        const keys = Object.keys(obj);
+        for (let i = 0; i < keys.length; i++) {
+            const k = keys[i] as keyof T;
+            newObj[k] =
+                k in diff
+                    ? mergeDiff(obj[k], (diff[k] as unknown) as RPartial<T[keyof T]>)
+                    : obj[k];
+        }
+        return newObj;
+    }
+    return diff as T;
+};
+
+/*
 export interface Lookup<T> {
     readonly [k: string]: T;
 }
@@ -13,9 +117,8 @@ export type RPartial<T> = T extends object
 
 export const mapDict = <T, M>(
     dict: T,
-    func: (k: keyof T, v: T[keyof T], i: number) => M
-): MapDict<T, M> => {
-    /* tslint:disable */
+    func: (k: keyof T, v: T[keyof T], i: number) => V[keyof V]
+): V => {
     let newDict = {};
     const keys = Object.keys(dict);
     for (let i = 0; i < keys.length; i++) {
@@ -23,15 +126,10 @@ export const mapDict = <T, M>(
         newDict[k] = func(k as keyof T, dict[k], i);
     }
     return newDict as MapDict<T, M>;
-    /* tslint:enable */
 };
 
 export const enumValues = <T>(enumeration: T): ReadonlyArray<T[keyof T]> =>
     Object.keys(enumeration).map((k) => enumeration[k]);
-
-export const isNumStr = (value: string): boolean => {
-    return !isNaN((value as unknown) as number) && value !== '';
-};
 
 export const isDict = (value: unknown): value is object =>
     typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -61,3 +159,4 @@ export const filterDict = <T extends object>(dict: T, filterFn: FilterFn<T>): Pa
 export const removeWhitespace = (s: string) => s.replace(/\s/g, '');
 
 export const randomId = (): string => Math.random().toString(36).substr(2, 9);
+*/

@@ -74,7 +74,7 @@ const preprocessPrimitive = (
             case AttrType.Number:
                 if (typeof attr === 'number') return attr;
                 else if (typeof attr === 'string')
-                    return expressions.parseExpr(attr, info.variables);
+                    return expressions.parseExprStr(attr, info.variables);
                 else if (utils.isDict(attr)) return expressions.parseExprObj(attr, info.variables);
                 else return new Error(`attribute '${formatPath(info.path)}' must be a number`);
 
