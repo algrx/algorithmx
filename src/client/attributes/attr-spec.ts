@@ -98,37 +98,3 @@ export type EndpointValueSpec =
 export type EndpointSpec<T extends EndpointValueSpec, R extends RecordSpecType> = RecordSpec<
     { value: T } & R
 >;
-/*
-export type CombineSpec<
-    E extends RecordSpec<RecordSpecType>,
-    B extends RecordSpec<RecordSpecType>
-> = RecordSpec<E['entries'] & B['entries']>;
-
-export const combineRecordSpec = <E extends RecordSpecType, B extends RecordSpecType>(
-    extendType: RecordSpec<E>,
-    baseType: RecordSpec<B>
-): RecordSpec<E & B> => {
-    return {
-        type: AttrType.Record,
-        entries: { ...baseType.entries, ...extendType.entries },
-    };
-};
-
-*/
-
-/*
-export const createDictAttrSpec = <T extends BaseSpec>(entrySpec: T): DictSpec<T> => ({
-    type: AttrType.Dict,
-    entry: entrySpec,
-});
-
-export const createRecordAttrSpec = <T extends { readonly [k: string]: BaseSpec }>(
-    recordSpec: T,
-    baseSpec?: BaseSpec,
-    keyOrder?: ReadonlyArray<keyof T>
-): RecordAttrSpec<T> => ({
-    ...baseSpec,
-    type: AttrType.Record,
-    entries: recordSpec,
-});
-*/

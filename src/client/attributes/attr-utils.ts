@@ -26,11 +26,7 @@ export const isPrimitive = (spec: AttrSpec): spec is PrimitiveSpec => {
     );
 };
 
-export const getAttrKeys = <T extends AttrSpec>(v: PartialAttr<T>): ReadonlyArray<AttrKey<T>> => {
-    return (Object.keys(v) as unknown) as ReadonlyArray<AttrKey<T>>;
-};
-
-export const getEntry = <T extends AttrSpec>(
+export const getAttrEntry = <T extends AttrSpec>(
     v: PartialAttr<T>,
     k: AttrKey<T>
 ): PartialAttr<EntrySpec<T>> | undefined => {
@@ -96,12 +92,6 @@ export function mapAttr<T extends AttrSpec>(
     return attr as PartialAttr<T>;
 }
 
-/*
-export const getSharedKeys = <T extends CompositeSpec>(v1: PartialAttr<T>, v2: PartialAttr<T>): ReadonlyArray<AttrKey<T>> => {
-    return Array.from(new Set(getAttrKeys(v1).concat(getAttrKeys(v2))));
-}
-*/
-
 type MapBothFn<T extends AttrSpec> = (
     v1: PartialAttr<EntrySpec<T>> | undefined,
     v2: PartialAttr<EntrySpec<T>> | undefined,
@@ -130,7 +120,7 @@ export function combineAttrs<T extends AttrSpec>(
         ) as unknown) as ReadonlyArray<AttrKey<T> & string>;
 
         return (dictFromArray(sharedKeys, (k) =>
-            fn(getEntry(oldAttr, k), getEntry(newAttr, k), k, getEntrySpec(spec, k))
+            fn(getAttrEntry(oldAttr, k), getAttrEntry(newAttr, k), k, getEntrySpec(spec, k))
         ) as unknown) as PartialAttr<T>;
     }
 }

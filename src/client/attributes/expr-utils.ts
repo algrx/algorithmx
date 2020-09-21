@@ -43,7 +43,7 @@ const validateExpr = <T extends string>(
     if (!validVars.includes(expr.x as T)) {
         const formattedExpr = originalExprStr || JSON.stringify(expr);
         return new Error(
-            `Expression '${formattedExpr}' uses invalid variable '${expr.x}'` +
+            `expression '${formattedExpr}' uses invalid variable '${expr.x}'` +
                 ` (valid variables are [${validVars}])`
         );
     }
@@ -61,7 +61,7 @@ export const parseExprObj = <T extends string>(
         (partialExpr.c !== undefined && typeof partialExpr.c !== 'number') ||
         partialExpr.x === undefined
     )
-        return new Error(`Invalid expression '${JSON.stringify(rawValue)}'`);
+        return new Error(`invalid expression '${JSON.stringify(rawValue)}'`);
 
     const expr: NumExpr<string> = {
         m: partialExpr.m !== undefined ? partialExpr.m : 1,
@@ -76,7 +76,7 @@ export const parseExprStr = <T extends string>(
     validVars: ReadonlyArray<T>
 ): NumExpr<T> | Error => {
     // e.g. parse '4.7r - 9' to { m: 4.7, x: 'r', c: -9 }
-    const errorText = `Invalid expression '${rawValue}'`;
+    const errorText = `invalid expression '${rawValue}'`;
 
     const expression = rawValue.replace(/\s/g, ''); // remove whitespace
     const opIndex =
@@ -177,7 +177,7 @@ const evalDeepAux = <T extends AttrSpec, V extends string>(
 
     // evaluate all children
     const children = combineAttrs(spec, permExpr, changes, (v1, v2, k, s) => {
-        return evalDeep(s, v1, v2, vars);
+        return evalDeepAux(s, v1, v2, vars);
     });
     return children === {} ? undefined : children;
 };

@@ -8,8 +8,6 @@ import {
     AttrType,
 } from '../attr-spec';
 import { FullAttr } from '../derived-attr';
-import * as attrUtils from '../utils';
-import * as utils from '../../utils';
 
 export const animTypes = <const>['none', 'normal'];
 export type AnimType = typeof animTypes[number];
