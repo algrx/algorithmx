@@ -17,6 +17,7 @@ import {
     elementDefaults,
     svgDefaults,
 } from './element';
+import { CanvasVar, canvasVars } from './expression';
 import { WithCommonSpec, withCommonSpec, commonDefaults } from './common';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { NodeSpec, nodeSpec, createNodeDictDefaults, evalNode } from './node';
@@ -25,7 +26,6 @@ import { COLORS } from '../../render/utils';
 import { FullAttr, PartialAttr } from '../derived-attr';
 import { mergeDiff, mapDict } from '../../utils';
 import { VarDict, evalAttr, usesVars, evalDeep } from '../expr-utils';
-import { CanvasVar } from './expression';
 import { combineAttrs } from '../attr-utils';
 
 export const edgeLengthType = <const>['individual', 'symmetric', 'jaccard'];
@@ -74,6 +74,7 @@ export const canvasSpec: CanvasSpec = {
         ...elementSpecEntries,
         ...svgSpecEntries,
     },
+    validVars: canvasVars,
 };
 
 export const canvasDefaults: FullAttr<CanvasSpec> = {

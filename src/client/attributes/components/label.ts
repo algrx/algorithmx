@@ -34,7 +34,6 @@ import * as math from '../../math';
 import * as utils from '../../utils';
 import { mapDict, filterDict } from '../../utils';
 import { combineAttrs, mapAttr } from '../attr-utils';
-import { NodeLabelVar, nodeLabelVars } from './expression';
 
 const labelAlign = <const>[
     'top-left',
@@ -71,7 +70,7 @@ export const labelSpec: LabelSpec = {
         text: withCommonSpec({ type: AttrType.String }),
         align: withCommonSpec({ type: AttrType.String, validValues: labelAlign }),
         pos: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        radius: withCommonSpec({ type: AttrType.Number, validVars: nodeLabelVars }),
+        radius: withCommonSpec({ type: AttrType.Number }),
         angle: withCommonSpec({ type: AttrType.Number }),
         rotate: withCommonSpec({ type: AttrType.Boolean }),
         color: withCommonSpec({ type: AttrType.String }),

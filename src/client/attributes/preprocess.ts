@@ -119,7 +119,11 @@ const preprocess = <T extends AttrSpec>(
                 `attribute '${formatPath(info.path)}' has invalid key '${invalidKey}'`
             );
 
-        return preprocessCompound(spec, info, attr);
+        const newInfo = {
+            ...info,
+            validVars: (spec as AnyRecordSpec).validVars ?? info.validVars,
+        }
+        return preprocessCompound(spec, newInfo, attr);
     }
 
     // === array ===

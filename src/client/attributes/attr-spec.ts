@@ -52,6 +52,7 @@ export interface RecordSpec<T extends RecordSpecType> {
     readonly entries: {
         readonly [k in keyof T]: T[k];
     };
+    readonly validVars?: ReadonlyArray<string>;
 }
 export type AnyRecordSpec = RecordSpec<RecordSpecType>;
 

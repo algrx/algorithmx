@@ -1,5 +1,3 @@
-import { NodeVar } from './expression';
-import { CanvasVar, NodeLabelVar, nodeVars } from './expression';
 import {
     AttrType,
     DictSpec,
@@ -28,6 +26,7 @@ import {
     elementDefaults,
     svgDefaults,
 } from './element';
+import { CanvasVar, NodeVar, NodeLabelVar, nodeVars, nodeLabelVars } from './expression';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { COLORS } from '../../render/utils';
 import { mapDict, filterDict, mergeDiff } from '../../utils';
@@ -58,15 +57,15 @@ export const nodeSpec: NodeSpec = {
     entries: {
         labels: {
             type: AttrType.Dict,
-            entry: labelSpec,
+            entry: {
+                ...labelSpec,
+                validVars: nodeLabelVars,
+            },
         },
         shape: withCommonSpec({ type: AttrType.String, validValues: nodeShape }),
         color: withCommonSpec({ type: AttrType.String }),
         size: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        pos: withCommonSpec({
-            type: AttrType.Tuple,
-            entry: { type: AttrType.Number, validVars: nodeVars },
-        }),
+        pos: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
         fixed: withCommonSpec({ type: AttrType.Boolean }),
         draggable: withCommonSpec({ type: AttrType.Boolean }),
         hover: withCommonSpec({ type: AttrType.Boolean }),
@@ -74,6 +73,7 @@ export const nodeSpec: NodeSpec = {
         ...elementSpecEntries,
         ...svgSpecEntries,
     },
+    validVars: nodeVars,
 };
 
 export const VALUE_LABEL_ID = 'value';
