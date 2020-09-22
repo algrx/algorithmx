@@ -1,9 +1,8 @@
-import { ICanvasAttr } from './attributes/definitions/canvas';
+import { CanvasSpec } from './attributes/definitions/canvas';
 import { RenderAttr } from './render/process';
-import { IClientState, ClientListener } from './client';
+import { ClientState, OnEventFn } from './client';
 import { RenderBehavior } from './render/canvas/behavior';
-import * as events from './types/events';
-import * as pipeline from './pipeline/pipeline';
+//import * as pipeline from './pipeline/pipeline';
 import * as renderElement from './render/element';
 import * as renderCanvas from './render/canvas/render';
 import * as renderCanvasBehavior from './render/canvas/behavior';
@@ -11,56 +10,18 @@ import * as renderCanvasListeners from './render/canvas/listeners';
 import * as renderCanvasLive from './render/canvas/live';
 import * as renderCanvasMisc from './render/canvas/misc';
 import * as layout from './layout/layout';
+import { DispatchEvent } from './types/events';
 
-export interface ExecuteContext {
-    readonly state: IClientState;
-    readonly listener: ClientListener;
+export interface EventContext {
+    readonly state: ClientState;
+    readonly listener: OnEventFn;
     readonly tick: () => void;
 }
 
-export const dispatchError = (
-    message: string,
-    type: events.EnumErrorType
-): events.IReceiveError => ({
-    type: events.EnumReceiveType.error,
-    data: { message: message, type: type },
-});
-
-const dispatchClick = (nodeId: string): events.IReceiveClick => ({
-    type: events.EnumReceiveType.click,
-    data: { id: nodeId },
-});
-
-const dispatchHover = (nodeId: string, entered: boolean): events.IReceiveHover => ({
-    type: events.EnumReceiveType.hover,
-    data: { id: nodeId, entered: entered },
-});
-
-const executeReset = (context: ExecuteContext, event: events.IDispatchUpdate): IClientState => {
-    const state = context.state;
-    if (state.attributes === undefined) return state;
-
-    const processed = pipeline.processReset(state.attributes, event.data);
-    if (processed instanceof Error) {
-        context.listener(dispatchError(processed.message, events.EnumErrorType.attribute));
-        return state;
-    }
-
-    const renderData = pipeline.getRenderData(processed);
-    renderCanvas.renderCanvas(state.canvas, renderData);
-
-    return {
-        ...state,
-        expressions: undefined,
-        attributes: undefined,
-        layout: layout.reset(state.layout),
-        renderBehavior: undefined,
-    };
-};
-
+/*
 const render = (
-    canvas: events.Canvas,
-    renderData: RenderAttr<ICanvasAttr>,
+    canvas: events.CanvasElement,
+    renderData: RenderAttr<CanvasSpec>,
     tick: () => void,
     layoutState: layout.ILayoutState
 ): void => {
@@ -74,8 +35,8 @@ const render = (
 };
 
 const renderBehavior = (
-    canvas: events.Canvas,
-    renderData: RenderAttr<ICanvasAttr>,
+    canvas: events.CanvasElement,
+    renderData: RenderAttr<CanvasSpec>,
     behavior: RenderBehavior
 ): RenderBehavior => {
     if (renderData.attr.visible === false) return behavior;
@@ -86,7 +47,7 @@ const renderBehavior = (
     return newBehavior;
 };
 
-const executeUpdate = (context: ExecuteContext, event: events.IDispatchUpdate): IClientState => {
+const executeUpdate = (context: EventContext, event: events.IDispatchUpdate): ClientState => {
     const state = context.state;
     if (event.data.attributes === null) return executeReset(context, event);
 
@@ -123,7 +84,7 @@ const executeUpdate = (context: ExecuteContext, event: events.IDispatchUpdate): 
     };
 };
 
-const executeHighlight = (context: ExecuteContext, event: events.IDispatchHighlight): void => {
+const executeHighlight = (context: EventContext, event: events.IDispatchHighlight): void => {
     const state = context.state;
     const processed = pipeline.processHighlight(state.attributes, state.expressions, event.data);
     if (processed instanceof Error) {
@@ -131,7 +92,7 @@ const executeHighlight = (context: ExecuteContext, event: events.IDispatchHighli
         return;
     }
 
-    const renderDataInit: RenderAttr<ICanvasAttr> = {
+    const renderDataInit: RenderAttr<CanvasSpec> = {
         name: 'canvas',
         attr: state.attributes,
         animation: processed.animation,
@@ -142,11 +103,9 @@ const executeHighlight = (context: ExecuteContext, event: events.IDispatchHighli
     render(state.canvas, renderData, context.tick, state.layout);
     renderBehavior(state.canvas, renderData, state.renderBehavior);
 };
+*/
 
-export const executeEvent = (
-    context: ExecuteContext,
-    event: events.DispatchEvent
-): IClientState => {
+export const executeEvent = (context: EventContext, event: DispatchEvent): ClientState => {
     if (event.type === events.EnumDispatchType.broadcast) {
         context.listener({
             type: events.EnumReceiveType.broadcast,
