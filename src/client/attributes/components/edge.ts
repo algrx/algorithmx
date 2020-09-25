@@ -8,9 +8,8 @@ import {
     NumSpec,
     AnyStringSpec,
     StringSpec,
-    EndpointSpec,
     TupleSpec,
-    Entries,
+    RecordEntries,
     ArraySpec,
 } from '../attr-spec';
 import { FullAttr, PartialAttr } from '../derived-attr';
@@ -48,17 +47,22 @@ export type EdgeCurve = typeof edgeCurve[number];
 export type EdgeSpec = RecordSpec<
     {
         readonly labels: DictSpec<LabelSpec>;
-        readonly source: WithCommonSpec<AnyStringSpec>;
-        readonly target: WithCommonSpec<AnyStringSpec>;
-        readonly directed: WithCommonSpec<BoolSpec>;
+        readonly source: AnyStringSpec;
+        readonly target: AnyStringSpec;
+        readonly directed: BoolSpec;
         readonly length: WithCommonSpec<NumSpec>;
         readonly thickness: WithCommonSpec<NumSpec>;
         readonly flip: WithCommonSpec<BoolSpec>;
-        readonly color: WithCommonSpec<AnyStringSpec>;
+        readonly color: RecordSpec<
+            RecordEntries<WithCommonSpec<AnyStringSpec>> & {
+                readonly animtype: StringSpec<'color' | 'traverse'>;
+                readonly animsource: AnyStringSpec;
+            }
+        >;
         readonly curve: WithCommonSpec<StringSpec<EdgeCurve>>;
         readonly path: WithCommonSpec<ArraySpec<TupleSpec<NumSpec>>>;
-    } & Entries<ElementSpec> &
-        Entries<SvgSpec>
+    } & RecordEntries<ElementSpec> &
+        RecordEntries<SvgSpec>
 >;
 
 export const edgeSpec: EdgeSpec = {
@@ -68,13 +72,20 @@ export const edgeSpec: EdgeSpec = {
             type: AttrType.Dict,
             entry: labelSpec,
         },
-        source: withCommonSpec({ type: AttrType.String }),
-        target: withCommonSpec({ type: AttrType.String }),
-        directed: withCommonSpec({ type: AttrType.Boolean }),
+        source: { type: AttrType.String },
+        target: { type: AttrType.String },
+        directed: { type: AttrType.Boolean },
         length: withCommonSpec({ type: AttrType.Number }),
         thickness: withCommonSpec({ type: AttrType.Number }),
         flip: withCommonSpec({ type: AttrType.Boolean }),
-        color: withCommonSpec({ type: AttrType.String }),
+        color: {
+            type: AttrType.Record,
+            entries: {
+                ...withCommonSpec({ type: AttrType.String }).entries,
+                animtype: { type: AttrType.String, validValues: ['color', 'traverse'] },
+                animsource: { type: AttrType.String },
+            },
+        },
         curve: withCommonSpec({ type: AttrType.String, validValues: edgeCurve }),
         path: withCommonSpec({
             type: AttrType.Array,
@@ -90,12 +101,17 @@ export const edgeSpec: EdgeSpec = {
 
 export const edgeDefaults: FullAttr<EdgeSpec> = {
     labels: {},
-    source: { ...commonDefaults, value: '' },
-    target: { ...commonDefaults, value: '' },
-    directed: { ...commonDefaults, value: false },
+    source: '',
+    target: '',
+    directed: false,
     length: { ...commonDefaults, value: 70 },
     thickness: { ...commonDefaults, value: 2.5 },
-    color: { ...commonDefaults, value: COLORS.lightgray },
+    color: {
+        ...commonDefaults,
+        value: COLORS.lightgray,
+        animtype: 'color',
+        animsource: '',
+    },
     flip: { ...commonDefaults, value: true },
     curve: { ...commonDefaults, value: 'natural' },
     path: { ...commonDefaults, value: [] },
@@ -139,6 +155,10 @@ export const createEdgeDefaults = (
 
     return {
         ...edgeDefaults,
+        color: {
+            ...edgeDefaults.color,
+            animsource: attrs?.source ?? changes.source ?? '',
+        },
         labels: {
             ...labelDictDefaults,
             ...newLabels,
@@ -167,8 +187,24 @@ const incrementMatrix = (matrix: EdgeAdjMatrix, source: string, target: string):
 
 const createAdjMatrix = (edges: FullAttr<DictSpec<EdgeSpec>>): EdgeAdjMatrix => {
     return Object.values(edges).reduce((matrix, e) => {
-        return incrementMatrix(matrix, e.source.value, e.target.value);
+        return incrementMatrix(matrix, e.source, e.target);
     }, {} as EdgeAdjMatrix);
+};
+
+const parseEdgeId = (id: string): [string, string, boolean] => {
+    // "source->target(-ID)" to [source, target, true]
+    if (id.includes('->')) {
+        const [source, target] = id.split('->');
+        return [source, target, true];
+    }
+
+    // "source-target(-ID)" to [source, target, false]
+    if (id.includes('-')) {
+        const [source, target] = id.split('-');
+        return [source, target, false];
+    }
+
+    return ['', '', false];
 };
 
 export const createEdgeDictDefaults = (
@@ -180,9 +216,12 @@ export const createEdgeDictDefaults = (
         .filter(([k]) => !attrs || !(k in attrs))
         .reduce(
             (acc, [k, edgeChanges], i) => {
+                // e.g. parse "source->target" to { source, target, directed: true }
+                const parsedId = parseEdgeId(k);
+
                 // edges are expected to be provided with source and target attributes initially
-                const source = edgeChanges.source?.value ?? '';
-                const target = edgeChanges.target?.value ?? '';
+                const source = edgeChanges.source ?? parsedId[0];
+                const target = edgeChanges.target ?? parsedId[1];
 
                 const newMatrix = incrementMatrix(acc.matrix, source, target);
                 const index = newMatrix[source][target] - 1;
@@ -196,6 +235,9 @@ export const createEdgeDictDefaults = (
                 ];
 
                 const newEdgeDefaults = mergeDiff(createEdgeDefaults(undefined, changes[k]!), {
+                    source,
+                    target,
+                    directed: parsedId[2],
                     path: {
                         value:
                             source === target

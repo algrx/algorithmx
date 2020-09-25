@@ -7,7 +7,7 @@ import {
     AnyStringSpec,
     StringSpec,
     TupleSpec,
-    Entries,
+    RecordEntries,
 } from '../attr-spec';
 import {
     ElementSpec,
@@ -44,8 +44,8 @@ export type CanvasSpec = RecordSpec<
         readonly panlimit: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly zoomlimit: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly zoomkey: WithCommonSpec<BoolSpec>;
-    } & Entries<ElementSpec> &
-        Entries<SvgSpec>
+    } & RecordEntries<ElementSpec> &
+        RecordEntries<SvgSpec>
 >;
 
 export const canvasSpec: CanvasSpec = {
@@ -183,8 +183,8 @@ export const removeInvalidEdges = (
     const isValid = (edgeId: string): boolean => {
         if (!changes.nodes) return true;
 
-        const source = changes.edges?.[edgeId].source?.value ?? attrs.edges[edgeId].source.value;
-        const target = changes.edges?.[edgeId].target?.value ?? attrs.edges[edgeId].target.value;
+        const source = changes.edges?.[edgeId].source ?? attrs.edges[edgeId].source;
+        const target = changes.edges?.[edgeId].target ?? attrs.edges[edgeId].target;
 
         // check if the node is being removed
         if (changes.nodes[source]?.visible?.value === false) return false;
