@@ -1,23 +1,24 @@
 import { PartialAttr } from '../derived-attr';
 import {
     AttrType,
-    Entries,
-    BoolSpec,
-    EndpointValueSpec,
+    RecordEntries,
     RecordSpecType,
-    EndpointSpec,
     RecordSpec,
     AttrSpec,
     EntrySpec,
+    NumSpec,
+    BoolSpec,
+    EndpointValueSpec,
 } from '../attr-spec';
-import { AnimSpec, animSpecEntries, defaultAnim, AnimType } from './animation';
+import { AnimSpec, animSpecEntries, defaultAnim } from './animation';
 import { FullAttr } from '../derived-attr';
 import { mapAttr, combineAttrs } from '../attr-utils';
 
 export type CommonSpec = RecordSpec<
-    {
+    RecordEntries<AnimSpec> & {
         readonly highlight: BoolSpec;
-    } & Entries<AnimSpec>
+        readonly linger: NumSpec; // how long to highlight for
+    }
 >;
 
 export const commonSpec: CommonSpec = {
@@ -25,15 +26,21 @@ export const commonSpec: CommonSpec = {
     entries: {
         ...animSpecEntries,
         highlight: { type: AttrType.Boolean },
+        linger: { type: AttrType.Number },
     },
 };
 
 export const commonDefaults: FullAttr<CommonSpec> = {
     ...defaultAnim,
     highlight: false,
+    linger: 0.5,
 };
 
-export type WithCommonSpec<T extends EndpointValueSpec> = EndpointSpec<T, Entries<CommonSpec>>;
+export type WithCommonSpec<T extends EndpointValueSpec> = RecordSpec<
+    RecordEntries<CommonSpec> & {
+        readonly value: T;
+    }
+>;
 
 export const withCommonSpec = <T extends EndpointValueSpec>(valueSpec: T): WithCommonSpec<T> => {
     return {

@@ -6,7 +6,7 @@ import {
     RecordSpec,
     TupleSpec,
     AttrSpec,
-    Entries,
+    RecordEntries,
     AnyRecordSpec,
     EntrySpec,
     AnyDictSpec,

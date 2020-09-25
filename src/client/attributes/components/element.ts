@@ -5,30 +5,30 @@ import {
     StringSpec,
     AttrType,
     AnyStringSpec,
-    Entries,
-    EndpointSpec,
+    RecordEntries,
 } from '../attr-spec';
 import { withCommonSpec, WithCommonSpec, CommonSpec, commonDefaults, commonSpec } from './common';
-import { AnimType, animTypes } from './animation';
 import { FullAttr } from '../derived-attr';
 
+export const visibleAnimTypes = <const>['fade', 'grow'];
+export type VisibleAnimType = typeof visibleAnimTypes[number];
+
 export type ElementSpec = RecordSpec<{
-    readonly visible: EndpointSpec<
-        BoolSpec,
-        Omit<Entries<CommonSpec>, 'animType' | 'highlight' | 'linger'> & {
-            readonly animType: StringSpec<AnimType | 'fade' | 'grow'>;
+    readonly visible: RecordSpec<
+        RecordEntries<WithCommonSpec<BoolSpec>> & {
+            readonly animtype: StringSpec<VisibleAnimType>;
         }
     >;
 }>;
-export const elementSpecEntries: Entries<ElementSpec> = {
+export const elementSpecEntries: RecordEntries<ElementSpec> = {
     visible: {
         type: AttrType.Record,
         entries: {
             ...commonSpec.entries,
             value: { type: AttrType.Boolean },
-            animType: {
+            animtype: {
                 type: AttrType.String,
-                validValues: [...animTypes, 'fade', 'grow'],
+                validValues: visibleAnimTypes,
             },
         },
     },
@@ -36,24 +36,23 @@ export const elementSpecEntries: Entries<ElementSpec> = {
 
 export const elementDefaults: FullAttr<ElementSpec> = {
     visible: {
+        ...commonDefaults,
         value: true,
-        animType: 'fade',
-        ease: commonDefaults.ease,
-        duration: commonDefaults.duration,
+        animtype: 'fade',
     },
 };
 
 export type SvgSpec = RecordSpec<{
-    readonly svgattr: DictSpec<WithCommonSpec<AnyStringSpec>>;
+    readonly svgattrs: DictSpec<WithCommonSpec<AnyStringSpec>>;
 }>;
-export const svgSpecEntries: Entries<SvgSpec> = {
-    svgattr: {
+export const svgSpecEntries: RecordEntries<SvgSpec> = {
+    svgattrs: {
         type: AttrType.Dict,
         entry: withCommonSpec({ type: AttrType.String }),
     },
 };
 export const svgDefaults: FullAttr<SvgSpec> = {
-    svgattr: {
+    svgattrs: {
         '*': { value: '', ...commonDefaults },
     },
 };

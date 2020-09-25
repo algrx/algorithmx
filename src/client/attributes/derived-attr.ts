@@ -10,8 +10,7 @@ import {
     ArraySpec,
     DictSpec,
     TupleSpec,
-    EndpointSpec,
-    Entries,
+    RecordEntries,
 } from './attr-spec';
 
 // === (Partial) Input ===

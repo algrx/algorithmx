@@ -6,9 +6,8 @@ import {
     NumSpec,
     AnyStringSpec,
     StringSpec,
-    EndpointSpec,
     TupleSpec,
-    Entries,
+    RecordEntries,
 } from '../attr-spec';
 import { FullAttr, PartialAttr } from '../derived-attr';
 import {
@@ -48,8 +47,8 @@ export type NodeSpec = RecordSpec<
         readonly draggable: WithCommonSpec<BoolSpec>;
         readonly hover: WithCommonSpec<BoolSpec>;
         readonly click: WithCommonSpec<BoolSpec>;
-    } & Entries<ElementSpec> &
-        Entries<SvgSpec>
+    } & RecordEntries<ElementSpec> &
+        RecordEntries<SvgSpec>
 >;
 
 export const nodeSpec: NodeSpec = {

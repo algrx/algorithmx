@@ -2,15 +2,12 @@ import {
     StringSpec,
     NumSpec,
     AnyStringSpec,
-    Entries,
+    RecordEntries,
     RecordSpec,
     BoolSpec,
     AttrType,
 } from '../attr-spec';
 import { FullAttr } from '../derived-attr';
-
-export const animTypes = <const>['none', 'normal'];
-export type AnimType = typeof animTypes[number];
 
 export const animEases = <const>[
     'linear',
@@ -54,25 +51,16 @@ export const animEases = <const>[
 export type AnimEase = typeof animEases[number];
 
 export type AnimSpec = RecordSpec<{
-    readonly animType: StringSpec<AnimType>;
     readonly duration: NumSpec;
     readonly ease: StringSpec<AnimEase>;
-    readonly highlight: BoolSpec;
-    readonly linger: NumSpec;
 }>;
 
-export const animSpecEntries: Entries<AnimSpec> = {
-    animType: { type: AttrType.String, validValues: animTypes },
+export const animSpecEntries: RecordEntries<AnimSpec> = {
     duration: { type: AttrType.Number },
     ease: { type: AttrType.String, validValues: animEases },
-    highlight: { type: AttrType.Boolean },
-    linger: { type: AttrType.Number },
 };
 
 export const defaultAnim: FullAttr<AnimSpec> = {
-    animType: 'normal',
     duration: 0.5,
     ease: 'poly',
-    highlight: false,
-    linger: 0.5,
 };

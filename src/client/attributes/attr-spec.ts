@@ -1,4 +1,4 @@
-// === Generic Attr Specs ===
+// === Generic attribute specs ===
 
 export enum AttrType {
     Number = 'number',
@@ -56,7 +56,9 @@ export interface RecordSpec<T extends RecordSpecType> {
 }
 export type AnyRecordSpec = RecordSpec<RecordSpecType>;
 
-export type Entries<T extends RecordSpec<RecordSpecType>> = T['entries'];
+export type RecordEntries<T extends RecordSpec<RecordSpecType>> = T['entries'];
+
+// === Attribute spec type utils ===
 
 export type EntrySpec<T extends AttrSpec> = T extends PrimitiveSpec
     ? T
@@ -80,22 +82,18 @@ export type AttrKey<T extends AttrSpec> = T extends TupleSpec<infer TE>
     ? keyof RES
     : string;
 
+// === Attribute spec catagories ===
+
 export type CompositeSpec =
     | TupleSpec<PrimitiveSpec>
     | RecordSpec<RecordSpecType>
     | ArraySpec<AttrSpec>
     | DictSpec<AttrSpec>;
-export type AttrSpec = PrimitiveSpec | CompositeSpec;
-
-// === Endpoint Spec ===
 
 export type EndpointValueSpec =
     | PrimitiveSpec
     | TupleSpec<PrimitiveSpec>
-    | RecordSpec<{ readonly [k: string]: PrimitiveSpec }>
     | ArraySpec<PrimitiveSpec>
     | ArraySpec<TupleSpec<PrimitiveSpec>>;
 
-export type EndpointSpec<T extends EndpointValueSpec, R extends RecordSpecType> = RecordSpec<
-    { value: T } & R
->;
+export type AttrSpec = PrimitiveSpec | CompositeSpec;

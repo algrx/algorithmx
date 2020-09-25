@@ -59,7 +59,7 @@ const preprocessCompound = <T extends AttrSpec>(
     return newAttr;
 };
 
-const preprocess = <T extends AttrSpec>(
+export const preprocess = <T extends AttrSpec>(
     spec: T,
     info: PreprocessInfo,
     attr: InputAttr<T>
@@ -122,7 +122,7 @@ const preprocess = <T extends AttrSpec>(
         const newInfo = {
             ...info,
             validVars: (spec as AnyRecordSpec).validVars ?? info.validVars,
-        }
+        };
         return preprocessCompound(spec, newInfo, attr);
     }
 

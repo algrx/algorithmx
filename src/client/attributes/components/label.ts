@@ -6,9 +6,8 @@ import {
     NumSpec,
     AnyStringSpec,
     StringSpec,
-    EndpointSpec,
     TupleSpec,
-    Entries,
+    RecordEntries,
     DictSpec,
 } from '../attr-spec';
 import { FullAttr } from '../derived-attr';
@@ -28,12 +27,9 @@ import {
     elementDefaults,
     svgDefaults,
 } from './element';
-import * as attrElement from './element';
-
-import * as math from '../../math';
-import * as utils from '../../utils';
 import { mapDict, filterDict } from '../../utils';
 import { combineAttrs, mapAttr } from '../attr-utils';
+import { restrictAngle } from '../../math';
 
 const labelAlign = <const>[
     'top-left',
@@ -60,8 +56,8 @@ export type LabelSpec = RecordSpec<
         readonly color: WithCommonSpec<AnyStringSpec>;
         readonly font: WithCommonSpec<AnyStringSpec>;
         readonly size: WithCommonSpec<NumSpec>;
-    } & Entries<ElementSpec> &
-        Entries<SvgSpec>
+    } & RecordEntries<ElementSpec> &
+        RecordEntries<SvgSpec>
 >;
 
 export const labelSpec: LabelSpec = {
@@ -109,9 +105,9 @@ export const ALIGN_ANGLES: { readonly [k in LabelAlign]: number } = {
 };
 
 export const alignFromAngle = (angle: number, rotate: boolean): LabelAlign => {
-    if (rotate) return math.restrictAngle(angle) < Math.PI ? 'bottom-middle' : 'top-middle';
+    if (rotate) return restrictAngle(angle) < Math.PI ? 'bottom-middle' : 'top-middle';
 
-    const testAngle = math.restrictAngle(angle + Math.PI);
+    const testAngle = restrictAngle(angle + Math.PI);
     const radialAligns = (Object.keys(ALIGN_ANGLES) as ReadonlyArray<LabelAlign>)
         .filter((v) => v !== 'middle' && v !== 'radial')
         .sort((a, b) => (ALIGN_ANGLES[a] < ALIGN_ANGLES[b] ? -1 : 0));
