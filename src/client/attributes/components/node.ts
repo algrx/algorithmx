@@ -4,8 +4,8 @@ import {
     RecordSpec,
     BoolSpec,
     NumSpec,
-    AnyStringSpec,
     StringSpec,
+    ExactStringSpec,
     TupleSpec,
     RecordEntries,
 } from '../attr-spec';
@@ -39,8 +39,8 @@ export type NodeShape = typeof nodeShape[number];
 export type NodeSpec = RecordSpec<
     {
         readonly labels: DictSpec<LabelSpec>;
-        readonly shape: WithCommonSpec<StringSpec<NodeShape>>;
-        readonly color: WithCommonSpec<AnyStringSpec>;
+        readonly shape: WithCommonSpec<ExactStringSpec<NodeShape>>;
+        readonly color: WithCommonSpec<StringSpec>;
         readonly size: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly pos: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly fixed: WithCommonSpec<BoolSpec>;

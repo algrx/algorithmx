@@ -6,8 +6,8 @@ import {
     RecordSpec,
     BoolSpec,
     NumSpec,
-    AnyStringSpec,
     StringSpec,
+    ExactStringSpec,
     TupleSpec,
     RecordEntries,
     ArraySpec,
@@ -47,19 +47,19 @@ export type EdgeCurve = typeof edgeCurve[number];
 export type EdgeSpec = RecordSpec<
     {
         readonly labels: DictSpec<LabelSpec>;
-        readonly source: AnyStringSpec;
-        readonly target: AnyStringSpec;
+        readonly source: StringSpec;
+        readonly target: StringSpec;
         readonly directed: BoolSpec;
         readonly length: WithCommonSpec<NumSpec>;
         readonly thickness: WithCommonSpec<NumSpec>;
         readonly flip: WithCommonSpec<BoolSpec>;
         readonly color: RecordSpec<
-            RecordEntries<WithCommonSpec<AnyStringSpec>> & {
-                readonly animtype: StringSpec<'color' | 'traverse'>;
-                readonly animsource: AnyStringSpec;
+            RecordEntries<WithCommonSpec<StringSpec>> & {
+                readonly animtype: ExactStringSpec<'color' | 'traverse'>;
+                readonly animsource: StringSpec;
             }
         >;
-        readonly curve: WithCommonSpec<StringSpec<EdgeCurve>>;
+        readonly curve: WithCommonSpec<ExactStringSpec<EdgeCurve>>;
         readonly path: WithCommonSpec<ArraySpec<TupleSpec<NumSpec>>>;
     } & RecordEntries<ElementSpec> &
         RecordEntries<SvgSpec>
@@ -191,20 +191,16 @@ const createAdjMatrix = (edges: FullAttr<DictSpec<EdgeSpec>>): EdgeAdjMatrix => 
     }, {} as EdgeAdjMatrix);
 };
 
+// "source->target(-ID)" to [source, target, true]
+// "source-target(-ID)" to [source, target, false]
 const parseEdgeId = (id: string): [string, string, boolean] => {
-    // "source->target(-ID)" to [source, target, true]
-    if (id.includes('->')) {
-        const [source, target] = id.split('->');
-        return [source, target, true];
-    }
+    if (!id.includes('-') && !id.includes('->')) return ['', '', false];
 
-    // "source-target(-ID)" to [source, target, false]
-    if (id.includes('-')) {
-        const [source, target] = id.split('-');
-        return [source, target, false];
-    }
+    const directed = id.includes('->');
+    const [source, suffix] = id.split(directed ? '->' : '-');
+    const target = suffix.includes('-') ? suffix.split('-')[0] : suffix;
 
-    return ['', '', false];
+    return [source, target, directed];
 };
 
 export const createEdgeDictDefaults = (

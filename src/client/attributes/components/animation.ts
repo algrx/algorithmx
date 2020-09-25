@@ -1,7 +1,7 @@
 import {
     StringSpec,
     NumSpec,
-    AnyStringSpec,
+    ExactStringSpec,
     RecordEntries,
     RecordSpec,
     BoolSpec,
@@ -52,7 +52,7 @@ export type AnimEase = typeof animEases[number];
 
 export type AnimSpec = RecordSpec<{
     readonly duration: NumSpec;
-    readonly ease: StringSpec<AnimEase>;
+    readonly ease: ExactStringSpec<AnimEase>;
 }>;
 
 export const animSpecEntries: RecordEntries<AnimSpec> = {

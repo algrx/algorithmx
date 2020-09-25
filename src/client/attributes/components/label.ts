@@ -4,8 +4,8 @@ import {
     RecordSpec,
     BoolSpec,
     NumSpec,
-    AnyStringSpec,
     StringSpec,
+    ExactStringSpec,
     TupleSpec,
     RecordEntries,
     DictSpec,
@@ -47,14 +47,14 @@ export type LabelAlign = typeof labelAlign[number];
 
 export type LabelSpec = RecordSpec<
     {
-        readonly text: WithCommonSpec<AnyStringSpec>;
-        readonly align: WithCommonSpec<StringSpec<LabelAlign>>;
+        readonly text: WithCommonSpec<StringSpec>;
+        readonly align: WithCommonSpec<ExactStringSpec<LabelAlign>>;
         readonly pos: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly radius: WithCommonSpec<NumSpec>;
         readonly angle: WithCommonSpec<NumSpec>;
         readonly rotate: WithCommonSpec<BoolSpec>;
-        readonly color: WithCommonSpec<AnyStringSpec>;
-        readonly font: WithCommonSpec<AnyStringSpec>;
+        readonly color: WithCommonSpec<StringSpec>;
+        readonly font: WithCommonSpec<StringSpec>;
         readonly size: WithCommonSpec<NumSpec>;
     } & RecordEntries<ElementSpec> &
         RecordEntries<SvgSpec>

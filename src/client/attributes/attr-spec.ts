@@ -12,11 +12,12 @@ export enum AttrType {
 
 export type PrimitiveAttrType = AttrType.String | AttrType.Number | AttrType.Boolean;
 
-export interface StringSpec<T extends string> {
+export interface StringSpec {
     readonly type: AttrType.String;
-    readonly validValues?: ReadonlyArray<T>;
 }
-export type AnyStringSpec = StringSpec<string>;
+export interface ExactStringSpec<T extends string> extends StringSpec {
+    readonly validValues: ReadonlyArray<T>;
+}
 
 export interface NumSpec {
     readonly type: AttrType.Number;
@@ -26,7 +27,7 @@ export interface BoolSpec {
     readonly type: AttrType.Boolean;
 }
 
-export type PrimitiveSpec = AnyStringSpec | NumSpec | BoolSpec;
+export type PrimitiveSpec = StringSpec | NumSpec | BoolSpec;
 
 export interface TupleSpec<T extends PrimitiveSpec> {
     readonly type: AttrType.Tuple;

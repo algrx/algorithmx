@@ -11,6 +11,7 @@ import {
     DictSpec,
     TupleSpec,
     RecordEntries,
+    ExactStringSpec,
 } from './attr-spec';
 
 // === (Partial) Input ===
@@ -19,8 +20,10 @@ type PrimitiveInputAttr<T extends PrimitiveSpec> = T extends BoolSpec
     ? boolean
     : T extends NumSpec
     ? number | string | NumExpr<string> // allow string variables, e.g. '2x'
-    : T extends StringSpec<infer ST>
+    : T extends ExactStringSpec<infer ST>
     ? ST
+    : T extends StringSpec
+    ? string | number
     : never;
 
 export type InputAttr<T extends AttrSpec> = T extends PrimitiveSpec
@@ -40,8 +43,10 @@ export type FullAttr<T extends AttrSpec> = T extends BoolSpec
     ? boolean
     : T extends NumSpec
     ? number | NumExpr<string>
-    : T extends StringSpec<infer ST>
+    : T extends ExactStringSpec<infer ST>
     ? ST
+    : T extends StringSpec
+    ? string
     : T extends TupleSpec<infer TE>
     ? [FullAttr<TE>, FullAttr<TE>]
     : T extends ArraySpec<infer AE>

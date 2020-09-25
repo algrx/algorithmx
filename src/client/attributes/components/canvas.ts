@@ -4,8 +4,7 @@ import {
     RecordSpec,
     BoolSpec,
     NumSpec,
-    AnyStringSpec,
-    StringSpec,
+    ExactStringSpec,
     TupleSpec,
     RecordEntries,
 } from '../attr-spec';
@@ -37,7 +36,7 @@ export type CanvasSpec = RecordSpec<
         readonly edges: DictSpec<EdgeSpec>;
         readonly labels: DictSpec<LabelSpec>;
         readonly size: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly edgelengthtype: WithCommonSpec<StringSpec<EdgeLengthType>>;
+        readonly edgelengthtype: WithCommonSpec<ExactStringSpec<EdgeLengthType>>;
         readonly edgelength: WithCommonSpec<NumSpec>;
         readonly pan: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly zoom: WithCommonSpec<NumSpec>;
