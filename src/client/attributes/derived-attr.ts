@@ -12,11 +12,12 @@ import {
     TupleSpec,
     RecordEntries,
     ExactStringSpec,
+    EndpointValueSpec,
 } from './attr-spec';
 
 // === (Partial) Input ===
 
-type PrimitiveInputAttr<T extends PrimitiveSpec> = T extends BoolSpec
+type InputPrimitiveAttr<T extends PrimitiveSpec> = T extends BoolSpec
     ? boolean
     : T extends NumSpec
     ? number | string | NumExpr<string> // allow string variables, e.g. '2x'
@@ -26,14 +27,27 @@ type PrimitiveInputAttr<T extends PrimitiveSpec> = T extends BoolSpec
     ? string | number
     : never;
 
-export type InputAttr<T extends AttrSpec> = T extends PrimitiveSpec
-    ? PrimitiveInputAttr<T>
+export type InputEndpointAttr<T extends EndpointValueSpec> = T extends PrimitiveSpec
+    ? InputPrimitiveAttr<T>
     : T extends TupleSpec<infer TE>
-    ? PrimitiveInputAttr<TE> | [TE, TE] // allow single value shortcuts, e.g. 2 -> [2, 2]
+    ? // allow single value tuple shortcuts, e.g. 2 -> [2, 2]
+      InputPrimitiveAttr<TE> | [InputPrimitiveAttr<TE>, InputPrimitiveAttr<TE>]
+    : T extends ArraySpec<infer AE>
+    ? AE extends EndpointValueSpec
+        ? ReadonlyArray<InputEndpointAttr<AE>>
+        : never
+    : never;
+
+export type InputAttr<T extends AttrSpec> = T extends PrimitiveSpec
+    ? InputPrimitiveAttr<T>
+    : T extends TupleSpec<infer TE>
+    ? InputEndpointAttr<T>
     : T extends ArraySpec<infer AE>
     ? ReadonlyArray<InputAttr<AE>>
     : T extends RecordSpec<infer RES>
-    ? { readonly [k in keyof RES]?: InputAttr<RES[k]> }
+    ? RES extends { readonly value: EndpointValueSpec }
+        ? InputEndpointAttr<RES['value']> | { readonly [k in keyof RES]?: InputAttr<RES[k]> }
+        : { readonly [k in keyof RES]?: InputAttr<RES[k]> }
     : T extends DictSpec<infer DE>
     ? { readonly [k: string]: InputAttr<DE> }
     : never;

@@ -21,7 +21,7 @@ import { WithCommonSpec, withCommonSpec, commonDefaults } from './common';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { NodeSpec, nodeSpec, createNodeDictDefaults, evalNode } from './node';
 import { EdgeSpec, edgeSpec, createEdgeDictDefaults, edgeDefaults } from './edge';
-import { COLORS } from '../../render/utils';
+import { COLORS } from './color';
 import { FullAttr, PartialAttr } from '../derived-attr';
 import { mergeDiff, mapDict } from '../../utils';
 import { VarDict, evalAttr, usesVars, evalDeep } from '../expr-utils';

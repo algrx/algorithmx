@@ -18,7 +18,6 @@ import {
     WithCommonSpec,
     applyDefaults,
 } from './common';
-import { COLORS } from '../../render/utils';
 import {
     ElementSpec,
     SvgSpec,
@@ -27,6 +26,7 @@ import {
     elementDefaults,
     svgDefaults,
 } from './element';
+import { COLORS } from './color';
 import { mapDict, filterDict } from '../../utils';
 import { combineAttrs, mapAttr } from '../attr-utils';
 import { restrictAngle } from '../../math';

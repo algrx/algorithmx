@@ -23,7 +23,7 @@ import {
     svgDefaults,
 } from './element';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
-import { COLORS } from '../../render/utils';
+import { COLORS } from './color';
 import { mapDict, filterDict, mergeDiff } from '../../utils';
 import { combineAttrs, mapAttr } from '../attr-utils';
 import { VarDict, evalAttr, evalDeep, usesVars } from '../expr-utils';

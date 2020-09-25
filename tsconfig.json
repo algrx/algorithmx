@@ -3,7 +3,7 @@
         "lib": ["es2017", "dom"],
         "declaration": true,
         "strict": true,
-        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
         "noLib": false,

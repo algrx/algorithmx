@@ -27,7 +27,7 @@ export interface BoolSpec {
     readonly type: AttrType.Boolean;
 }
 
-export type PrimitiveSpec = StringSpec | NumSpec | BoolSpec;
+export type PrimitiveSpec = StringSpec | ExactStringSpec<string> | NumSpec | BoolSpec;
 
 export interface TupleSpec<T extends PrimitiveSpec> {
     readonly type: AttrType.Tuple;

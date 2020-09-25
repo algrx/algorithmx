@@ -1,36 +1,22 @@
 import { CanvasSpec } from './attributes/components/canvas';
-import { PartialAttr, FullAttr } from './attributes/derived-attr';
-import { RenderBehavior } from './render/canvas/behavior';
 import {
-    SchedulerState,
-    SchedulerTask,
     initSchedulerState,
     scheduleEvent,
     processSchedulerEvent,
     SchedulerEvent,
 } from './scheduler';
-import { CanvasElement, ReceiveEvent, DispatchEvent } from './types/events';
-import * as renderCanvasLive from './render/canvas/live';
-import * as layout from './layout/layout';
-import { EventContext, executeEvent } from './events';
-
-export interface ClientState {
-    readonly scheduler: SchedulerState;
-    readonly attributes?: FullAttr<CanvasSpec>;
-    readonly renderBehavior?: RenderBehavior;
-}
-
-export type OnEventFn = (event: ReceiveEvent) => void;
+import { DispatchEvent, ReceiveEvent, CanvasElement, ClientState } from './types';
+import { executeEvent, EventContext } from './events';
 
 export interface Client {
     canvas: CanvasElement;
     state: ClientState;
-    layout: layout.ILayoutState;
+    //layout: layout.ILayoutState;
 
-    onEvent(listener: OnEventFn): void;
+    onevent(fn: (event: ReceiveEvent) => void): void;
     event(event: DispatchEvent): void;
 
-    listener: OnEventFn;
+    eventCallback: (event: ReceiveEvent) => void;
     setState(state: ClientState): void;
     tick(): void;
     onSchedulerEvent(event: DispatchEvent, queue: string | null): void;
@@ -39,23 +25,23 @@ export interface Client {
 const initState: ClientState = {
     scheduler: initSchedulerState,
     attributes: undefined,
-    renderBehavior: undefined,
+    //renderBehavior: undefined,
 };
 
 export class Client {
     constructor(canvas: CanvasElement) {
         this.canvas = canvas;
         this.state = initState;
-        this.layout = layout.init(this.tick);
-        this.listener = () => null;
+        //this.layout = layout.init(this.tick);
+        this.eventCallback = () => null;
     }
 
     setState(state: ClientState) {
         this.state = state;
     }
 
-    onEvent(fn: OnEventFn) {
-        this.listener = fn;
+    onevent(fn: (event: ReceiveEvent) => void) {
+        this.eventCallback = fn;
     }
 
     event(event: DispatchEvent) {
@@ -72,12 +58,15 @@ export class Client {
 
     onSchedulerEvent(event: SchedulerEvent, queue: string | null) {
         // execute the event
-        const executeContext: EventContext = {
-            state: this.state,
-            listener: this.listener,
-            tick: this.tick,
-        };
-        const state = executeEvent(executeContext, event as DispatchEvent);
+        const state = executeEvent(
+            {
+                state: this.state,
+                callback: this.eventCallback,
+                tick: this.tick,
+            },
+            event as DispatchEvent
+        );
+
         this.setState(state);
         this.tick();
 
@@ -93,7 +82,7 @@ export class Client {
     }
 
     tick() {
-        if (this.state.attributes !== undefined)
-            renderCanvasLive.updateCanvas(this.canvas, this.state.attributes, this.layout);
+        //if (this.state.attributes !== undefined)
+        //renderCanvasLive.updateCanvas(this.canvas, this.state.attributes, this.layout);
     }
 }

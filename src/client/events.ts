@@ -1,27 +1,24 @@
-import { CanvasSpec } from './attributes/definitions/canvas';
-import { RenderAttr } from './render/process';
-import { ClientState, OnEventFn } from './client';
-import { RenderBehavior } from './render/canvas/behavior';
-//import * as pipeline from './pipeline/pipeline';
-import * as renderElement from './render/element';
-import * as renderCanvas from './render/canvas/render';
-import * as renderCanvasBehavior from './render/canvas/behavior';
-import * as renderCanvasListeners from './render/canvas/listeners';
-import * as renderCanvasLive from './render/canvas/live';
-import * as renderCanvasMisc from './render/canvas/misc';
-import * as layout from './layout/layout';
-import { DispatchEvent } from './types/events';
+import { CanvasSpec, canvasSpec } from './attributes/components/canvas';
+import { CommonSpec, commonSpec } from './attributes/components/common';
+import { InputAttr, FullAttr, PartialAttr } from './attributes/derived-attr';
+import { preprocess } from './attributes/preprocess';
+import { AttrType } from './attributes/attr-spec';
+import { CanvasElement, ClientState, ReceiveEvent, DispatchEvent } from './types';
 
 export interface EventContext {
     readonly state: ClientState;
-    readonly listener: OnEventFn;
+    readonly callback: (event: ReceiveEvent) => void;
     readonly tick: () => void;
 }
 
+//import { RenderBehavior } from './render/canvas/behavior';
+
 /*
+
 const render = (
-    canvas: events.CanvasElement,
-    renderData: RenderAttr<CanvasSpec>,
+    canvas: CanvasElement,
+    prevAttrs: FullAttr<CanvasSpec>,
+    changes: PartialAttr<CanvasSpec>,
     tick: () => void,
     layoutState: layout.ILayoutState
 ): void => {
@@ -35,7 +32,7 @@ const render = (
 };
 
 const renderBehavior = (
-    canvas: events.CanvasElement,
+    canvas: CanvasElement,
     renderData: RenderAttr<CanvasSpec>,
     behavior: RenderBehavior
 ): RenderBehavior => {
@@ -46,22 +43,41 @@ const renderBehavior = (
 
     return newBehavior;
 };
+*/
 
-const executeUpdate = (context: EventContext, event: events.IDispatchUpdate): ClientState => {
+const updateAttrs = (
+    context: EventContext,
+    inputChanges: InputAttr<CanvasSpec>,
+    inputDefaults?: InputAttr<CommonSpec>
+): ClientState => {
     const state = context.state;
-    if (event.data.attributes === null) return executeReset(context, event);
 
-    const processed = pipeline.processUpdate(
-        state.canvas,
-        state.attributes,
-        state.expressions,
-        event.data
+    // preprocess the attribute changes changes
+    const preChanges = preprocess(
+        canvasSpec,
+        { path: [['canvas', AttrType.Record]], validVars: [] },
+        inputChanges
     );
-    if (processed instanceof Error) {
-        context.listener(dispatchError(processed.message, events.EnumErrorType.attribute));
+    if (preChanges instanceof Error) {
+        context.callback({ error: { type: 'attribute', message: preChanges.message } });
         return state;
     }
 
+    // preprocess the attribute endpoint defaults
+    const defaultAttr = preprocess(
+        commonSpec,
+        { path: [['defaultattr', AttrType.Record]], validVars: [] },
+        inputDefaults ?? {}
+    );
+    if (defaultAttr instanceof Error) {
+        context.callback({ error: { type: 'attribute', message: defaultAttr.message } });
+        return state;
+    }
+
+    const allChanges = preChanges;
+    const fullAttrs = state.attributes;
+
+    /*
     const renderData = renderElement.preprocess(pipeline.getRenderData(processed));
     const layoutState = layout.update(state.layout, processed.attributes, processed.changes);
 
@@ -74,48 +90,35 @@ const executeUpdate = (context: EventContext, event: events.IDispatchUpdate): Cl
         renderCanvasListeners.registerNodeClick(state.canvas, renderData, clickFn);
         renderCanvasListeners.registerNodeHover(state.canvas, renderData, hoverFn);
     }
+    */
+
+    if (allChanges?.visible?.value === false) {
+        // reset the canvas completely
+        return {
+            ...state,
+            attributes: undefined,
+            //layout: layout.reset(state.layout),
+            //renderBehavior: undefined,
+        };
+    }
 
     return {
         ...state,
-        expressions: processed.expressions,
-        attributes: processed.attributes,
-        layout: layoutState,
-        renderBehavior: newBehavior,
+        attributes: fullAttrs,
+        //layout: layoutState,
+        //renderBehavior: newBehavior,
     };
 };
-
-const executeHighlight = (context: EventContext, event: events.IDispatchHighlight): void => {
-    const state = context.state;
-    const processed = pipeline.processHighlight(state.attributes, state.expressions, event.data);
-    if (processed instanceof Error) {
-        context.listener(dispatchError(processed.message, events.EnumErrorType.attribute));
-        return;
-    }
-
-    const renderDataInit: RenderAttr<CanvasSpec> = {
-        name: 'canvas',
-        attr: state.attributes,
-        animation: processed.animation,
-        highlight: processed.changes,
-    };
-    const renderData = renderElement.preprocess(renderDataInit);
-
-    render(state.canvas, renderData, context.tick, state.layout);
-    renderBehavior(state.canvas, renderData, state.renderBehavior);
-};
-*/
 
 export const executeEvent = (context: EventContext, event: DispatchEvent): ClientState => {
-    if (event.type === events.EnumDispatchType.broadcast) {
-        context.listener({
-            type: events.EnumReceiveType.broadcast,
-            data: { message: event.data.message },
-        });
-        return context.state;
-    } else if (event.type === events.EnumDispatchType.update) {
-        return executeUpdate(context, event);
-    } else if (event.type === events.EnumDispatchType.highlight) {
-        executeHighlight(context, event);
-        return context.state;
-    } else return context.state;
+    if (event.message !== undefined) {
+        context.callback({ message: event.message });
+    }
+
+    const attrState =
+        event.attrs !== undefined
+            ? updateAttrs(context, event.attrs, event.defaultattr)
+            : context.state;
+
+    return attrState;
 };

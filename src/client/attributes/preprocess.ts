@@ -7,6 +7,7 @@ import {
     EntrySpec,
     AnyRecordSpec,
     AnyDictSpec,
+    ExactStringSpec,
 } from './attr-spec';
 import { InputAttr, PartialAttr } from './derived-attr';
 import { parseExprStr, parseExprObj } from './expr-utils';
@@ -82,11 +83,11 @@ export const preprocess = <T extends AttrSpec>(
 
     // === string ===
     if (spec.type === AttrType.String) {
-        const stringSpec = spec as StringSpec<string>;
-        if (stringSpec.validValues && !(attr in stringSpec.validValues!)) {
+        const exactStringSpec = spec as ExactStringSpec<string>;
+        if (exactStringSpec.validValues && !exactStringSpec.validValues.includes(attr as string)) {
             return new Error(
                 `attribute '${formatPath(info.path)}' has invalid value '${attr}'` +
-                    ` (valid values are [${stringSpec.validValues}])`
+                    ` (valid values are [${exactStringSpec.validValues}])`
             );
         }
         if (typeof attr === 'string') return attr as PartialAttr<T>;
