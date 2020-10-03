@@ -10,10 +10,10 @@ export interface DispatchEvent {
     readonly attrs?: InputAttr<CanvasSpec>;
     readonly defaultattr?: InputAttr<CommonSpec>;
     readonly message?: string;
-    readonly withQ?: string | null;
+    readonly withQ?: string | number | null;
     readonly queues?: {
         readonly [k: string]: {
-            readonly action: 'stop' | 'start' | 'cancel' | 'pause';
+            readonly action: 'stop' | 'start' | 'clear' | 'pause';
             readonly duration?: number; // only for pause
         };
     };

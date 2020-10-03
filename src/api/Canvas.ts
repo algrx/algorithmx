@@ -1,9 +1,10 @@
+import { QueueSelection } from './QueueSelection';
 import { InputAttr } from '../client/attributes/derived-attr';
 import { CanvasSpec, EdgeLengthType } from '../client/attributes/components/canvas';
 import { CanvasElement, ReceiveEvent, DispatchEvent } from '../client/types';
 import { Client as InternalClient } from '../client/client';
 
-import { CallbackHandler, ClientCallbacks, execCallbacks } from './callbacks';
+import { EventHandler, ClientCallbacks, execCallbacks } from './event-handler';
 import { ElementSelection } from './ElementSelection';
 import { NodeSelection } from './NodeSelection';
 import { EdgeSelection, EdgeId } from './EdgeSelection';
@@ -16,7 +17,7 @@ export type CanvasAttrs = InputAttr<CanvasSpec>;
  * An object responsible for rendering the network, storing application state, and
  * dispatching/receiving events.
  */
-export class Canvas extends ElementSelection<CanvasAttrs, null> implements CallbackHandler {
+export class Canvas extends ElementSelection<CanvasAttrs, null> implements EventHandler {
     readonly _client: InternalClient;
     _callbacks: ClientCallbacks;
 
@@ -38,15 +39,10 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Callb
         return this;
     }
 
-    pause(duration: number) {
-        //this.queue().pause(duration);
-        return this;
-    }
-
     /**
-     * Selects a single node by its ID. Use "*" to select all existing nodes.
+     * Selects a node by its ID. Use "*" to select all existing nodes.
      *
-     * @param id - A single node ID.
+     * @param id - A node ID.
      *
      * @return A new selection corresponding to the given node.
      */
@@ -67,7 +63,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Callb
             ...this._selection,
             ids: (ids ?? ['*' as ID]).map((id) => String(id)),
             data: ids ?? ['*' as ID],
-            parent: ['canvas', this],
+            parent: { key: 'canvas', selection: this, root: this },
         });
     }
 
@@ -114,7 +110,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Callb
                       }),
             data: ids ?? ['*'],
             tuples: ids,
-            parent: ['canvas', this],
+            parent: { key: 'canvas', selection: this, root: this },
         });
     }
 
@@ -142,7 +138,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Callb
             ...this._selection,
             ids: (ids ?? ['*' as ID]).map((id) => String(id)),
             data: ids ?? ['*' as ID],
-            parent: ['canvas', this],
+            parent: { key: 'canvas', selection: this, root: this },
         });
     }
 
@@ -245,6 +241,39 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Callb
      */
     svgattrs(svgattrs: { readonly [k: string]: string }) {
         return this.attrs({ svgattrs });
+    }
+
+    /**
+     * Selects a single event queue by its ID. The default queue has ID 0. Use "*" to select all
+     * existing queues.
+     *
+     * @param id - A queue ID. Defaults to 0.
+     *
+     * @return A new selection corresponding to the given queue.
+     */
+    queue(id: string | number = 0): QueueSelection {
+        return this.queues([id]);
+    }
+
+    /**
+     * Selects multiple event queues using an list of ID values. If no list is provided, all
+     * existing queues will be selected.
+     *
+     * @param ids - A list of queue IDs.
+     *
+     * @return A new selection corresponding to the given queues.
+     */
+    queues(ids?: ReadonlyArray<string | number>): QueueSelection {
+        return new QueueSelection({
+            queues: ids ?? ['*'],
+            root: this,
+            withQ: this._selection.withQ,
+        });
+    }
+
+    pause(duration: number) {
+        this.queue().pause(duration);
+        return this;
     }
 
     /**

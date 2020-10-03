@@ -26,12 +26,12 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
     /**
      * Selects a single edge label by its ID. Use "*" to select all existing labels.
      *
-     * @param id - A label IDs.
+     * @param id - A label ID. Defaults to 0.
      *
      * @return A new selection corresponding to the given label, with the same data as the current
      * selection.
      */
-    label(id: ElementId): LabelSelection<ElementId> {
+    label(id: ElementId = 0): LabelSelection<ElementId> {
         return this.labels([id]);
     }
 
@@ -49,7 +49,7 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
             ...this._selection,
             ids: (ids ?? ['*']).map((id) => String(id)),
             data: undefined, // use the node (parent) data
-            parent: ['edges', this],
+            parent: { key: 'edges', selection: this, root: this._selection.parent!.root },
         });
     }
 

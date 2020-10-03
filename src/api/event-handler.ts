@@ -21,7 +21,8 @@ export interface ClientCallbacks {
     };
 }
 
-export interface CallbackHandler {
+export interface EventHandler {
+    readonly dispatch: (event: DispatchEvent) => void;
     _callbacks: ClientCallbacks;
 }
 
@@ -30,21 +31,21 @@ export const addElementCallback = <D>(
     eventType: keyof ElementCallbacks,
     fn: ElementFn<void, D>
 ) => {
-    const client = (selection.parent![1] as unknown) as CallbackHandler;
-    const elementType = selection.parent![0] as 'nodes';
+    const cbs = selection.parent!.root._callbacks;
+    const elementKey = selection.parent!.key as 'nodes';
 
     const elementCbs = {} as { [k: string]: ElementCallbacks };
     selection.ids.forEach((k, i) => {
         elementCbs[k] = {
-            ...(client._callbacks[elementType][k] ?? {}),
+            ...(cbs[elementKey][k] ?? {}),
             [eventType]: () => evalElementArg(fn, selection.data![i], i),
         };
     });
 
-    client._callbacks = {
-        ...client._callbacks,
-        [elementType]: {
-            ...client._callbacks[elementType],
+    selection.parent!.root._callbacks = {
+        ...cbs,
+        [elementKey]: {
+            ...cbs[elementKey],
             ...elementCbs,
         },
     };

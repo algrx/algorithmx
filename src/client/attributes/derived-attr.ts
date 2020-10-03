@@ -38,18 +38,16 @@ export type InputEndpointAttr<T extends EndpointValueSpec> = T extends Primitive
         : never
     : never;
 
-export type InputAttr<T extends AttrSpec> = T extends PrimitiveSpec
-    ? InputPrimitiveAttr<T>
-    : T extends TupleSpec<infer TE>
+export type InputAttr<T extends AttrSpec> = T extends EndpointValueSpec
     ? InputEndpointAttr<T>
     : T extends ArraySpec<infer AE>
     ? ReadonlyArray<InputAttr<AE>>
+    : T extends DictSpec<infer DE>
+    ? { readonly [k: string]: InputAttr<DE> }
     : T extends RecordSpec<infer RES>
     ? RES extends { readonly value: EndpointValueSpec }
         ? InputEndpointAttr<RES['value']> | { readonly [k in keyof RES]?: InputAttr<RES[k]> }
         : { readonly [k in keyof RES]?: InputAttr<RES[k]> }
-    : T extends DictSpec<infer DE>
-    ? { readonly [k: string]: InputAttr<DE> }
     : never;
 
 // === Full ===

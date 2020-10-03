@@ -53,9 +53,8 @@ export class LabelSelection<D> extends ElementSelection<InputLabelAttrs, D> {
     }
 
     /**
-     * Allows the label to be positioned using polar coordinates, together with the
-     * [[LabelSelection.angle]] attribute. This will specify the distance from the label's base
-     * position (see [[LabelSelection.pos]]).
+     * Positions the label using polar coordinates, together with the [[LabelSelection.angle]]. This
+     * will specify the distance from the label's base position (see [[LabelSelection.pos]]).
      *
      * @param radius - The polar radius, defined as the distance from the label's base position.
      */

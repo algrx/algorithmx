@@ -1,15 +1,23 @@
 import { CommonSpec } from '../client/attributes/components/common';
 import { InputAttr } from '../client/attributes/derived-attr';
 import { ElementSpec, VisibleAnimType } from '../client/attributes/components/element';
-import { ElementArg, ElementFn, ElementAttrs } from './types';
 import { AnimEase } from '../client/attributes/components/animation';
+
+import { ElementArg, ElementFn, ElementAttrs } from './types';
+import { EventHandler } from './event-handler';
+
+export interface ElementParent {
+    readonly key: string;
+    readonly selection: ElementSelection<ElementAttrs, unknown>;
+    readonly root: EventHandler;
+}
 
 export interface ElementContext<D> {
     readonly ids: ReadonlyArray<string>;
     readonly data?: ReadonlyArray<D>;
     readonly withQ?: string | null;
     readonly defaultattr?: InputAttr<CommonSpec>;
-    readonly parent?: [string, ElementSelection<ElementAttrs, unknown>];
+    readonly parent?: ElementParent;
 }
 
 type ElementObjArg<T, D> = ElementArg<T, D> | { readonly [k in keyof T]: ElementArg<T[k], D> };
@@ -44,15 +52,13 @@ export const applyAttrs = <T, D>(
     selection: ElementContext<D>,
     attrFn: (data: D, dataIndex: number, elementIndex: number) => T
 ) => {
-    const [parentName, parent] = selection.parent!;
-
     if (selection.data !== undefined) {
         // evaluate using the current data
         let dict: { [k: string]: T } = {};
         Object.keys(selection.ids).forEach((k, i) => {
             dict[k] = attrFn(selection.data![i], i, i);
         });
-        parent.attrs({ [parentName]: dict });
+        selection.parent!.selection.attrs({ [selection.parent!.key]: dict });
     } else {
         // pass a function on to the parent, so that the parent's data is used
         const dictFn = (data: D, dataIndex: number) => {
@@ -62,7 +68,7 @@ export const applyAttrs = <T, D>(
             });
             return dict;
         };
-        parent.attrs({ [parentName]: dictFn });
+        selection.parent!.selection.attrs({ [selection.parent!.key]: dictFn });
     }
 };
 
@@ -151,19 +157,19 @@ export class ElementSelection<T extends ElementAttrs, D> {
     }
 
     /**
-     * Sets the queue onto which all events triggered by the selection should be added. Each queue
-     * handles events independently, and all queues execute in parallel, which enables multiple
-     * animations to run simultaneously.
+     * Sets the event queue to use for all events triggered by the selection. Each queue handles
+     * events independently, and all queues execute in parallel, which enables multiple animations
+     * to run simultaneously.
      *
      * The `null` queue is special; all events added to it will execute immediately. The default
-     * queue is named "default".
+     * queue ID is 0.
      *
      * @param queue - The name of the queue. This can be any string or number, or `null` for the
-     * immediate queue. Defaults to "default".
+     * immediate queue.
      *
      * @return A new instance of the current selection using the given queue.
      */
-    withQ(queue?: string | number | null): this {
+    withQ(queue: string | number | null): this {
         return new this.constructor({
             ...this._selection,
             withQ: typeof queue === 'number' ? String(queue) : queue,
@@ -240,7 +246,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * @param seconds - The duration of the pause, in seconds.
      */
     pause(seconds: number) {
-        this._selection.parent![1].pause(seconds);
+        this._selection.parent!.selection.pause(seconds);
         return this;
     }
 

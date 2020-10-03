@@ -2,7 +2,7 @@ import { NodeSpec, NodeShape } from '../client/attributes/components/node';
 import { InputAttr } from '../client/attributes/derived-attr';
 import { VisibleAnimType } from '../client/attributes/components/element';
 
-import { addElementCallback } from './callbacks';
+import { addElementCallback } from './event-handler';
 import { LabelSelection } from './LabelSelection';
 import { ElementSelection, evalElementArg, ElementContext } from './ElementSelection';
 import { ElementArg, ElementId, ElementFn, ElementAttrs, NumAttr } from './types';
@@ -22,14 +22,15 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
     }
 
     /**
-     * Selects a single node label by its ID. Use "*" to select all existing labels.
+     * Selects a single node label by its ID. The node's default 'value' label has ID 0. Use "*" to
+     * select all existing labels.
      *
-     * @param id - A label IDs.
+     * @param id - A label ID. Defaults to 0.
      *
      * @return A new selection corresponding to the given label, with the same data as the current
      * selection.
      */
-    label(id: ElementId): LabelSelection<D> {
+    label(id: ElementId = 0): LabelSelection<D> {
         return this.labels([id]);
     }
 
@@ -47,7 +48,7 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
             ...this._selection,
             ids: (ids ?? ['*']).map((id) => String(id)),
             data: undefined, // use the node (parent) data
-            parent: ['nodes', this],
+            parent: { key: 'nodes', selection: this, root: this._selection.parent!.root },
         });
     }
 

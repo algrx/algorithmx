@@ -1,5 +1,5 @@
 interface QueueEvent {
-    readonly action: 'stop' | 'start' | 'cancel' | 'pause' | 'unpause';
+    readonly action: 'stop' | 'start' | 'clear' | 'pause' | 'unpause';
     readonly duration?: number; // only for pause
 }
 interface BaseEvent {
@@ -129,7 +129,7 @@ const updateQueue = (
             execute: () => null,
         };
     }
-    if (event.action === 'cancel') {
+    if (event.action === 'clear') {
         return {
             state: updateQueueState(state, queue, { events: [], busy: false }),
             execute: () => null,

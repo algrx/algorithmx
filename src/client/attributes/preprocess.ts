@@ -111,8 +111,12 @@ export const preprocess = <T extends AttrSpec>(
 
     // === record ===
     if (spec.type === AttrType.Record) {
-        if (typeof attr !== 'object')
-            return new Error(`attribute '${formatPath(info.path)}' must be an object`);
+        if (typeof attr !== 'object') {
+            if ('value' in (spec as AnyRecordSpec).entries) {
+                // endpionts can be provided as a single value, or a { value, ... } object
+                return preprocessCompound(spec, info, ({ value: attr } as unknown) as InputAttr<T>);
+            } else return new Error(`attribute '${formatPath(info.path)}' must be an object`);
+        }
 
         const invalidKey = Object.keys(attr).find((k) => !(k in (spec as AnyRecordSpec).entries));
         if (invalidKey)
