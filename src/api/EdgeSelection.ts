@@ -49,7 +49,7 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
             ...this._selection,
             ids: (ids ?? ['*']).map((id) => String(id)),
             data: undefined, // use the node (parent) data
-            parent: { key: 'edges', selection: this, root: this._selection.parent!.root },
+            parent: { key: 'labels', selection: this, root: this._selection.parent!.root },
         });
     }
 

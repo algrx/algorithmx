@@ -48,7 +48,7 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
             ...this._selection,
             ids: (ids ?? ['*']).map((id) => String(id)),
             data: undefined, // use the node (parent) data
-            parent: { key: 'nodes', selection: this, root: this._selection.parent!.root },
+            parent: { key: 'labels', selection: this, root: this._selection.parent!.root },
         });
     }
 

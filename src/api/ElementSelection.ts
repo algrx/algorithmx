@@ -107,19 +107,19 @@ export class ElementSelection<T extends ElementAttrs, D> {
     add(attrs?: ElementObjArg<T, D>, animtype?: ElementArg<VisibleAnimType, D>) {
         applyAttrs(this._selection, (data, i) => {
             const initAttrs = attrs ? evalElementArg(attrs, data, i) : ({} as T);
-            return {
-                visible: {
-                    value:
-                        initAttrs.visible === undefined
-                            ? true
-                            : typeof initAttrs.visible === 'object'
-                            ? initAttrs.visible.value
-                            : evalElementArg(initAttrs.visible, data, i),
-                    animtype: evalElementArg(animtype, data, i),
-                },
-                ...initAttrs,
-            } as T;
+            if (animtype !== undefined) {
+                return {
+                    visible: {
+                        ...(typeof initAttrs.visible === 'object'
+                            ? (initAttrs.visible as {})
+                            : { value: initAttrs.visible }),
+                        animtype: evalElementArg(animtype, data, i),
+                    },
+                    ...initAttrs,
+                };
+            } else return initAttrs as T;
         });
+
         return this.duration(0);
     }
 

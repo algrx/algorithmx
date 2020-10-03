@@ -47,7 +47,12 @@ export class Client {
     event(event: DispatchEvent) {
         // the default queue is named 'default'
         const withQ = event.withQ === null ? null : String(event.withQ ?? 0);
-        const task = scheduleEvent(this.state.scheduler, withQ, event, this.onSchedulerEvent);
+        const task = scheduleEvent(
+            this.state.scheduler,
+            withQ,
+            event,
+            this.onSchedulerEvent.bind(this)
+        );
         this.setState({ ...this.state, scheduler: task.state });
         task.execute();
     }

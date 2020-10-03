@@ -28,13 +28,13 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
             messages: {},
             nodes: {},
         };
-        this._client.onevent(this.receive);
+        this._client.onevent(this.receive.bind(this));
     }
 
     attrs(attrs: CanvasAttrs) {
         this.dispatch({
             attrs: attrs,
-            withQ: this._selection.withQ,
+            ...(this._selection.withQ !== undefined ? { withQ: this._selection.withQ } : {}),
         });
         return this;
     }
@@ -63,7 +63,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
             ...this._selection,
             ids: (ids ?? ['*' as ID]).map((id) => String(id)),
             data: ids ?? ['*' as ID],
-            parent: { key: 'canvas', selection: this, root: this },
+            parent: { key: 'nodes', selection: this, root: this },
         });
     }
 
@@ -110,7 +110,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
                       }),
             data: ids ?? ['*'],
             tuples: ids,
-            parent: { key: 'canvas', selection: this, root: this },
+            parent: { key: 'edges', selection: this, root: this },
         });
     }
 
@@ -138,7 +138,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
             ...this._selection,
             ids: (ids ?? ['*' as ID]).map((id) => String(id)),
             data: ids ?? ['*' as ID],
-            parent: { key: 'canvas', selection: this, root: this },
+            parent: { key: 'labels', selection: this, root: this },
         });
     }
 

@@ -1,0 +1,7 @@
+{
+    "out": "docs/",
+    "inputFiles": ["src/index.ts", "src/api"],
+    "mode": "file",
+    "excludeNotDocumented": true,
+    "excludeExternals": true
+}
