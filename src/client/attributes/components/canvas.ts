@@ -8,14 +8,7 @@ import {
     TupleSpec,
     RecordEntries,
 } from '../attr-spec';
-import {
-    ElementSpec,
-    SvgSpec,
-    elementSpecEntries,
-    svgSpecEntries,
-    elementDefaults,
-    svgDefaults,
-} from './element';
+import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { CanvasVar, canvasVars } from './expression';
 import { WithCommonSpec, withCommonSpec, commonDefaults } from './common';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
@@ -43,8 +36,7 @@ export type CanvasSpec = RecordSpec<
         readonly panlimit: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly zoomlimit: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly zoomkey: WithCommonSpec<BoolSpec>;
-    } & RecordEntries<ElementSpec> &
-        RecordEntries<SvgSpec>
+    } & RecordEntries<ElementSpec>
 >;
 
 export const canvasSpec: CanvasSpec = {
@@ -71,7 +63,6 @@ export const canvasSpec: CanvasSpec = {
         zoomlimit: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
         zoomkey: withCommonSpec({ type: AttrType.Boolean }),
         ...elementSpecEntries,
-        ...svgSpecEntries,
     },
     validVars: canvasVars,
 };
@@ -93,7 +84,6 @@ export const canvasDefaults: FullAttr<CanvasSpec> = {
     zoomlimit: { ...commonDefaults, value: [0.1, 10] },
     zoomkey: { ...commonDefaults, value: false },
     ...elementDefaults,
-    ...svgDefaults,
 };
 
 export const createCanvasDefaults = (

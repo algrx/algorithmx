@@ -1,7 +1,8 @@
 import { InputAttr } from '../client/attributes/derived-attr';
 import { EdgeSpec, EdgeCurve } from '../client/attributes/components/edge';
 
-import { ElementSelection, ElementContext, evalElementArg, applyAttrs } from './ElementSelection';
+import { ElementSelection, ElementContext } from './ElementSelection';
+import { evalElementArg, applyAttrs } from './utils';
 import { ElementId, ElementArg, NumAttr } from './types';
 import { LabelSelection } from './LabelSelection';
 
@@ -152,15 +153,6 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
      */
     path(path: ElementArg<ReadonlyArray<[NumAttr, NumAttr]>, D>) {
         return this.attrs({ path });
-    }
-
-    /**
-     * Sets custom SVG attributes on the edge's `path` element.
-     *
-     * @param svgattrs - A dictionary of SVG attributes, where each attribute is a string.
-     */
-    svgattrs(svgattrs: ElementArg<{ readonly [k: string]: string }, D>) {
-        return this.attrs({ svgattrs });
     }
 
     data<ND>(data: ReadonlyArray<ND>): EdgeSelection<ND> {

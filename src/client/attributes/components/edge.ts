@@ -14,14 +14,7 @@ import {
 } from '../attr-spec';
 import { FullAttr, PartialAttr } from '../derived-attr';
 import { WithCommonSpec, withCommonSpec, commonDefaults, CommonSpec } from './common';
-import {
-    ElementSpec,
-    SvgSpec,
-    elementSpecEntries,
-    svgSpecEntries,
-    elementDefaults,
-    svgDefaults,
-} from './element';
+import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { COLORS } from './color';
 import { mapDict, filterDict, mergeDiff } from '../../utils';
@@ -61,8 +54,7 @@ export type EdgeSpec = RecordSpec<
         >;
         readonly curve: WithCommonSpec<ExactStringSpec<EdgeCurve>>;
         readonly path: WithCommonSpec<ArraySpec<TupleSpec<NumSpec>>>;
-    } & RecordEntries<ElementSpec> &
-        RecordEntries<SvgSpec>
+    } & RecordEntries<ElementSpec>
 >;
 
 export const edgeSpec: EdgeSpec = {
@@ -95,7 +87,6 @@ export const edgeSpec: EdgeSpec = {
             },
         }),
         ...elementSpecEntries,
-        ...svgSpecEntries,
     },
 };
 
@@ -116,7 +107,6 @@ export const edgeDefaults: FullAttr<EdgeSpec> = {
     curve: { ...commonDefaults, value: 'natural' },
     path: { ...commonDefaults, value: [] },
     ...elementDefaults,
-    ...svgDefaults,
 };
 
 const edgeLabelDefaults: FullAttr<LabelSpec> = mergeDiff(labelDefaults, {

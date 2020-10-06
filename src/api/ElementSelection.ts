@@ -4,7 +4,13 @@ import { ElementSpec, VisibleAnimType } from '../client/attributes/components/el
 import { AnimEase } from '../client/attributes/components/animation';
 
 import { ElementArg, ElementFn, ElementAttrs } from './types';
-import { EventHandler } from './event-handler';
+import {
+    EventHandler,
+    applyAttrs,
+    ElementObjArg,
+    evalElementObjArg,
+    evalElementArg,
+} from './utils';
 
 export interface ElementParent {
     readonly key: string;
@@ -20,58 +26,6 @@ export interface ElementContext<D> {
     readonly parent?: ElementParent;
 }
 
-type ElementObjArg<T, D> = ElementArg<T, D> | { readonly [k in keyof T]: ElementArg<T[k], D> };
-
-const isElementFn = <V, D>(v: ElementArg<V, D>): v is ElementFn<V, D> => typeof v === 'function';
-
-export const evalElementArg = <T, D>(arg: ElementArg<T, D>, d: D, i: number): T => {
-    if (isElementFn(arg)) return arg(d, i);
-    else return arg;
-};
-
-const evalElementObjArg = <T, D>(arg: ElementObjArg<T, D>, d: D, i: number): T => {
-    // evaluate the entire object as a function
-    if (isElementFn(arg)) return arg(d, i);
-    else {
-        if (Object.keys(arg).every((k) => !isElementFn(attrObj[k as keyof T]))) {
-            // simply return the object if it has no function keys
-            return arg as T;
-        }
-
-        // evaluate each key which has a function
-        let attrObj = {} as T;
-        Object.keys(arg).forEach((k) => {
-            const v = arg[k as keyof T] as ElementArg<T[keyof T], D>;
-            attrObj[k as keyof T] = isElementFn(v) ? v(d, i) : v;
-        });
-        return attrObj;
-    }
-};
-
-export const applyAttrs = <T, D>(
-    selection: ElementContext<D>,
-    attrFn: (data: D, dataIndex: number, elementIndex: number) => T
-) => {
-    if (selection.data !== undefined) {
-        // evaluate using the current data
-        let dict: { [k: string]: T } = {};
-        Object.keys(selection.ids).forEach((k, i) => {
-            dict[k] = attrFn(selection.data![i], i, i);
-        });
-        selection.parent!.selection.attrs({ [selection.parent!.key]: dict });
-    } else {
-        // pass a function on to the parent, so that the parent's data is used
-        const dictFn = (data: D, dataIndex: number) => {
-            let dict: { [k: string]: T } = {};
-            Object.keys(selection.ids).forEach((k, i) => {
-                dict[k] = attrFn(data, dataIndex, i);
-            });
-            return dict;
-        };
-        selection.parent!.selection.attrs({ [selection.parent!.key]: dictFn });
-    }
-};
-
 /**
  * A selection of elements. Inherited by nodes, edges, labels and the canvas itself.
  */
@@ -85,8 +39,8 @@ export class ElementSelection<T extends ElementAttrs, D> {
     }
 
     /**
-     * Applies a dictionary of attributes on all selected elements. The whole dictionary, or any of its
-     * direct entries, can also be provided as an [[ElementFn]].
+     * Applies a dictionary of attributes on all selected elements. The whole dictionary, or any of
+     * its direct entries, can also be provided as an [[ElementFn]].
      *
      * @param attrs - An attribute dictionary, see [[ElementAttrs]].
      */
@@ -105,19 +59,12 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * further attribute initialisation.
      */
     add(attrs?: ElementObjArg<T, D>, animtype?: ElementArg<VisibleAnimType, D>) {
-        applyAttrs(this._selection, (data, i) => {
-            const initAttrs = attrs ? evalElementArg(attrs, data, i) : ({} as T);
-            if (animtype !== undefined) {
-                return {
-                    visible: {
-                        ...(typeof initAttrs.visible === 'object'
-                            ? (initAttrs.visible as {})
-                            : { value: initAttrs.visible }),
-                        animtype: evalElementArg(animtype, data, i),
-                    },
-                    ...initAttrs,
-                };
-            } else return initAttrs as T;
+        applyAttrs(this._selection, (d, i) => {
+            const initAttrs = attrs ? evalElementArg(attrs, d, i) : ({} as T);
+            return {
+                ...(animtype ? { visible: { animtype: evalElementArg(animtype, d, i) } } : {}),
+                ...initAttrs,
+            } as T;
         });
 
         return this.duration(0);
@@ -129,12 +76,14 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * @param animtype - "fade" (animate transparancy) or "scale" (animate size).
      */
     remove(animtype?: ElementArg<VisibleAnimType, D>) {
-        return this.attrs(
-            (d, i) =>
-                ({
-                    ...(animtype ? { visible: { animtype: evalElementArg(animtype, d, i) } } : {}),
-                } as T)
-        );
+        if (animtype)
+            return this.attrs(
+                (d, i) =>
+                    ({
+                        visible: { animtype: evalElementArg(animtype, d, i) },
+                    } as T)
+            );
+        else return this.attrs({} as T);
     }
 
     /**
@@ -154,6 +103,21 @@ export class ElementSelection<T extends ElementAttrs, D> {
                     },
                 } as T)
         );
+    }
+
+    /**
+     * Sets a custom SVG attribute on the element. The root SVG tag is `<shape>` for nodes, `<path>`
+     * for edges, `<text>` for labels, and `<svg>` for the canvas.
+     *
+     * Note that when using [[ElementSelection.attrs]], SVG attributes should be provided as a
+     * dictionary under the key `svgattrs`.
+     *
+     * @param key - The name of the SVG attribute.
+     *
+     * @param value - The value of the SVG attribute.
+     */
+    svgattr(key: string, value: ElementArg<string | number, D>) {
+        return this.attrs((d, i) => ({ svgattrs: { [key]: evalElementArg(value, d, i) } } as T));
     }
 
     /**
@@ -177,8 +141,8 @@ export class ElementSelection<T extends ElementAttrs, D> {
     }
 
     /**
-     * Configures the duration of all animations triggered by the selection. A duration of `0` will
-     * ensure that changes occur immediately. The default duration is `0.5`.
+     * Configures the duration of all animations triggered by the selection. A duration of 0 will
+     * ensure that changes occur immediately. The default duration is usually 0.5.
      *
      * @param seconds - The animation duration, in seconds.
      *
@@ -225,7 +189,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * used to draw attention to a certain element without permanently changing its attributes.
      *
      * @param seconds - The amount of time attributes should remain 'highlighted', in seconds,
-     * before changing back to their original values. Defaults to `0.5`.
+     * before changing back to their original values. Defaults to 0.5.
      *
      * @return A new instance of the current selection, where all attribute changes are temporary.
      */
@@ -241,7 +205,8 @@ export class ElementSelection<T extends ElementAttrs, D> {
     }
 
     /**
-     * Adds a pause to the event queue, delaying the next event by the given number of seconds.
+     * Pauses the current event queue for the given number of seconds. This is a convenience
+     * shortcut for [[QueueSelection.pause]].
      *
      * @param seconds - The duration of the pause, in seconds.
      */

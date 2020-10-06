@@ -18,14 +18,7 @@ import {
     WithCommonSpec,
     applyDefaults,
 } from './common';
-import {
-    ElementSpec,
-    SvgSpec,
-    elementSpecEntries,
-    svgSpecEntries,
-    elementDefaults,
-    svgDefaults,
-} from './element';
+import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { COLORS } from './color';
 import { mapDict, filterDict } from '../../utils';
 import { combineAttrs, mapAttr } from '../attr-utils';
@@ -56,8 +49,7 @@ export type LabelSpec = RecordSpec<
         readonly color: WithCommonSpec<StringSpec>;
         readonly font: WithCommonSpec<StringSpec>;
         readonly size: WithCommonSpec<NumSpec>;
-    } & RecordEntries<ElementSpec> &
-        RecordEntries<SvgSpec>
+    } & RecordEntries<ElementSpec>
 >;
 
 export const labelSpec: LabelSpec = {
@@ -73,7 +65,6 @@ export const labelSpec: LabelSpec = {
         font: withCommonSpec({ type: AttrType.String }),
         size: withCommonSpec({ type: AttrType.Number }),
         ...elementSpecEntries,
-        ...svgSpecEntries,
     },
 };
 
@@ -88,7 +79,6 @@ export const labelDefaults: FullAttr<LabelSpec> = {
     font: { ...commonDefaults, value: 'Arial, Helvetica, sans-serif' },
     size: { ...commonDefaults, value: 12 },
     ...elementDefaults,
-    ...svgDefaults,
 };
 
 export const ALIGN_ANGLES: { readonly [k in LabelAlign]: number } = {

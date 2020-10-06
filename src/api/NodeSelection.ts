@@ -2,9 +2,9 @@ import { NodeSpec, NodeShape } from '../client/attributes/components/node';
 import { InputAttr } from '../client/attributes/derived-attr';
 import { VisibleAnimType } from '../client/attributes/components/element';
 
-import { addElementCallback } from './event-handler';
 import { LabelSelection } from './LabelSelection';
-import { ElementSelection, evalElementArg, ElementContext } from './ElementSelection';
+import { ElementSelection } from './ElementSelection';
+import { addElementCallback } from './utils';
 import { ElementArg, ElementId, ElementFn, ElementAttrs, NumAttr } from './types';
 
 export type InputNodeAttrs = InputAttr<NodeSpec>;
@@ -117,15 +117,6 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
      */
     draggable(draggable: ElementArg<boolean, D>) {
         return this.attrs({ draggable });
-    }
-
-    /**
-     * Set custom SVG attributes on the node's shape element.
-     *
-     * @param attrs - A dictionary of SVG attributes, where each attribute is a string.
-     */
-    svgattrs(svgattrs: ElementArg<{ readonly [k: string]: string }, D>) {
-        return this.attrs({ svgattrs: svgattrs });
     }
 
     /**

@@ -17,14 +17,7 @@ import {
     CommonSpec,
     applyDefaults,
 } from './common';
-import {
-    ElementSpec,
-    SvgSpec,
-    elementSpecEntries,
-    svgSpecEntries,
-    elementDefaults,
-    svgDefaults,
-} from './element';
+import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { CanvasVar, NodeVar, NodeLabelVar, nodeVars, nodeLabelVars } from './expression';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { COLORS } from './color';
@@ -47,8 +40,7 @@ export type NodeSpec = RecordSpec<
         readonly draggable: WithCommonSpec<BoolSpec>;
         readonly hover: WithCommonSpec<BoolSpec>;
         readonly click: WithCommonSpec<BoolSpec>;
-    } & RecordEntries<ElementSpec> &
-        RecordEntries<SvgSpec>
+    } & RecordEntries<ElementSpec>
 >;
 
 export const nodeSpec: NodeSpec = {
@@ -70,7 +62,6 @@ export const nodeSpec: NodeSpec = {
         hover: withCommonSpec({ type: AttrType.Boolean }),
         click: withCommonSpec({ type: AttrType.Boolean }),
         ...elementSpecEntries,
-        ...svgSpecEntries,
     },
     validVars: nodeVars,
 };
@@ -88,7 +79,6 @@ const nodeDefaults: FullAttr<NodeSpec> = {
     hover: { ...commonDefaults, value: false },
     click: { ...commonDefaults, value: false },
     ...elementDefaults,
-    ...svgDefaults,
 };
 
 export const radiusAtAngle = (angle: number, rx: number, ry: number, shape: NodeShape): number => {

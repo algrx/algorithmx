@@ -1,5 +1,5 @@
 import { ElementFn, ElementArg } from './types';
-import { EventHandler } from './event-handler';
+import { EventHandler } from './utils';
 import { DispatchEvent } from '../client/types';
 
 interface QueueContext {

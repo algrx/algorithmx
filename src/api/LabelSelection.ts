@@ -113,15 +113,6 @@ export class LabelSelection<D> extends ElementSelection<InputLabelAttrs, D> {
         return this.attrs({ size });
     }
 
-    /**
-     * Set custom SVG attributes on the label's `text` element.
-     *
-     * @param attrs - A dictionary of SVG attributes, where each attribute is a string.
-     */
-    svgattrs(svgattrs: ElementArg<{ readonly [k: string]: string }, D>) {
-        return this.attrs({ svgattrs: svgattrs });
-    }
-
     data<ND>(data: ReadonlyArray<ND>): LabelSelection<ND> {
         return super.data(data) as LabelSelection<ND>;
     }

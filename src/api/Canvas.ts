@@ -4,11 +4,11 @@ import { CanvasSpec, EdgeLengthType } from '../client/attributes/components/canv
 import { CanvasElement, ReceiveEvent, DispatchEvent } from '../client/types';
 import { Client as InternalClient } from '../client/client';
 
-import { EventHandler, ClientCallbacks, execCallbacks } from './event-handler';
 import { ElementSelection } from './ElementSelection';
 import { NodeSelection } from './NodeSelection';
 import { EdgeSelection, EdgeId } from './EdgeSelection';
 import { LabelSelection } from './LabelSelection';
+import { EventHandler, ClientCallbacks, ElementCallbacks } from './utils';
 import { ElementId, NumAttr } from './types';
 
 export type CanvasAttrs = InputAttr<CanvasSpec>;
@@ -146,8 +146,8 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      * Sets the width and height of the canvas.
      *
      * This will determine the coordinate system, and will update the `width` and `height`
-     * attributes of the main SVG element, unless otherwise specified with [[Canvas.svgattrs]]. Size
-     * is not animated by default.
+     * attributes of the main SVG element, unless otherwise specified with
+     * [[ElementSelection.svgattr]]. Size is not animated by default.
      *
      * @param value - A (width, height) tuple.
      */
@@ -235,15 +235,6 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
     }
 
     /**
-     * Sets custom SVG attributes on the canvas's `svg` element.
-     *
-     * @param svgattrs - A dictionary of SVG attributes, where each attribute is a string.
-     */
-    svgattrs(svgattrs: { readonly [k: string]: string }) {
-        return this.attrs({ svgattrs });
-    }
-
-    /**
      * Selects a single event queue by its ID. The default queue has ID 0. Use "*" to select all
      * existing queues.
      *
@@ -321,7 +312,33 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      * @param event - A partial event object.
      */
     receive(event: ReceiveEvent) {
-        execCallbacks(this._callbacks, event);
+        //execCallbacks(this._callbacks, event);
+        const cbs = this._callbacks;
+
+        // event callback
+        if (cbs.onreceive) cbs.onreceive(event);
+
+        // message callbacks
+        if (event.message && cbs.messages) {
+            if ('*' in cbs.messages) cbs.messages['*']!(event.message);
+            if (event.message in cbs.messages) cbs.messages[event.message]();
+        }
+
+        // node click/hover callbacks
+        const elementEventTypes = <const>['click', 'hoverin', 'hoverout'];
+        const elementTypes = <const>['nodes'];
+
+        elementTypes.forEach((elementType) => {
+            if (!(elementType in event && elementType in cbs)) return;
+
+            Object.entries(event[elementType]!).forEach(([k, elementEvents]) => {
+                Object.keys(elementEvents).forEach((eventType) => {
+                    if (k in cbs.nodes && eventType in cbs[elementType][k])
+                        cbs[elementType][k][eventType as keyof ElementCallbacks]!();
+                });
+            });
+        });
+
         return this;
     }
 

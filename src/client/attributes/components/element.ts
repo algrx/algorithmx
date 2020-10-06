@@ -19,6 +19,7 @@ export type ElementSpec = RecordSpec<{
             readonly animtype: ExactStringSpec<VisibleAnimType>;
         }
     >;
+    readonly svgattrs: DictSpec<WithCommonSpec<StringSpec>>;
 }>;
 export const elementSpecEntries: RecordEntries<ElementSpec> = {
     visible: {
@@ -32,6 +33,10 @@ export const elementSpecEntries: RecordEntries<ElementSpec> = {
             },
         },
     },
+    svgattrs: {
+        type: AttrType.Dict,
+        entry: withCommonSpec({ type: AttrType.String }),
+    },
 };
 
 export const elementDefaults: FullAttr<ElementSpec> = {
@@ -40,18 +45,6 @@ export const elementDefaults: FullAttr<ElementSpec> = {
         value: true,
         animtype: 'fade',
     },
-};
-
-export type SvgSpec = RecordSpec<{
-    readonly svgattrs: DictSpec<WithCommonSpec<StringSpec>>;
-}>;
-export const svgSpecEntries: RecordEntries<SvgSpec> = {
-    svgattrs: {
-        type: AttrType.Dict,
-        entry: withCommonSpec({ type: AttrType.String }),
-    },
-};
-export const svgDefaults: FullAttr<SvgSpec> = {
     svgattrs: {
         '*': { value: '', ...commonDefaults },
     },
