@@ -1,6 +1,6 @@
 import { QueueSelection } from './QueueSelection';
 import { InputAttr } from '../client/attributes/derived-attr';
-import { CanvasSpec, EdgeLengthType } from '../client/attributes/components/canvas';
+import { CanvasSpec, EdgeLayout } from '../client/attributes/components/canvas';
 import { CanvasElement, ReceiveEvent, DispatchEvent } from '../client/types';
 import { Client as InternalClient } from '../client/client';
 
@@ -76,7 +76,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      *
      * When accessing edges using string IDs, e.g. through [[Canvas.attrs]], the following rules
      * apply:
-     * - New edges with IDs in the form "source-target(-ID)" will automatically initialise their
+     * - New edges with IDs in the form "source-target(-ID)" will automatically initialize their
      * `source`/`target` attributes.
      * - For edges with `directed` set to false, "target-source(-ID)" will fall back to
      * "source-target(-ID)".
@@ -162,18 +162,18 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      *
      * More information is available at [[https://github.com/tgdwyer/WebCola/wiki/link-lengths]].
      *
-     * @param type - The edge length calculation strategy:
+     * @param edgelayout - The edge length calculation strategy:
      * - "individual": Uses each edge's `length` attribute individually.
-     * - "jaccard" (default), "symmetric": Dynamic calculation based on canvas's `edgelength`
-     *   attribute.
+     * - "jaccard" (default): Dynamic calculation based on [[Canvas.edgelength]].
+     * - "symmetric": Dynamic calculation based on [[Canvas.edgelength]].
      */
-    edgelengthtype(type: EdgeLengthType) {
-        return this.attrs({ edgelengthtype: type });
+    edgelayout(edgelayout: EdgeLayout) {
+        return this.attrs({ edgelayout });
     }
 
     /**
-     * Sets the average length of all edges. This only applies if [[Canvas.edgelengthtype]] is not
-     * "individual". The default averate edge length is 70.
+     * Sets the average length of all edges. This only applies if [[Canvas.edgelayout]] is not
+     * "individual". The default average edge length is 70.
      *
      * @param edgelength - The average edge length.
      */

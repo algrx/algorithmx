@@ -21,7 +21,7 @@ import { VarDict, evalAttr, usesVars, evalDeep } from '../expr-utils';
 import { combineAttrs } from '../attr-utils';
 
 export const edgeLengthType = <const>['individual', 'symmetric', 'jaccard'];
-export type EdgeLengthType = typeof edgeLengthType[number];
+export type EdgeLayout = typeof edgeLengthType[number];
 
 export type CanvasSpec = RecordSpec<
     {
@@ -29,7 +29,7 @@ export type CanvasSpec = RecordSpec<
         readonly edges: DictSpec<EdgeSpec>;
         readonly labels: DictSpec<LabelSpec>;
         readonly size: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly edgelengthtype: WithCommonSpec<ExactStringSpec<EdgeLengthType>>;
+        readonly edgelayout: WithCommonSpec<ExactStringSpec<EdgeLayout>>;
         readonly edgelength: WithCommonSpec<NumSpec>;
         readonly pan: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly zoom: WithCommonSpec<NumSpec>;
@@ -55,7 +55,7 @@ export const canvasSpec: CanvasSpec = {
             entry: labelSpec,
         },
         size: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        edgelengthtype: withCommonSpec({ type: AttrType.String, validValues: edgeLengthType }),
+        edgelayout: withCommonSpec({ type: AttrType.String, validValues: edgeLengthType }),
         edgelength: withCommonSpec({ type: AttrType.Number }),
         pan: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
         zoom: withCommonSpec({ type: AttrType.Number }),
@@ -76,7 +76,7 @@ export const canvasDefaults: FullAttr<CanvasSpec> = {
         value: [100, 100],
         duration: 0,
     },
-    edgelengthtype: { ...commonDefaults, value: 'jaccard' },
+    edgelayout: { ...commonDefaults, value: 'jaccard' },
     edgelength: { ...commonDefaults, value: 70 },
     pan: { ...commonDefaults, value: [0, 0] },
     zoom: { ...commonDefaults, value: 1 },
