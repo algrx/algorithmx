@@ -35,7 +35,7 @@ export type CanvasSpec = RecordSpec<
         readonly zoom: WithCommonSpec<NumSpec>;
         readonly panlimit: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly zoomlimit: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly zoomkey: WithCommonSpec<BoolSpec>;
+        readonly zoomtoggle: WithCommonSpec<BoolSpec>;
     } & RecordEntries<ElementSpec>
 >;
 
@@ -61,7 +61,7 @@ export const canvasSpec: CanvasSpec = {
         zoom: withCommonSpec({ type: AttrType.Number }),
         panlimit: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
         zoomlimit: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        zoomkey: withCommonSpec({ type: AttrType.Boolean }),
+        zoomtoggle: withCommonSpec({ type: AttrType.Boolean }),
         ...elementSpecEntries,
     },
     validVars: canvasVars,
@@ -82,7 +82,7 @@ export const canvasDefaults: FullAttr<CanvasSpec> = {
     zoom: { ...commonDefaults, value: 1 },
     panlimit: { ...commonDefaults, value: [Infinity, Infinity] },
     zoomlimit: { ...commonDefaults, value: [0.1, 10] },
-    zoomkey: { ...commonDefaults, value: false },
+    zoomtoggle: { ...commonDefaults, value: false },
     ...elementDefaults,
 };
 

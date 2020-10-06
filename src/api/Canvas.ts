@@ -230,8 +230,8 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      *
      * @param value - True if the `ctrl`/`cmd` key is required, false otherwise.
      */
-    zoomkey(zoomkey: boolean) {
-        return this.attrs({ zoomkey });
+    zoomtoggle(zoomtoggle: boolean) {
+        return this.attrs({ zoomtoggle });
     }
 
     /**
