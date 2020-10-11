@@ -36,7 +36,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * - ease: The animation ease, see [[ElementSelection.ease]].
      * - highlight: Whether the change is temporary, see [[ElementSelection.highlight]].
      * - linger: How long a highlight should last, see [[ElementSelection.highlight]].
-     * - Some attributes may also contain additional properties.
+     * - (animtype, etc.): Additional attribute-specific properties.
      *
      * The whole dictionary, or any of its direct entries, can be provided as an [[ElementFn]].
      *
@@ -164,8 +164,8 @@ export class ElementSelection<T extends ElementAttrs, D> {
     duration(seconds: number): this {
         return new this.constructor({
             ...this._selection,
-            defaultattr: {
-                ...this._selection.defaultattr,
+            animation: {
+                ...this._selection.animation,
                 duration: seconds,
             },
         }) as this;
@@ -190,8 +190,8 @@ export class ElementSelection<T extends ElementAttrs, D> {
     ease(ease: AnimEase): this {
         return new this.constructor({
             ...this._selection,
-            defaultattr: {
-                ...this._selection.defaultattr,
+            animation: {
+                ...this._selection.animation,
                 ease: ease,
             },
         }) as this;
@@ -209,8 +209,8 @@ export class ElementSelection<T extends ElementAttrs, D> {
     highlight(seconds?: number): this {
         return new this.constructor({
             ...this._selection,
-            defaultattr: {
-                ...this._selection.defaultattr,
+            animation: {
+                ...this._selection.animation,
                 highlight: true,
                 linger: seconds,
             },

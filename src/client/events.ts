@@ -1,9 +1,15 @@
-import { CanvasSpec, canvasSpec } from './attributes/components/canvas';
+import { CanvasSpec, canvasSpec, createCanvasDefaults } from './attributes/components/canvas';
 import { AnimSpec, animSpec } from './attributes/components/animation';
 import { InputAttr, FullAttr, PartialAttr } from './attributes/derived';
 import { preprocess } from './attributes/preprocess';
 import { AttrType } from './attributes/spec';
 import { CanvasElement, ClientState, ReceiveEvent, DispatchEvent } from './types';
+import {
+    removeInvalidEdges,
+    adjustEdgeIds,
+    applyDefaults,
+    applyAnimDefaults,
+} from './attributes/transform';
 
 export interface EventContext {
     readonly state: ClientState;
@@ -47,35 +53,52 @@ const renderBehavior = (
 
 const updateAttrs = (
     context: EventContext,
-    inputChanges: InputAttr<CanvasSpec>,
+    inputAttrs: InputAttr<CanvasSpec>,
     inputDefaults?: InputAttr<AnimSpec>
 ): ClientState => {
     const state = context.state;
 
     // preprocess the attribute changes changes
-    const preChanges = preprocess(
+    const preprocChanges = preprocess(
         canvasSpec,
         { path: [['canvas', AttrType.Record]], validVars: [] },
-        inputChanges
+        inputAttrs
     );
-    if (preChanges instanceof Error) {
-        context.callback({ error: { type: 'attribute', message: preChanges.message } });
+    if (preprocChanges instanceof Error) {
+        context.callback({ error: { type: 'attribute', message: preprocChanges.message } });
         return state;
     }
 
     // preprocess the attribute endpoint defaults
-    const defaultAttr = preprocess(
+    const animation = preprocess(
         animSpec,
         { path: [['defaultattr', AttrType.Record]], validVars: [] },
         inputDefaults ?? {}
     );
-    if (defaultAttr instanceof Error) {
-        context.callback({ error: { type: 'attribute', message: defaultAttr.message } });
+    if (animation instanceof Error) {
+        context.callback({ error: { type: 'attribute', message: animation.message } });
         return state;
     }
 
-    const allChanges = preChanges;
-    console.log(preChanges);
+    const prevAttrs = state.attributes;
+
+    const transformedChanges = adjustEdgeIds(
+        prevAttrs,
+        removeInvalidEdges(prevAttrs, preprocChanges)
+    );
+    //console.log(transformedChanges)
+    //console.log(animation)
+    //console.log(applyAnimDefaults(canvasSpec, transformedChanges, animation))
+
+    const changesWithDefaults = applyDefaults(
+        canvasSpec,
+        prevAttrs,
+        applyAnimDefaults(canvasSpec, transformedChanges, animation),
+        createCanvasDefaults(prevAttrs, transformedChanges)
+    );
+    console.log(changesWithDefaults);
+
+    const allChanges = preprocChanges;
     const fullAttrs = state.attributes;
 
     /*
@@ -118,7 +141,7 @@ export const executeEvent = (context: EventContext, event: DispatchEvent): Clien
 
     const attrState =
         event.attrs !== undefined
-            ? updateAttrs(context, event.attrs, event.defaultattr)
+            ? updateAttrs(context, event.attrs, event.animation)
             : context.state;
 
     return attrState;

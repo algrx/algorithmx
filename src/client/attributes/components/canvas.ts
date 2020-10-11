@@ -14,7 +14,7 @@ import { CanvasVar, canvasVars } from './expression';
 import { WithAnimSpec, withAnimSpec, animDefaults } from './animation';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { NodeSpec, nodeSpec, createNodeDictDefaults, evalNode } from './node';
-import { EdgeSpec, edgeSpec, createEdgeDictDefaults, edgeDefaults } from './edge';
+import { EdgeSpec, edgeSpec, createEdgeDictDefaults, edgeDefaults, parseEdgeId } from './edge';
 import { COLORS } from './color';
 import { mergeDiff, mapDict } from '../../utils';
 import { VarDict, evalAttr, usesVars, evalDeep } from '../expr-utils';
@@ -87,14 +87,14 @@ export const canvasDefaults: FullAttr<CanvasSpec> = {
 };
 
 export const createCanvasDefaults = (
-    attrs: FullAttr<CanvasSpec> | undefined,
+    prevAttrs: FullAttr<CanvasSpec> | undefined,
     changes: PartialAttr<CanvasSpec>
 ): FullAttr<CanvasSpec> => {
     return {
         ...canvasDefaults,
-        nodes: createNodeDictDefaults(attrs?.nodes, changes.nodes ?? {}),
-        edges: createEdgeDictDefaults(attrs?.edges, changes.edges ?? {}),
-        labels: mapDict(createLabelDictDefaults(attrs?.labels, changes.labels ?? {}), (label) =>
+        nodes: createNodeDictDefaults(prevAttrs?.nodes, changes.nodes ?? {}),
+        edges: createEdgeDictDefaults(prevAttrs?.edges, changes.edges ?? {}),
+        labels: mapDict(createLabelDictDefaults(prevAttrs?.labels, changes.labels ?? {}), (label) =>
             mergeDiff(label, {
                 align: 'middle',
                 pos: { value: [0, { m: 0.5, x: 'cy', c: 0 }] },
@@ -107,26 +107,26 @@ export const createCanvasDefaults = (
 };
 
 export const evalCanvas = (
-    attrs: FullAttr<CanvasSpec> | undefined,
+    prevAttrs: FullAttr<CanvasSpec> | undefined,
     changes: PartialAttr<CanvasSpec>,
     selfRefOnly: boolean
 ): PartialAttr<NodeSpec> => {
     // get node variables from attributes
     const canvasVars: VarDict<CanvasVar> = {
-        cx: evalAttr(attrs?.size.value[0], changes.size?.value?.[0], {}),
-        cy: evalAttr(attrs?.size.value[1], changes.size?.value?.[1], {}),
+        cx: evalAttr(prevAttrs?.size.value[0], changes.size?.value?.[0], {}),
+        cy: evalAttr(prevAttrs?.size.value[1], changes.size?.value?.[1], {}),
     };
 
     // evaluate child attributes
     return combineAttrs(
         canvasSpec,
-        attrs,
+        prevAttrs,
         changes,
         (childAttr, childChanges, childKey, childSpec) => {
             if (childKey === 'nodes') {
                 return combineAttrs(
                     canvasSpec.entries.nodes,
-                    attrs?.nodes,
+                    prevAttrs?.nodes,
                     changes.nodes,
                     (nodeAttrs, nodeChanges) => {
                         if (nodeChanges)
@@ -160,37 +160,6 @@ export const evalCanvas = (
             }
 
             return evalDeep(childSpec, childAttr, childChanges, canvasVars);
-        }
-    );
-};
-
-// remove edges connected to nodes which are being removed
-export const removeInvalidEdges = (
-    attrs: FullAttr<CanvasSpec>,
-    changes: PartialAttr<CanvasSpec>
-): PartialAttr<CanvasSpec> => {
-    const isValid = (edgeId: string): boolean => {
-        if (!changes.nodes) return true;
-
-        const source = changes.edges?.[edgeId].source ?? attrs.edges[edgeId].source;
-        const target = changes.edges?.[edgeId].target ?? attrs.edges[edgeId].target;
-
-        // check if the node is being removed
-        if (changes.nodes[source]?.visible?.value === false) return false;
-        if (changes.nodes[target]?.visible?.value === false) return false;
-
-        return true;
-    };
-
-    return combineAttrs(
-        canvasSpec.entries.edges,
-        attrs?.edges,
-        changes.edges,
-        (edgeAttrs, edgeChanges, k) => {
-            if (edgeAttrs && !isValid(k))
-                return { visible: { ...edgeDefaults.visible, value: false } };
-
-            return edgeChanges;
         }
     );
 };

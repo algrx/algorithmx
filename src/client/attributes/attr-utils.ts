@@ -26,12 +26,20 @@ export const isPrimitive = (spec: AttrSpec): spec is PrimitiveSpec => {
     );
 };
 
-export const getAttrEntry = <T extends AttrSpec>(
+export function getAttrEntry<T extends AttrSpec>(
     v: PartialAttr<T>,
     k: AttrKey<T>
-): PartialAttr<EntrySpec<T>> | undefined => {
+): PartialAttr<EntrySpec<T>> | undefined;
+export function getAttrEntry<T extends AttrSpec>(
+    v: FullAttr<T>,
+    k: AttrKey<T>
+): FullAttr<EntrySpec<T>> | undefined;
+export function getAttrEntry<T extends AttrSpec>(
+    v: FullAttr<T> | PartialAttr<T>,
+    k: AttrKey<T>
+): FullAttr<EntrySpec<T>> | PartialAttr<EntrySpec<T>> | undefined {
     return ((v as unknown) as Dict<string, PartialAttr<EntrySpec<T>>>)[k as string];
-};
+}
 
 export const getEntrySpec = <T extends AttrSpec>(spec: T, k: AttrKey<T>): EntrySpec<T> => {
     return (spec.type === AttrType.Tuple
@@ -101,26 +109,28 @@ type MapBothFn<T extends AttrSpec> = (
 
 export function combineAttrs<T extends AttrSpec>(
     spec: T,
-    oldAttr: PartialAttr<T> | undefined,
+    // assume that at least one is not undefined
+    prevAttr: PartialAttr<T> | undefined,
     newAttr: PartialAttr<T> | undefined,
     fn: MapBothFn<T>
 ): PartialAttr<T> {
     if (
-        oldAttr === undefined ||
+        prevAttr === undefined ||
+        newAttr === undefined ||
         isPrimitive(spec) ||
         spec.type === AttrType.Array ||
         spec.type === AttrType.Tuple
     ) {
-        return mapAttr(spec, newAttr!, (v, k, s) => fn(undefined, v, k, s));
-    } else if (newAttr === undefined) {
-        return mapAttr(spec, oldAttr!, (v, k, s) => fn(v, undefined, k, s));
+        return prevAttr === undefined
+            ? mapAttr(spec, newAttr!, (v, k, s) => fn(undefined, v, k, s))
+            : mapAttr(spec, prevAttr!, (v, k, s) => fn(v, undefined, k, s));
     } else {
         const sharedKeys = (Array.from(
-            new Set(Object.keys(oldAttr).concat(Object.keys(newAttr)))
+            new Set(Object.keys(prevAttr).concat(Object.keys(newAttr)))
         ) as unknown) as ReadonlyArray<AttrKey<T> & string>;
 
         return (dictFromArray(sharedKeys, (k) =>
-            fn(getAttrEntry(oldAttr, k), getAttrEntry(newAttr, k), k, getEntrySpec(spec, k))
+            fn(getAttrEntry(prevAttr, k), getAttrEntry(newAttr, k), k, getEntrySpec(spec, k))
         ) as unknown) as PartialAttr<T>;
     }
 }

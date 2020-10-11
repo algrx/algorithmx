@@ -5,30 +5,9 @@ export const dictValues = <V>(dict: Dict<string, V>): ReadonlyArray<V> => {
     return Object.values(dict);
 };
 
-/*
-export const mapObj = <T extends {}, V extends Dict<keyof T & string, unknown> = T>(
-    dict: T,
-    fn: <K extends keyof T>(v: T[K], k: K & string, i: number) => V[keyof V] | undefined
-): V => {
-    let newDict = {} as Partial<V>;
-    const keys = Object.keys(dict);
-    for (let i = 0; i < keys.length; i++) {
-        const k = keys[i] as keyof T & string;
-        const v = fn(dict[k], k, i);
-        if (v !== undefined) newDict[k as keyof V] = v;
-    }
-    return newDict as V;
-};
-
-export const mapDict: <T extends Dict<string, unknown>, VE>(
-    dict: T,
-    fn: <K extends keyof T>(v: T[K], k: K & string, i: number) => VE
-) => { readonly [k in keyof T]: VE } = mapObj;
-*/
-
 export const mapDict = <K extends string, V1, V2>(
     dict: Dict<K, V1>,
-    fn: (v: V1, k: K, i: number) => V2
+    fn: (v: V1, k: K, i: number) => V2 | undefined
 ): Dict<K, V2> => {
     let newDict = {} as Partial<Dict<K, V2>>;
     const keys = Object.keys(dict);
@@ -38,6 +17,20 @@ export const mapDict = <K extends string, V1, V2>(
         if (v !== undefined) newDict[k] = v;
     }
     return newDict as Dict<K, V2>;
+};
+
+export const mapDictKeys = <K extends string, V>(
+    dict: Dict<K, V>,
+    fn: (v: V, k: K, i: number) => K | undefined
+): Dict<K, V> => {
+    let newDict = {} as Partial<Dict<K, V>>;
+    const keys = Object.keys(dict);
+    for (let i = 0; i < keys.length; i++) {
+        const prevK = keys[i] as K;
+        const k = fn(dict[prevK], prevK, i);
+        if (k !== undefined) newDict[k] = dict[k];
+    }
+    return newDict as Dict<K, V>;
 };
 
 export const filterDict = <T extends Dict<string, unknown>>(
@@ -51,20 +44,6 @@ export const filterDict = <T extends Dict<string, unknown>>(
         if (fn(dict[k], k, i)) newDict[k] = dict[k];
     }
     return newDict;
-};
-
-export const reduceDict = <T extends Dict<string, unknown>, V>(
-    dict: T,
-    fn: <K extends keyof T>(acc: V, v: T[K], k: K & string, i: number) => V,
-    init: V
-): V => {
-    const keys = Object.keys(dict);
-    let acc = init;
-    for (let i = 0; i < keys.length; i++) {
-        const k = keys[i] as keyof T & string;
-        acc = fn(acc, dict[k], k, i);
-    }
-    return acc;
 };
 
 export const dictFromArray = <K extends string, V>(
@@ -100,7 +79,6 @@ export const mergeDiff = <T>(obj: T, diff: RPartial<T>): T => {
     }
     return diff as T;
 };
-
 /*
 export interface Lookup<T> {
     readonly [k: string]: T;
@@ -159,4 +137,41 @@ export const filterDict = <T extends object>(dict: T, filterFn: FilterFn<T>): Pa
 export const removeWhitespace = (s: string) => s.replace(/\s/g, '');
 
 export const randomId = (): string => Math.random().toString(36).substr(2, 9);
+*/
+
+/*
+export const reduceDict = <T extends Dict<string, unknown>, V>(
+    dict: T,
+    fn: <K extends keyof T>(acc: V, v: T[K], k: K & string, i: number) => V,
+    init: V
+): V => {
+    const keys = Object.keys(dict);
+    let acc = init;
+    for (let i = 0; i < keys.length; i++) {
+        const k = keys[i] as keyof T & string;
+        acc = fn(acc, dict[k], k, i);
+    }
+    return acc;
+};
+*/
+
+/*
+export const mapObj = <T extends {}, V extends Dict<keyof T & string, unknown> = T>(
+    dict: T,
+    fn: <K extends keyof T>(v: T[K], k: K & string, i: number) => V[keyof V] | undefined
+): V => {
+    let newDict = {} as Partial<V>;
+    const keys = Object.keys(dict);
+    for (let i = 0; i < keys.length; i++) {
+        const k = keys[i] as keyof T & string;
+        const v = fn(dict[k], k, i);
+        if (v !== undefined) newDict[k as keyof V] = v;
+    }
+    return newDict as V;
+};
+
+export const mapDict: <T extends Dict<string, unknown>, VE>(
+    dict: T,
+    fn: <K extends keyof T>(v: T[K], k: K & string, i: number) => VE
+) => { readonly [k in keyof T]: VE } = mapObj;
 */

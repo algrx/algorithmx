@@ -27,7 +27,7 @@ export interface ElementContext<D> {
     readonly ids: ReadonlyArray<string>;
     readonly data?: ReadonlyArray<D>;
     readonly withQ?: string | null;
-    readonly defaultattr?: InputAttr<AnimSpec>;
+    readonly animation?: InputAttr<AnimSpec>;
     readonly parentkey?: string;
     readonly parent?: ElementContext<D | unknown>;
     readonly callbacks: ClientCallbacks;
@@ -77,12 +77,13 @@ export const applyAttrs = <T extends {}, D>(
             const attrs = attrFn(context.data[0], 0, 0);
             context.callbacks.dispatch({
                 attrs: attrs,
-                ...(context.defaultattr !== undefined ? { defaultattr: context.defaultattr } : {}),
+                ...(context.animation !== undefined ? { animation: context.animation } : {}),
                 ...(context.withQ !== undefined ? { withQ: context.withQ } : {}),
             });
         }
         return;
     }
+
     const parentAttrFn = (data: D, dataIndex: number) => {
         let dict: { [k: string]: T } = {};
         Object.keys(context.ids).forEach((k, i) => {
@@ -94,7 +95,14 @@ export const applyAttrs = <T extends {}, D>(
         return { [context.parentkey!]: dict };
     };
     // apply attributes on the parent
-    applyAttrs(context.parent as ElementContext<D>, parentAttrFn);
+    applyAttrs(
+        {
+            ...(context.parent as ElementContext<D>),
+            withQ: context.withQ,
+            animation: context.animation,
+        },
+        parentAttrFn
+    );
 };
 
 export const addElementCallback = <D>(

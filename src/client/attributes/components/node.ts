@@ -101,16 +101,16 @@ const initPos = (index: number, offset: number): [number, number] => {
 };
 
 export const createNodeDefaults = (
-    attrs: FullAttr<NodeSpec> | undefined,
+    prevAttrs: FullAttr<NodeSpec> | undefined,
     changes: PartialAttr<NodeSpec>
 ): FullAttr<NodeSpec> => {
     if (!changes.labels) return nodeDefaults;
 
-    const labelDictDefaults = createLabelDictDefaults(attrs?.labels, changes.labels!);
+    const labelDictDefaults = createLabelDictDefaults(prevAttrs?.labels, changes.labels!);
 
     // new labels with any key other than 'value' should be positioned
     // radially around the node by default
-    const prevLabelKeys = Object.keys(attrs?.labels ?? {});
+    const prevLabelKeys = Object.keys(prevAttrs?.labels ?? {});
     const numPrevRadialLabels = prevLabelKeys.filter((k) => k !== VALUE_LABEL_ID).length;
     const newRadialLabels = mapDict(
         filterDict(changes.labels ?? {}, (_, k) => k !== VALUE_LABEL_ID && !(k in prevLabelKeys)),
@@ -142,12 +142,12 @@ export const createNodeDefaults = (
 };
 
 export const createNodeDictDefaults = (
-    attrs: FullAttr<DictSpec<NodeSpec>> | undefined,
+    prevAttrs: FullAttr<DictSpec<NodeSpec>> | undefined,
     changes: PartialAttr<DictSpec<NodeSpec>>
 ): FullAttr<DictSpec<NodeSpec>> => {
-    const numPrevNodes = Object.keys(attrs ?? {}).length;
+    const numPrevNodes = Object.keys(prevAttrs ?? {}).length;
     const newNodes = mapDict(
-        filterDict(changes, (_, k) => !attrs || !(k in attrs)),
+        filterDict(changes, (_, k) => !prevAttrs || !(k in prevAttrs)),
         (_, k, i) => {
             const valueLabel: FullAttr<LabelSpec> = mergeDiff(labelDefaults, {
                 text: name,
@@ -172,19 +172,19 @@ export const createNodeDictDefaults = (
     return {
         '*': nodeDefaults,
         ...mapDict(changes, (nodeChanges, k) => {
-            return newNodes[k] ?? createNodeDefaults(attrs?.[k], nodeChanges);
+            return newNodes[k] ?? createNodeDefaults(prevAttrs?.[k], nodeChanges);
         }),
     };
 };
 
 export const evalNodeLabels = (
-    attrs: FullAttr<NodeSpec> | undefined,
+    prevAttrs: FullAttr<NodeSpec> | undefined,
     changes: PartialAttr<NodeSpec>,
     nodeVars: VarDict<NodeVar>
 ): PartialAttr<DictSpec<LabelSpec>> => {
     return combineAttrs(
         nodeSpec.entries.labels,
-        attrs?.labels,
+        prevAttrs?.labels,
         changes.labels!,
         (labelAttr, labelChanges, _, labelSpec) => {
             // calculate the 'r' variable based on the angle of the label and the size of the node
@@ -201,7 +201,7 @@ export const evalNodeLabels = (
                         angleToRad(labelAngle.value),
                         nodeVars.x.value,
                         nodeVars.y.value,
-                        attrs?.shape ?? changes.shape!
+                        prevAttrs?.shape ?? changes.shape!
                     ),
                     changed:
                         labelAngle.changed ||

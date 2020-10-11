@@ -114,19 +114,19 @@ const edgeLabelDefaults: FullAttr<LabelSpec> = mergeDiff(labelDefaults, {
 });
 
 export const createEdgeDefaults = (
-    attrs: FullAttr<EdgeSpec> | undefined,
+    prevAttrs: FullAttr<EdgeSpec> | undefined,
     changes: PartialAttr<EdgeSpec>
 ): FullAttr<EdgeSpec> => {
     if (!changes.labels) return edgeDefaults;
 
-    const labelDictDefaults = createLabelDictDefaults(attrs?.labels, changes.labels!);
+    const labelDictDefaults = createLabelDictDefaults(prevAttrs?.labels, changes.labels!);
 
     // new labels should be positioned radially around the center of the edge's path
-    const prevLabelKeys = Object.keys(attrs?.labels ?? {});
+    const prevLabelKeys = Object.keys(prevAttrs?.labels ?? {});
     const newLabels = mapDict(
         filterDict(changes.labels!, (_, k) => !(k in prevLabelKeys)),
         (labelChanges, k, i) => {
-            const path = changes.path ?? attrs?.path ?? edgeDefaults.path;
+            const path = changes.path ?? prevAttrs?.path ?? edgeDefaults.path;
             const pathMidY = path.length === 0 ? 0 : path[Math.floor((path.length - 1) / 2)][1];
             const pathMidYNum = typeof pathMidY === 'number' ? pathMidY : 0;
 
@@ -144,7 +144,7 @@ export const createEdgeDefaults = (
         ...edgeDefaults,
         color: {
             ...edgeDefaults.color,
-            animsource: attrs?.source ?? changes.source ?? '',
+            animsource: prevAttrs?.source ?? changes.source ?? '',
         },
         labels: {
             ...labelDictDefaults,
@@ -178,33 +178,32 @@ const createAdjMatrix = (edges: FullAttr<DictSpec<EdgeSpec>>): EdgeAdjMatrix => 
     }, {} as EdgeAdjMatrix);
 };
 
-// "source->target(-ID)" to [source, target, true]
-// "source-target(-ID)" to [source, target, false]
-const parseEdgeId = (id: string): [string, string, boolean] => {
-    if (!id.includes('-') && !id.includes('->')) return ['', '', false];
+// "source-target(-ID)" to [source, target, ID?]
+export const parseEdgeId = (
+    id: string
+): [string, string] | [string, string, string] | undefined => {
+    const split = id.split('-');
+    if (split.length < 2) return undefined;
 
-    const directed = id.includes('->');
-    const [source, suffix] = id.split(directed ? '->' : '-');
-    const target = suffix.includes('-') ? suffix.split('-')[0] : suffix;
-
-    return [source, target, directed];
+    if (split.length >= 3) return [split[0], split[1], split.slice(2).join('-')];
+    else return [split[0], split[1]];
 };
 
 export const createEdgeDictDefaults = (
-    attrs: FullAttr<DictSpec<EdgeSpec>> | undefined,
+    prevAttrs: FullAttr<DictSpec<EdgeSpec>> | undefined,
     changes: PartialAttr<DictSpec<EdgeSpec>>
 ): FullAttr<DictSpec<EdgeSpec>> => {
-    const numPrevEdges = Object.keys(attrs ?? {}).length;
+    const numPrevEdges = Object.keys(prevAttrs ?? {}).length;
     const newEdges = Object.entries(changes)
-        .filter(([k]) => !attrs || !(k in attrs))
+        .filter(([k]) => !prevAttrs || !(k in prevAttrs))
         .reduce(
             (acc, [k, edgeChanges], i) => {
                 // e.g. parse "source->target" to { source, target, directed: true }
                 const parsedId = parseEdgeId(k);
 
                 // edges are expected to be provided with source and target attributes initially
-                const source = edgeChanges.source ?? parsedId[0];
-                const target = edgeChanges.target ?? parsedId[1];
+                const source = edgeChanges.source ?? parsedId?.[0] ?? '';
+                const target = edgeChanges.target ?? parsedId?.[1] ?? '';
 
                 const newMatrix = incrementMatrix(acc.matrix, source, target);
                 const index = newMatrix[source][target] - 1;
@@ -220,7 +219,6 @@ export const createEdgeDictDefaults = (
                 const newEdgeDefaults = mergeDiff(createEdgeDefaults(undefined, changes[k]!), {
                     source,
                     target,
-                    directed: parsedId[2],
                     path:
                         source === target
                             ? loopingPath(index)
@@ -228,13 +226,13 @@ export const createEdgeDictDefaults = (
                 });
                 return { matrix: newMatrix, edges: { ...acc.edges, [k]: newEdgeDefaults } };
             },
-            { matrix: createAdjMatrix(attrs ?? {}), edges: {} as FullAttr<DictSpec<EdgeSpec>> }
+            { matrix: createAdjMatrix(prevAttrs ?? {}), edges: {} as FullAttr<DictSpec<EdgeSpec>> }
         ).edges;
 
     return {
         '*': edgeDefaults,
         ...mapDict(changes, (edgeChanges, k) => {
-            return newEdges[k] ?? createEdgeDefaults(attrs?.[k], edgeChanges);
+            return newEdges[k] ?? createEdgeDefaults(prevAttrs?.[k], edgeChanges);
         }),
     };
 };

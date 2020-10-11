@@ -8,7 +8,7 @@ export type CanvasElement = string | Element;
 // dispatched from the API, to the client
 export interface DispatchEvent {
     readonly attrs?: InputAttr<CanvasSpec>;
-    readonly defaultattr?: InputAttr<AnimSpec>;
+    readonly animation?: InputAttr<AnimSpec>;
     readonly message?: string;
     readonly withQ?: string | number | null;
     readonly queues?: {
