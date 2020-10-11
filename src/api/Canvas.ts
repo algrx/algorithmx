@@ -2,41 +2,38 @@ import { QueueSelection } from './QueueSelection';
 import { InputAttr } from '../client/attributes/derived-attr';
 import { CanvasSpec, EdgeLayout } from '../client/attributes/components/canvas';
 import { CanvasElement, ReceiveEvent, DispatchEvent } from '../client/types';
-import { Client as InternalClient } from '../client/client';
 
 import { ElementSelection } from './ElementSelection';
 import { NodeSelection } from './NodeSelection';
 import { EdgeSelection, EdgeId } from './EdgeSelection';
 import { LabelSelection } from './LabelSelection';
-import { EventHandler, ClientCallbacks, ElementCallbacks } from './utils';
+import { ElementContext, ElementObjArg, ElementCallbacks, evalElementObjArg } from './utils';
 import { ElementId, NumAttr } from './types';
 
 export type CanvasAttrs = InputAttr<CanvasSpec>;
+
+interface Client {
+    readonly dispatch: (event: DispatchEvent) => void;
+    readonly onreceive: (fn: (event: ReceiveEvent) => void) => void;
+}
 
 /**
  * An object responsible for rendering the network, storing application state, and
  * dispatching/receiving events.
  */
-export class Canvas extends ElementSelection<CanvasAttrs, null> implements EventHandler {
-    readonly _client: InternalClient;
-    _callbacks: ClientCallbacks;
-
-    constructor(canvas: CanvasElement) {
-        super({ ids: ['canvas'] });
-        this._client = new InternalClient(canvas);
-        this._callbacks = {
-            messages: {},
-            nodes: {},
-        };
-        this._client.onevent(this.receive.bind(this));
-    }
-
-    attrs(attrs: CanvasAttrs) {
-        this.dispatch({
-            attrs: attrs,
-            ...(this._selection.withQ !== undefined ? { withQ: this._selection.withQ } : {}),
+export class Canvas extends ElementSelection<CanvasAttrs, null> {
+    constructor(context: Partial<ElementContext<null> & { readonly client: Client }>) {
+        super({
+            ids: ['canvas'],
+            data: [null],
+            callbacks: {},
+            ...context,
         });
-        return this;
+
+        if (context.client) {
+            this._selection.callbacks.dispatch = context.client.dispatch.bind(context.client);
+            context.client.onreceive(this.receive.bind(this));
+        }
     }
 
     /**
@@ -58,12 +55,13 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      *
      * @return A new selection corresponding to the given nodes.
      */
-    nodes<ID extends ElementId>(ids?: ReadonlyArray<ID>): NodeSelection<ID> {
+    nodes<ID extends ElementId = '*'>(ids: ReadonlyArray<ID> = ['*' as ID]): NodeSelection<ID> {
         return new NodeSelection({
             ...this._selection,
-            ids: (ids ?? ['*' as ID]).map((id) => String(id)),
-            data: ids ?? ['*' as ID],
-            parent: { key: 'nodes', selection: this, root: this },
+            ids: ids.map((id) => String(id)),
+            data: ids,
+            parentkey: 'nodes',
+            parent: this._selection,
         });
     }
 
@@ -99,7 +97,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      *
      * @return A new selection corresponding to the given edges.
      */
-    edges<ID extends EdgeId>(ids: ReadonlyArray<ID>): EdgeSelection<ID> {
+    edges<ID extends EdgeId>(ids?: ReadonlyArray<ID>): EdgeSelection<ID> {
         return new EdgeSelection({
             ...this._selection,
             ids:
@@ -108,9 +106,10 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
                     : ids.map((id) => {
                           return id[0] + '-' + id[1] + (id.length > 2 ? '-' + id[2] : '');
                       }),
-            data: ids ?? ['*'],
+            data: ids ?? [['*', '*'] as ID],
             tuples: ids,
-            parent: { key: 'edges', selection: this, root: this },
+            parentkey: 'edges',
+            parent: this._selection,
         });
     }
 
@@ -133,12 +132,13 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      *
      * @return A new selection corresponding to the given labels.
      */
-    labels<ID extends ElementId = '*'>(ids?: ReadonlyArray<ID>): LabelSelection<ID> {
+    labels<ID extends ElementId = '*'>(ids: ReadonlyArray<ID> = ['*' as ID]): LabelSelection<ID> {
         return new LabelSelection({
             ...this._selection,
-            ids: (ids ?? ['*' as ID]).map((id) => String(id)),
-            data: ids ?? ['*' as ID],
-            parent: { key: 'labels', selection: this, root: this },
+            ids: ids.map((id) => String(id)),
+            data: ids,
+            parentkey: 'labels',
+            parent: this._selection,
         });
     }
 
@@ -183,7 +183,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
 
     /**
      * Sets the location of the canvas camera. The canvas uses a Cartesian coordinate system with
-     * (0, 0) at the center.
+     * (0,0) at the center.
      *
      * @param pan - An (x, y) tuple describing the new pan location.
      */
@@ -202,7 +202,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
     }
 
     /**
-     * Restricts the movement of the canvas camera to the given bounding box, centered at (0, 0).
+     * Restricts the movement of the canvas camera to the given bounding box, centered at (0,0).
      *
      * The default pan limit is (-Infinity, Infinity).
      *
@@ -228,7 +228,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      * Sets whether or not zooming requires the `ctrl`/`cmd` key to be held down. Disabled by
      * default.
      *
-     * @param value - True if the `ctrl`/`cmd` key is required, false otherwise.
+     * @param zoomtoggle - True if the `ctrl`/`cmd` key is required, false otherwise.
      */
     zoomtoggle(zoomtoggle: boolean) {
         return this.attrs({ zoomtoggle });
@@ -254,16 +254,49 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      *
      * @return A new selection corresponding to the given queues.
      */
-    queues(ids?: ReadonlyArray<string | number>): QueueSelection {
+    queues(ids: ReadonlyArray<string | number> = ['*']): QueueSelection {
         return new QueueSelection({
-            queues: ids ?? ['*'],
-            root: this,
-            withQ: this._selection.withQ,
+            ids: ids.map((id) => String(id)),
+            callbacks: this._selection.callbacks,
+            ...(this._selection.withQ !== undefined ? { withQ: this._selection.withQ } : {}),
         });
     }
 
     pause(duration: number) {
         this.queue().pause(duration);
+        return this;
+    }
+
+    /**
+     * Adds a message to the current event queue. Together with [[Canvas.onmessage]], this can be
+     * used to detect when a queue reaches a certain point in execution.
+     *
+     * @param message - A message string.
+     */
+    message(message: string) {
+        return this.dispatch({ message: message });
+    }
+
+    onmessage(message: '*', fn: (message: string) => void): this;
+    onmessage(message: string, fn: () => void): this;
+
+    /**
+     * Registers a callback function for messages sent by [[Canvas.message]]. Use "*" to listen for
+     * all messages.
+     *
+     * @param message - The message to listen for, or "*" to listen for all messages.
+     * @param fn - A callback function. When using "*", the exact message will be provided as an
+     * argument.
+     */
+    onmessage(message: string | '*', fn: (message: string) => void) {
+        if (message == '*') {
+            this._selection.callbacks.message = fn;
+        } else {
+            this._selection.callbacks.messages = {
+                ...this._selection.callbacks.messages,
+                [message]: fn as () => void,
+            };
+        }
         return this;
     }
 
@@ -275,7 +308,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      * - message: A message, as sent by [[Canvas.message]].
      * - withQ: The event queue to which the event will be added, see [[ElementSelection.withQ]].
      * - queues:
-     *     - (id):
+     *     - [id]:
      *         - stop: True if the queue should be stopped, see [[QueueSelection.stop]].
      *         - start: True if the queue should be started, see [[QueueSelection.start]].
      *         - clear: True if all events should be cleared from the queue, see
@@ -286,23 +319,20 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      * @param event - A partial event object.
      */
     dispatch(event: DispatchEvent) {
-        if (this._callbacks.ondispatch) this._callbacks.ondispatch(event);
+        if (this._selection.callbacks.dispatch) this._selection.callbacks.dispatch(event);
 
-        this._client.event(event);
         return this;
     }
 
     /**
-     * Registers a callback function to listen events before they are sent to the client, see
-     * [[Canvas.dispatch]].
+     * Registers a callback function to listen for all dispatched events, see [[Canvas.dispatch]].
      *
-     * @param fn - The callback function, which receives a partial event object.
+     * This will override the default event handler.
+     *
+     * @param fn - A callback function which receives a partial event object.
      */
     ondispatch(fn: (event: DispatchEvent) => void) {
-        this._callbacks = {
-            ...this._callbacks,
-            ondispatch: fn,
-        };
+        this._selection.callbacks.dispatch = fn;
         return this;
     }
 
@@ -312,29 +342,26 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      * @param event - A partial event object.
      */
     receive(event: ReceiveEvent) {
-        //execCallbacks(this._callbacks, event);
-        const cbs = this._callbacks;
+        const cbs = this._selection.callbacks;
 
         // event callback
-        if (cbs.onreceive) cbs.onreceive(event);
+        if (cbs.receive) cbs.receive(event);
 
         // message callbacks
-        if (event.message && cbs.messages) {
-            if ('*' in cbs.messages) cbs.messages['*']!(event.message);
+        if (event.message !== undefined && cbs.messages) {
+            if (cbs.message) cbs.message(event.message);
             if (event.message in cbs.messages) cbs.messages[event.message]();
         }
 
-        // node click/hover callbacks
-        const elementEventTypes = <const>['click', 'hoverin', 'hoverout'];
-        const elementTypes = <const>['nodes'];
-
-        elementTypes.forEach((elementType) => {
-            if (!(elementType in event && elementType in cbs)) return;
+        // click/hover callbacks
+        (<const>['nodes']).forEach((elementType) => {
+            if (!(elementType in event)) return;
 
             Object.entries(event[elementType]!).forEach(([k, elementEvents]) => {
                 Object.keys(elementEvents).forEach((eventType) => {
-                    if (k in cbs.nodes && eventType in cbs[elementType][k])
-                        cbs[elementType][k][eventType as keyof ElementCallbacks]!();
+                    const elementCbDict = cbs[elementType] ?? {};
+                    if (k in elementCbDict && eventType in elementCbDict[k])
+                        elementCbDict[k][eventType as keyof ElementCallbacks]!();
                 });
             });
         });
@@ -354,41 +381,9 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> implements Event
      *         - hoverin: True if the mouse hovered over the node.
      *         - hoverout: True if the mouse exited the node.
      *
-     * @param fn - The callback function, which receives a partial event object.
+     * @param fn - A callback function which receives a partial event object.
      */
     onreceive(fn: (event: ReceiveEvent) => void) {
-        this._callbacks = {
-            ...this._callbacks,
-            onreceive: fn,
-        };
-    }
-
-    /**
-     * Adds a message to the current event queue. Together with [[Canvas.onmessage]], this can be
-     * used to detect when a queue reaches a certain point in execution.
-     *
-     * @param message - The message string.
-     */
-    message(message: string) {
-        this._client.event({ message: message });
-        return this;
-    }
-
-    onmessage(message: '*', fn: (message: string) => void): this;
-    onmessage(message: string, fn: () => void): this;
-
-    /**
-     * Registers a callback function for messages sent by [[Canvas.message]]. Use "*" to listen for
-     * all message.
-     *
-     * @param message - The message to listen for, or "*" to listen for all messages.
-     * @param fn - The callback function, which takes the message as an argument.
-     */
-    onmessage(message: string | '*', fn: (message: string) => void) {
-        this._callbacks = {
-            ...this._callbacks,
-            messages: { ...this._callbacks.messages, [message]: fn as () => void },
-        };
-        return this;
+        this._selection.callbacks.receive = fn;
     }
 }

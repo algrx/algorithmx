@@ -1,14 +1,14 @@
 import { InputAttr } from '../client/attributes/derived-attr';
 import { EdgeSpec, EdgeCurve } from '../client/attributes/components/edge';
 
-import { ElementSelection, ElementContext } from './ElementSelection';
-import { evalElementArg, applyAttrs } from './utils';
-import { ElementId, ElementArg, NumAttr } from './types';
+import { ElementSelection } from './ElementSelection';
 import { LabelSelection } from './LabelSelection';
+import { ElementId, ElementArg, NumAttr, ElementFn } from './types';
+import { ElementContext, evalElementArg, applyAttrs } from './utils';
 
 export type EdgeId = [ElementId, ElementId, ElementId?];
 
-export type InputEdgeAttrs = InputAttr<EdgeSpec>;
+export type EdgeAttrs = InputAttr<EdgeSpec>;
 
 type EdgeContext<D> = ElementContext<D> & {
     readonly tuples?: ReadonlyArray<EdgeId>;
@@ -17,7 +17,7 @@ type EdgeContext<D> = ElementContext<D> & {
 /**
  * A selection of edges.
  */
-export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
+export class EdgeSelection<D> extends ElementSelection<EdgeAttrs, D> {
     _selection: EdgeContext<D>;
 
     constructor(context: EdgeContext<D>) {
@@ -32,7 +32,7 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
      * @return A new selection corresponding to the given label, with the same data as the current
      * selection.
      */
-    label(id: ElementId = 0): LabelSelection<ElementId> {
+    label(id: ElementId = 0): LabelSelection<D> {
         return this.labels([id]);
     }
 
@@ -45,12 +45,13 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
      * @return A new selection corresponding to the given labels, with the same data as the current
      * selection.
      */
-    labels(ids?: ReadonlyArray<ElementId>): LabelSelection<ElementId> {
+    labels(ids: ReadonlyArray<ElementId> = ['*']): LabelSelection<D> {
         return new LabelSelection({
             ...this._selection,
-            ids: (ids ?? ['*']).map((id) => String(id)),
-            data: undefined, // use the node (parent) data
-            parent: { key: 'labels', selection: this, root: this._selection.parent!.root },
+            ids: ids.map((id) => String(id)),
+            data: undefined, // use the edge (parent) data
+            parent: this._selection,
+            parentkey: 'labels',
         });
     }
 
@@ -64,7 +65,7 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
     }
 
     /**
-     * Sets the length of the edge. This will only take effect when [[CanvasSelection.edgelengths]]
+     * Sets the length of the edge. This will only take effect when [[CanvasSelection.edgelayout]]
      * is set to "individual".
      *
      * @param length - The length of the edge.
@@ -96,11 +97,11 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
      *
      * If no source is provided, the first element in each edge tuple will be used.
      *
-     * @param value - A CSS color string.
+     * @param color - A CSS color string.
      * @param source - The ID of the node from which the traversal animation should originate.
      */
-    traverse(value: ElementArg<string, D>, source?: ElementArg<ElementId, D>) {
-        applyAttrs<InputEdgeAttrs, D>(this._selection, (data, dataIndex, i) => {
+    traverse(color: ElementArg<string, D>, source?: ElementArg<ElementId, D>) {
+        applyAttrs<EdgeAttrs, D>(this._selection, (data, dataIndex, i) => {
             const animsource = source
                 ? evalElementArg(source, data, dataIndex)
                 : this._selection.tuples
@@ -110,7 +111,7 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
             return {
                 color: {
                     animtype: 'traverse',
-                    value: evalElementArg(value, data, dataIndex),
+                    value: evalElementArg(color, data, dataIndex),
                     ...(animsource ? { animsource } : {}),
                 },
             };
@@ -129,8 +130,10 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
     }
 
     /**
-     * Sets the curve function used to interpolate the edge's path. The default setting is
-     * "cardinal". More information is available here: [[https://github.com/d3/d3-shape#curves]].
+     * Sets the curve function used to interpolate the edge's path.
+     *
+     * The default setting is "cardinal". More information is available here:
+     * [[https://github.com/d3/d3-shape#curves]].
      *
      * @param curve - The name of the curve function, based on the functions found in D3. The full
      * list is below:
@@ -146,8 +149,8 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
      * Sets a custom path for the edge. The path is a list of (x, y) tuples, which will
      * automatically connect to the boundaries of the source and target nodes.
      *
-     * If the edge connects two nodes, (0, 0) will be the midpoint between the two nodes. If edge is
-     * a loop, (0, 0) will be a point on the node's boundary.
+     * If the edge connects two nodes, (0,0) will be the midpoint between the two nodes. If edge is
+     * a loop, (0,0) will be a point on the node's boundary.
      *
      * @param path - A list of (x, y) tuples.
      */
@@ -155,7 +158,7 @@ export class EdgeSelection<D> extends ElementSelection<InputEdgeAttrs, D> {
         return this.attrs({ path });
     }
 
-    data<ND>(data: ReadonlyArray<ND>): EdgeSelection<ND> {
+    data<ND>(data: ReadonlyArray<ND> | ElementFn<ND, D>): EdgeSelection<ND> {
         return super.data(data) as EdgeSelection<ND>;
     }
 }

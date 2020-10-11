@@ -1,21 +1,23 @@
 import { ElementFn, ElementArg } from './types';
-import { EventHandler } from './utils';
 import { DispatchEvent } from '../client/types';
+import { ClientCallbacks } from './utils';
 
 interface QueueContext {
-    readonly queues: ReadonlyArray<string | number>;
+    readonly ids: ReadonlyArray<string>;
     readonly withQ?: string | number | null;
-    readonly root: EventHandler;
+    readonly callbacks: ClientCallbacks;
 }
 
 const dispatchQueueEvent = (
-    selection: QueueContext,
+    context: QueueContext,
     queueEvent: NonNullable<DispatchEvent['queues']>[string]
 ) => {
-    selection.root.dispatch({
-        ...(selection.withQ !== undefined ? { withQ: selection.withQ } : {}),
-        queues: selection.queues.reduce((acc, q) => ({ ...acc, [String(q)]: queueEvent }), {}),
-    });
+    if (context.callbacks.dispatch) {
+        context.callbacks.dispatch({
+            ...(context.withQ !== undefined ? { withQ: context.withQ } : {}),
+            queues: context.ids.reduce((acc, q) => ({ ...acc, [q]: queueEvent }), {}),
+        });
+    }
 };
 
 /**
@@ -34,7 +36,7 @@ export class QueueSelection {
      * @param seconds - The duration of the pause, in seconds.
      */
     pause(seconds: number) {
-        dispatchQueueEvent(this._selection, { action: 'pause', duration: seconds });
+        dispatchQueueEvent(this._selection, { pause: seconds });
         return this;
     }
 
@@ -42,7 +44,7 @@ export class QueueSelection {
      * Stops the execution of all scheduled events in the queue.
      */
     stop() {
-        dispatchQueueEvent(this._selection, { action: 'stop' });
+        dispatchQueueEvent(this._selection, { stopped: true });
         return this;
     }
 
@@ -50,7 +52,7 @@ export class QueueSelection {
      * Starts/resumes the execution of all scheduled events in the queue.
      */
     start() {
-        dispatchQueueEvent(this._selection, { action: 'start' });
+        dispatchQueueEvent(this._selection, { stopped: false });
         return this;
     }
 
@@ -58,7 +60,7 @@ export class QueueSelection {
      * Clears all scheduled events in the queue.
      */
     clear() {
-        dispatchQueueEvent(this._selection, { action: 'clear' });
+        dispatchQueueEvent(this._selection, { clear: true });
         return this;
     }
 }

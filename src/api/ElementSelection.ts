@@ -3,28 +3,17 @@ import { InputAttr } from '../client/attributes/derived-attr';
 import { ElementSpec, VisibleAnimType } from '../client/attributes/components/element';
 import { AnimEase } from '../client/attributes/components/animation';
 
-import { ElementArg, ElementFn, ElementAttrs } from './types';
+import { ElementArg, ElementFn } from './types';
 import {
-    EventHandler,
-    applyAttrs,
+    ElementContext,
     ElementObjArg,
+    applyAttrs,
     evalElementObjArg,
     evalElementArg,
 } from './utils';
+import { Canvas } from './Canvas';
 
-export interface ElementParent {
-    readonly key: string;
-    readonly selection: ElementSelection<ElementAttrs, unknown>;
-    readonly root: EventHandler;
-}
-
-export interface ElementContext<D> {
-    readonly ids: ReadonlyArray<string>;
-    readonly data?: ReadonlyArray<D>;
-    readonly withQ?: string | null;
-    readonly defaultattr?: InputAttr<CommonSpec>;
-    readonly parent?: ElementParent;
-}
+export type ElementAttrs = InputAttr<ElementSpec>;
 
 /**
  * A selection of elements. Inherited by nodes, edges, labels and the canvas itself.
@@ -39,10 +28,39 @@ export class ElementSelection<T extends ElementAttrs, D> {
     }
 
     /**
-     * Applies a dictionary of attributes on all selected elements. The whole dictionary, or any of
-     * its direct entries, can also be provided as an [[ElementFn]].
+     * Applies a dictionary of attributes to all selected elements.
      *
-     * @param attrs - An attribute dictionary, see [[ElementAttrs]].
+     * All attributes correspond to the available methods. Most attribute endpoints can be provided
+     * either as a single value, or as partial dictionary in the form:
+     * - value: The attribute value.
+     * - duration: The duration of the animation, see [[ElementSelection.duration]].
+     * - ease: The animation ease, see [[ElementSelection.ease]].
+     * - highlight: Whether the change is temporary, see [[ElementSelection.highlight]].
+     * - linger: How long a highlight should last, see [[ElementSelection.highlight]].
+     * - Some attributes may also contain additional properties.
+     *
+     * The whole dictionary, or any of its direct entries, can be provided as an [[ElementFn]].
+     *
+     * @example
+     * ```
+     * nodes.size([20, 30])
+     *     .pos((_, i) => [i * 10, 0])
+     *     .svgattr("stroke", "blue")
+     *     .duration(2.5).color("red")
+     *
+     * // is equivalent to
+     * node.attrs({
+     *    size: [20, 30],
+     *    pos: (_, i) => [i * 10, 0],
+     *    svgattrs: { stroke: "blue" },
+     *    color: {
+     *        value: "red",
+     *        duration: 2.5,
+     *    },
+     * })
+     * ```
+     *
+     * @param attrs - An attribute dictionary.
      */
     attrs(attrs: ElementObjArg<T, D>): this {
         applyAttrs(this._selection, (d, i) => evalElementObjArg(attrs, d, i));
@@ -52,38 +70,34 @@ export class ElementSelection<T extends ElementAttrs, D> {
     /**
      * Adds all selected elements to the canvas with the given initial attributes.
      *
-     * @param attrs - An attribute dictionary, see [[ElementAttrs]].
-     * @param animtype - "fade" (animate transparancy) or "scale" (animate size).
+     * @param attrs - An attribute dictionary, see [[ElementSelection.attrs]].
+     * @param animtype - "fade" (animate transparency) or "scale" (animate size).
      *
      * @return A new instance of the current selection with animations disabled, to allow for
      * further attribute initialisation.
      */
     add(attrs?: ElementObjArg<T, D>, animtype?: ElementArg<VisibleAnimType, D>) {
-        applyAttrs(this._selection, (d, i) => {
-            const initAttrs = attrs ? evalElementArg(attrs, d, i) : ({} as T);
-            return {
-                ...(animtype ? { visible: { animtype: evalElementArg(animtype, d, i) } } : {}),
-                ...initAttrs,
-            } as T;
-        });
-
-        return this.duration(0);
+        return this.attrs(
+            (d, i) =>
+                ({
+                    ...(animtype ? { visible: { animtype: evalElementArg(animtype, d, i) } } : {}),
+                    ...(attrs ? evalElementObjArg(attrs, d, i) : {}),
+                } as T)
+        ).duration(0);
     }
 
     /**
      * Removes all selected elements, resetting their attributes and layout state.
      *
-     * @param animtype - "fade" (animate transparancy) or "scale" (animate size).
+     * @param animtype - "fade" (animate transparency) or "scale" (animate size).
      */
     remove(animtype?: ElementArg<VisibleAnimType, D>) {
-        if (animtype)
-            return this.attrs(
-                (d, i) =>
-                    ({
-                        visible: { animtype: evalElementArg(animtype, d, i) },
-                    } as T)
-            );
-        else return this.attrs({} as T);
+        return this.attrs(
+            (d, i) =>
+                ({
+                    ...(animtype ? { visible: { animtype: evalElementArg(animtype, d, i) } } : {}),
+                } as T)
+        );
     }
 
     /**
@@ -91,7 +105,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * visibility will not reset attributes or layout state.
      *
      * @param value - Whether or not the selected elements should be visible.
-     * @param animtype - "fade" (animate transparancy) or "scale" (animate size).
+     * @param animtype - "fade" (animate transparency) or "scale" (animate size).
      */
     visible(visible: ElementArg<boolean, D>, animtype?: ElementArg<VisibleAnimType, D>) {
         return this.attrs(
@@ -211,7 +225,11 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * @param seconds - The duration of the pause, in seconds.
      */
     pause(seconds: number) {
-        this._selection.parent!.selection.pause(seconds);
+        if (this._selection.withQ !== null && this._selection.callbacks.dispatch) {
+            this._selection.callbacks.dispatch({
+                queues: { [String(this._selection.withQ ?? 0)]: { pause: seconds } },
+            });
+        }
         return this;
     }
 
@@ -219,15 +237,22 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * Binds the selection to a list of data values. This will determine the data argument to
      * provide whenever an [[ElementFn]] is used.
      *
-     * @param data - A list of values, which must have the same length as the number of elements in
-     * the selection.
+     * You can also provide a function to map the current data list to a new one.
+     *
+     * @param data - Either a list of data values (which must have the same length as the number of
+     * elements in the selection), or a function which maps the current data list.
      *
      * @return A new instance of the current selection bound to the given data.
      */
-    data<ND>(data: ReadonlyArray<ND>): ElementSelection<T, ND> {
+    data<ND>(data: ReadonlyArray<ND> | ElementFn<ND, D>): ElementSelection<T, ND> {
         return new this.constructor({
             ...this._selection,
-            data,
+            data: Array.isArray(data)
+                ? data
+                : this._selection.data &&
+                  this._selection.data.map((d, i) =>
+                      evalElementArg(data as ElementFn<ND, D>, d, i)
+                  ),
         });
     }
 }

@@ -8,8 +8,10 @@ import { ElementSpec } from '../client/attributes/components/element';
 export type ElementId = string | number;
 
 /**
- * A function taking a selected element's data as input. This is typically provided as an argument
- * in a selection method, allowing attributes to be configured differently for each element.
+ * A function taking a selected element's data as and index input.
+ *
+ * This is typically provided as an argument in a selection method, allowing attributes to be
+ * configured differently for each element.
  *
  * @param ElementFn.data - The data associated with the element.
  * - If the [[ElementSelection.data]] method was used previously in the method chain, it will
@@ -31,47 +33,11 @@ export type ElementFn<T, D> = (data: D, index: number) => T;
 export type ElementArg<T, D = null> = ElementFn<T, D> | T;
 
 /**
- * A dictionary of element attributes, which is extended by nodes, edges, labels and the canvas
- * itself.
+ * A numerical attribute, which can also provided as a linear expression.
  *
- * Most attribute endpoints can be provided either as a single value, or as partial dictionary in
- * the form:
- * - `value`: The attribute value.
- * - `duration`: The duration of the animation, see [[ElementSelection.duration]].
- * - `ease`: The animation ease, see [[ElementSelection.ease]].
- * - `highlight`: Whether the change is temporary, see [[ElementSelection.highlight]].
- * - `linger`: How long a highlight should last, see [[ElementSelection.highlight]].
- *
- * Some endpoints may also contain additional properties.
- *
- * All attributes correspond directly to the available methods:
- *
- * @example
- * ```
- * node.size([20, 30])
- *     .svgattrs({ stroke: 'blue' })
- *     .duration(2.5).color('red')
- *
- * // is equivalent to
- * node.attrs({
- *    size: [20, 30],
- *    svgattrs: {
- *        stroke: 'blue'
- *    },
- *    color: {
- *        value: 'red',
- *        duration: 2.5,
- *    },
- * })
- * ```
- */
-export type ElementAttrs = InputAttr<ElementSpec>;
-
-/**
- * Numerical attributes can also provided as linear expressions in the form `mx+c`, described by
- * either an `{ m, x, c }` dictionary, or an expression string such as "-2x+8". Both `m` and `c` are
- * constants, while `x` is a variable corresponding to some other attribute. Below is a list of
- * valid variables and the context in which they can be used:
+ * Expressions can be provided as an `{ m, x, c }` dictionary, or as an expression string such as
+ * "-2x+8". Both `m` and `c` are constants, while `x` is a variable corresponding to some other
+ * attribute. Below is a list of valid variables and the context in which they can be used:
  *
  * - "cx": Half the width of the canvas.
  * - "cy": Half the height of the canvas.

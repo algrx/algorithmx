@@ -1,6 +1,7 @@
+import { CommonSpec } from '../client/attributes/components/common';
+import { InputAttr } from '../client/attributes/derived-attr';
 import { ReceiveEvent, DispatchEvent } from '../client/types';
-import { ElementAttrs, ElementFn, ElementArg } from './types';
-import { ElementContext } from './ElementSelection';
+import { ElementFn, ElementArg } from './types';
 
 export interface ElementCallbacks {
     readonly click?: () => void;
@@ -9,21 +10,27 @@ export interface ElementCallbacks {
 }
 
 export interface ClientCallbacks {
-    readonly ondispatch?: (event: DispatchEvent) => void;
-    readonly onreceive?: (event: ReceiveEvent) => void;
-    readonly messages: {
+    dispatch?: (event: DispatchEvent) => void;
+    receive?: (event: ReceiveEvent) => void;
+    message?: (message: string) => void;
+    messages?: {
         readonly [k: string]: () => void;
-    } & {
-        readonly '*'?: (message: string) => void;
     };
-    readonly nodes: {
+    nodes?: {
         readonly [k: string]: ElementCallbacks;
     };
 }
 
-export interface EventHandler {
-    readonly dispatch: (event: DispatchEvent) => void;
-    _callbacks: ClientCallbacks;
+export interface Client {}
+
+export interface ElementContext<D> {
+    readonly ids: ReadonlyArray<string>;
+    readonly data?: ReadonlyArray<D>;
+    readonly withQ?: string | null;
+    readonly defaultattr?: InputAttr<CommonSpec>;
+    readonly parentkey?: string;
+    readonly parent?: ElementContext<D | unknown>;
+    readonly callbacks: ClientCallbacks;
 }
 
 export type ElementObjArg<T, D> =
@@ -60,48 +67,51 @@ export const evalElementObjArg = <T, D>(arg: ElementObjArg<T, D>, data: D, index
     }
 };
 
-export const applyAttrs = <T, D>(
-    selection: ElementContext<D>,
+export const applyAttrs = <T extends {}, D>(
+    context: ElementContext<D>,
     attrFn: (data: D, dataIndex: number, elementIndex: number) => T
 ) => {
-    if (selection.data !== undefined) {
-        // evaluate using the current data
-        let dict: { [k: string]: T } = {};
-        Object.keys(selection.ids).forEach((k, i) => {
-            dict[k] = attrFn(selection.data![i], i, i);
-        });
-        selection.parent!.selection.attrs({ [selection.parent!.key]: dict });
-    } else {
-        // pass a function on to the parent, so that the parent's data is used
-        const dictFn = (data: D, dataIndex: number) => {
-            let dict: { [k: string]: T } = {};
-            Object.keys(selection.ids).forEach((k, i) => {
-                dict[k] = attrFn(data, dataIndex, i);
+    if (!context.parent) {
+        if (context.data !== undefined && context.callbacks.dispatch) {
+            // dispatch attributes
+            const attrs = attrFn(context.data[0], 0, 0);
+            context.callbacks.dispatch({
+                attrs: attrs,
+                ...(context.defaultattr !== undefined ? { defaultattr: context.defaultattr } : {}),
+                ...(context.withQ !== undefined ? { withQ: context.withQ } : {}),
             });
-            return dict;
-        };
-        selection.parent!.selection.attrs({ [selection.parent!.key]: dictFn });
+        }
+        return;
     }
+    const parentAttrFn = (data: D, dataIndex: number) => {
+        let dict: { [k: string]: T } = {};
+        Object.keys(context.ids).forEach((k, i) => {
+            dict[k] =
+                context.data !== undefined
+                    ? attrFn(context.data[i], i, i) // use current data
+                    : attrFn(data, dataIndex, i); // use parent data
+        });
+        return { [context.parentkey!]: dict };
+    };
+    // apply attributes on the parent
+    applyAttrs(context.parent as ElementContext<D>, parentAttrFn);
 };
 
 export const addElementCallback = <D>(
-    selection: ElementContext<D>, // with the canvas as its parent
+    context: ElementContext<D>, // with the canvas as its parent
     eventType: keyof ElementCallbacks,
     fn: ElementFn<void, D>
 ) => {
-    const cbs = selection.parent!.root._callbacks;
-    const elementKey = selection.parent!.key as 'nodes';
+    const cbs = context.parent!.callbacks;
+    const elementKey = context.parentkey! as 'nodes';
 
     const elementCbDict = { ...cbs[elementKey] };
-    selection.ids.forEach((k, i) => {
+    context.ids.forEach((k, i) => {
         elementCbDict[k] = {
             ...elementCbDict[k],
-            [eventType]: () => evalElementArg(fn, selection.data![i], i),
+            [eventType]: () => evalElementArg(fn, context.data![i], i),
         };
     });
 
-    selection.parent!.root._callbacks = {
-        ...cbs,
-        [elementKey]: elementCbDict,
-    };
+    context.parent!.callbacks[elementKey] = elementCbDict;
 };

@@ -4,15 +4,16 @@ import { LabelSpec, LabelAlign } from '../client/attributes/components/label';
 import { ElementSelection } from './ElementSelection';
 import { ElementArg, NumAttr } from './types';
 
-export type InputLabelAttrs = InputAttr<LabelSpec>;
+export type LabelAttrs = InputAttr<LabelSpec>;
 
 /**
  * A selection of labels.
  */
-export class LabelSelection<D> extends ElementSelection<InputLabelAttrs, D> {
+export class LabelSelection<D> extends ElementSelection<LabelAttrs, D> {
     /**
-     * Sets the text displayed by the label. The newline character ("\n") can be used to break the
-     * text into multiple lines. Note that text cannot be animated or highlighted.
+     * Sets the text displayed by the label.
+     *
+     * The newline character ("\n") can be used to break the text into multiple lines.
      *
      * @param text - The text displayed by the label.
      */
@@ -21,10 +22,11 @@ export class LabelSelection<D> extends ElementSelection<InputLabelAttrs, D> {
     }
 
     /**
-     * Sets alignment of the label's text. This will affect the direction in which text is appended,
-     * as well as its positioning relative to the label's base position. For example, an alignment
-     * of "top-left" will ensure that the top left corner of the label is located at its base
-     * position.
+     * Sets alignment of the label's text.
+     *
+     * This will affect the direction in which text is appended, as well as its positioning relative
+     * to the label's base position. For example, an alignment of "top-left" will ensure that the
+     * top left corner of the label is located at the base position.
      *
      * A special "radial" alignment can be used to dynamically calculate the label's alignment based
      * on its [[LabelSelection.angle]] and [[LabelSelection.rotate]] attributes, such that text is
@@ -34,17 +36,18 @@ export class LabelSelection<D> extends ElementSelection<InputLabelAttrs, D> {
      * "vertical-horizontal". The full list is below:
      *
      * "top-left", "top-middle", "top-right", "middle-left", "middle", "middle-right",
-     * "bottom-left", "bottom-middle", "bottom-right", "radial".
+     * "bottom-left", "bottom-middle", "bottom-right", "radial"
      */
     align(align: ElementArg<LabelAlign, D>) {
         return this.attrs({ align });
     }
 
     /**
-     * Sets the position of the the label relative to its parent element. If the parent is a node,
-     * (0, 0) will be its center. If the parent is an edge connecting two nodes, (0, 0) will be the
-     * midpoint between the two nodes. If the parent is a looping edge connecting one node, (0, 0)
-     * will be a point on the node's boundary.
+     * Sets the position of the label relative to its parent element.
+     *
+     * If the parent is a node, (0,0) will be the node's center. If the parent is an edge connecting
+     * two nodes, (0,0) will be the midpoint between the two nodes. If the parent is a looping edge
+     * connecting one node, (0,0) will be a point on the node's boundary.
      *
      * @param pos - An (x, y) tuple describing the position of the label.
      */
@@ -53,7 +56,7 @@ export class LabelSelection<D> extends ElementSelection<InputLabelAttrs, D> {
     }
 
     /**
-     * Positions the label using polar coordinates, together with the [[LabelSelection.angle]]. This
+     * Positions the label using polar coordinates, together with [[LabelSelection.angle]]. This
      * will specify the distance from the label's base position (see [[LabelSelection.pos]]).
      *
      * @param radius - The polar radius, defined as the distance from the label's base position.
@@ -64,10 +67,10 @@ export class LabelSelection<D> extends ElementSelection<InputLabelAttrs, D> {
 
     /**
      * Allows the label to be positioned using polar coordinates, together with the
-     * [[LabelSelection.radius]] attribute.  This will specify the angle, in degrees, along a
+     * [[LabelSelection.radius]] attribute. This will specify the angle, in degrees, along a
      * standard unit circle centered at the label's base position (see [[LabelSelection.pos]]).
      *
-     * This will affect the rotation of the label if [[LabelSelection.rotate]]) is enabled.
+     * This will also affect the rotation of the label if [[LabelSelection.rotate]]) is enabled.
      *
      * @param angle - The polar angle, in degrees, increasing counter-clockwise from the x-axis.
      */
@@ -76,18 +79,21 @@ export class LabelSelection<D> extends ElementSelection<InputLabelAttrs, D> {
     }
 
     /**
-     * Sets whether or not the label should rotate based on its [[LabelSelection.angle]] attribute.
+     * Sets whether the label should be rotated by [[LabelSelection.angle]] degrees.
+     *
      * The exact rotation will also depend on the label's alignment. For example, an alignment of
      * "top-center" together with an angle of 90 degrees will result in the text being upside-down.
      *
-     * @param rotate - Whether or not the label should rotate.
+     * @param rotate - True if the label should be rotated.
      */
     rotate(rotate: ElementArg<boolean, D>) {
         return this.attrs({ rotate });
     }
 
     /**
-     * Sets the color of the label's text. In most cases, the default color is "gray".
+     * Sets the color of the label's text.
+     *
+     * The default color is "gray" in most cases.
      *
      * @param color - A CSS color string.
      */

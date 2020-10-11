@@ -1,9 +1,10 @@
+import { Client } from './client/client';
 import { CanvasElement, DispatchEvent, ReceiveEvent } from './client/types';
 
 import { Canvas, CanvasAttrs } from './api/Canvas';
-import { EdgeSelection, InputEdgeAttrs } from './api/EdgeSelection';
-import { NodeSelection, InputNodeAttrs } from './api/NodeSelection';
-import { LabelSelection, InputLabelAttrs } from './api/LabelSelection';
+import { EdgeSelection, EdgeAttrs } from './api/EdgeSelection';
+import { NodeSelection, NodeAttrs } from './api/NodeSelection';
+import { LabelSelection, LabelAttrs } from './api/LabelSelection';
 
 /**
  * Creates a new [[Canvas]]. The canvas can be rendered in any HTML element on the page (preferably a `div`), or in an `Element` object.
@@ -13,7 +14,9 @@ import { LabelSelection, InputLabelAttrs } from './api/LabelSelection';
  * @return A new [[Canvas]].
  */
 export const createCanvas = (output: CanvasElement): Canvas => {
-    return new Canvas(output);
+    const client = new Client(output);
+    const canvas = new Canvas({ client: client });
+    return canvas;
 };
 
 export {
@@ -25,7 +28,7 @@ export {
     EdgeSelection,
     LabelSelection,
     CanvasAttrs,
-    InputNodeAttrs,
-    InputEdgeAttrs,
-    InputLabelAttrs,
+    NodeAttrs,
+    EdgeAttrs,
+    LabelAttrs,
 };

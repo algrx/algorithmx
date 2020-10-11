@@ -5,24 +5,23 @@ import { VisibleAnimType } from '../client/attributes/components/element';
 import { LabelSelection } from './LabelSelection';
 import { ElementSelection } from './ElementSelection';
 import { addElementCallback } from './utils';
-import { ElementArg, ElementId, ElementFn, ElementAttrs, NumAttr } from './types';
+import { ElementArg, ElementId, ElementFn, NumAttr } from './types';
 
-export type InputNodeAttrs = InputAttr<NodeSpec>;
+export type NodeAttrs = InputAttr<NodeSpec>;
 
 /**
  * A selection of nodes.
  */
-export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
+export class NodeSelection<D> extends ElementSelection<NodeAttrs, D> {
     /**
-     * Removes all nodes in the current selection from the canvas. Additionally, removes any edges
-     * connected to the nodes.
+     * Removes all selected nodes nodes, and any edges connected to the nodes.
      */
     remove(animtype?: ElementArg<VisibleAnimType, D>) {
         return super.remove(animtype);
     }
 
     /**
-     * Selects a single node label by its ID. The node's default 'value' label has ID 0. Use "*" to
+     * Selects a single node label by its ID. The node's default 'value label' has ID 0. Use "*" to
      * select all existing labels.
      *
      * @param id - A label ID. Defaults to 0.
@@ -43,12 +42,13 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
      * @return A new selection corresponding to the given labels, with the same data as the current
      * selection.
      */
-    labels(ids?: ReadonlyArray<ElementId>): LabelSelection<D> {
+    labels(ids: ReadonlyArray<ElementId> = ['*']): LabelSelection<D> {
         return new LabelSelection({
             ...this._selection,
-            ids: (ids ?? ['*']).map((id) => String(id)),
+            ids: ids.map((id) => String(id)),
             data: undefined, // use the node (parent) data
-            parent: { key: 'labels', selection: this, root: this._selection.parent!.root },
+            parentkey: 'labels',
+            parent: this._selection,
         });
     }
 
@@ -56,9 +56,9 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
      * Sets the shape of the node.
      *
      * @param shape - One of the following strings:
-     * - "circle": Standard circular node with a single radius dimension.
+     * - "circle" (default): Circular node with a single radius dimension.
      * - "rect": Rectangular node with separate width and height dimensions, and corner rounding.
-     * - "ellipse": Elliptical node with width and height dimensions.
+     * - "ellipse": Elliptical node with separate width and height dimensions.
      */
     shape(shape: ElementArg<NodeShape, D>) {
         return this.attrs({ shape });
@@ -82,7 +82,7 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
      * Note that size can be set relative to the node's current size using string expressions, e.g.
      * "1.5x" for circles or ("1.5x", "1.5y") for rectangles.
      *
-     * The default node size is (12, 12).
+     * The default size is (12, 12).
      *
      * @param size - A single radius, or a (width/2, height/2) tuple.
      */
@@ -91,7 +91,7 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
     }
 
     /**
-     * Sets the position of the node. The canvas uses a Cartesian coordinate system with (0, 0) at
+     * Sets the position of the node. The canvas uses a Cartesian coordinate system with (0,0) at
      * the center.
      *
      * @param pos - An (x, y) tuple describing the new position of the node.
@@ -111,7 +111,7 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
     }
 
     /**
-     * Sets whether or not the node can be manually dragged around.
+     * Sets whether the node can be manually dragged around.
      *
      * @param draggable - True if the node should be draggable, false otherwise.
      */
@@ -120,39 +120,41 @@ export class NodeSelection<D> extends ElementSelection<InputNodeAttrs, D> {
     }
 
     /**
-     * Registers a callback function to listen for node click events. This will override previous
-     * callbacks.
+     * Registers a callback function to listen for node click events.
      *
-     * @param fn - A function taking the node's data (see [[ElementSelection.data]]) and,
-     * optionally, index.
+     * This will override any previous callback.
+     *
+     * @param fn - A callback function taking the node's data and, optionally, index.
      */
     onclick(fn: ElementFn<void, D>) {
         addElementCallback(this._selection, 'click', fn);
-        return this;
+        return this.attrs({ listenclick: true });
     }
 
     /**
      * Registers a callback function to listen for node mouse-over events, triggered when the mouse
-     * enters the node. This will override previous callbacks.
+     * enters the node.
      *
-     * @param fn - A function taking the node's data (see [[ElementSelection.data]]) and,
-     * optionally, index.
+     * This will override any previous callback.
+     *
+     * @param fn - A callback function taking the node's data and, optionally, index.
      */
     onhoverin(fn: ElementFn<void, D>) {
         addElementCallback(this._selection, 'hoverin', fn);
-        return this;
+        return this.attrs({ listenhover: true });
     }
 
     /**
      * Registers a callback function to listen for node mouse-over events, triggered when the mouse
-     * leaves the node. This will override previous callbacks.
+     * leaves the node.
      *
-     * @param onHoverout - A function taking the node's data (see [[ElementSelection.data]]) and,
-     * optionally, index.
+     * This will override any previous callback.
+     *
+     * @param fn - A callback function taking the node's data and, optionally, index.
      */
     onhoverout(fn: ElementFn<void, D>) {
         addElementCallback(this._selection, 'hoverout', fn);
-        return this;
+        return this.attrs({ listenhover: true });
     }
 
     data<ND>(data: ReadonlyArray<ND>): NodeSelection<ND> {

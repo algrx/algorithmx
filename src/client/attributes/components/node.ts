@@ -32,14 +32,14 @@ export type NodeShape = typeof nodeShape[number];
 export type NodeSpec = RecordSpec<
     {
         readonly labels: DictSpec<LabelSpec>;
-        readonly shape: WithCommonSpec<ExactStringSpec<NodeShape>>;
+        readonly shape: ExactStringSpec<NodeShape>;
         readonly color: WithCommonSpec<StringSpec>;
         readonly size: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly pos: WithCommonSpec<TupleSpec<NumSpec>>;
         readonly fixed: WithCommonSpec<BoolSpec>;
-        readonly draggable: WithCommonSpec<BoolSpec>;
-        readonly hover: WithCommonSpec<BoolSpec>;
-        readonly click: WithCommonSpec<BoolSpec>;
+        readonly draggable: BoolSpec;
+        readonly listenclick: BoolSpec;
+        readonly listenhover: BoolSpec;
     } & RecordEntries<ElementSpec>
 >;
 
@@ -53,14 +53,14 @@ export const nodeSpec: NodeSpec = {
                 validVars: nodeLabelVars,
             },
         },
-        shape: withCommonSpec({ type: AttrType.String, validValues: nodeShape }),
+        shape: { type: AttrType.String, validValues: nodeShape },
         color: withCommonSpec({ type: AttrType.String }),
         size: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
         pos: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
         fixed: withCommonSpec({ type: AttrType.Boolean }),
-        draggable: withCommonSpec({ type: AttrType.Boolean }),
-        hover: withCommonSpec({ type: AttrType.Boolean }),
-        click: withCommonSpec({ type: AttrType.Boolean }),
+        draggable: { type: AttrType.Boolean },
+        listenclick: { type: AttrType.Boolean },
+        listenhover: { type: AttrType.Boolean },
         ...elementSpecEntries,
     },
     validVars: nodeVars,
@@ -70,14 +70,14 @@ export const VALUE_LABEL_ID = 'value';
 
 const nodeDefaults: FullAttr<NodeSpec> = {
     labels: {},
-    shape: { ...commonDefaults, value: 'circle' },
+    shape: 'circle',
     color: { ...commonDefaults, value: COLORS.darkgray },
     size: { ...commonDefaults, value: [12, 12] },
     pos: { ...commonDefaults, value: [0, 0] },
     fixed: { ...commonDefaults, value: false },
-    draggable: { ...commonDefaults, value: true },
-    hover: { ...commonDefaults, value: false },
-    click: { ...commonDefaults, value: false },
+    draggable: false,
+    listenclick: false,
+    listenhover: false,
     ...elementDefaults,
 };
 
@@ -207,7 +207,7 @@ export const evalNodeLabels = (
                         angleToRad(labelAngle.value),
                         nodeVars.x.value,
                         nodeVars.y.value,
-                        attrs?.shape?.value ?? changes.shape!.value!
+                        attrs?.shape ?? changes.shape!
                     ),
                     changed:
                         labelAngle.changed ||
