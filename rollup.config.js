@@ -10,8 +10,8 @@ const env = {
 };
 
 // the build hangs when these are imported
-const serve = env.dev ? require('rollup-plugin-serve').serve : () => null;
-const livereload = env.dev ? require('rollup-plugin-livereload').serve : () => null;
+const serve = env.dev ? require('rollup-plugin-serve') : () => null;
+const livereload = env.dev ? require('rollup-plugin-livereload') : () => null;
 
 const copyright = `// ${pkg.homepage} v${pkg.version} Copyright ${new Date().getFullYear()} ${
     pkg.author.name
