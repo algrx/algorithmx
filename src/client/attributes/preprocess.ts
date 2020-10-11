@@ -8,8 +8,8 @@ import {
     AnyRecordSpec,
     AnyDictSpec,
     ExactStringSpec,
-} from './attr-spec';
-import { InputAttr, PartialAttr } from './derived-attr';
+} from './spec';
+import { InputAttr, PartialAttr } from './derived';
 import { parseExprStr, parseExprObj } from './expr-utils';
 import { getEntrySpec, getAttrEntry, mapAttr } from './attr-utils';
 import { mapDict, dictFromArray } from '../utils';

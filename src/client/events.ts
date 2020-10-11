@@ -1,8 +1,8 @@
 import { CanvasSpec, canvasSpec } from './attributes/components/canvas';
-import { CommonSpec, commonSpec } from './attributes/components/common';
-import { InputAttr, FullAttr, PartialAttr } from './attributes/derived-attr';
+import { AnimSpec, animSpec } from './attributes/components/animation';
+import { InputAttr, FullAttr, PartialAttr } from './attributes/derived';
 import { preprocess } from './attributes/preprocess';
-import { AttrType } from './attributes/attr-spec';
+import { AttrType } from './attributes/spec';
 import { CanvasElement, ClientState, ReceiveEvent, DispatchEvent } from './types';
 
 export interface EventContext {
@@ -48,7 +48,7 @@ const renderBehavior = (
 const updateAttrs = (
     context: EventContext,
     inputChanges: InputAttr<CanvasSpec>,
-    inputDefaults?: InputAttr<CommonSpec>
+    inputDefaults?: InputAttr<AnimSpec>
 ): ClientState => {
     const state = context.state;
 
@@ -65,7 +65,7 @@ const updateAttrs = (
 
     // preprocess the attribute endpoint defaults
     const defaultAttr = preprocess(
-        commonSpec,
+        animSpec,
         { path: [['defaultattr', AttrType.Record]], validVars: [] },
         inputDefaults ?? {}
     );
@@ -75,6 +75,7 @@ const updateAttrs = (
     }
 
     const allChanges = preChanges;
+    console.log(preChanges);
     const fullAttrs = state.attributes;
 
     /*

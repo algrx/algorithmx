@@ -1,6 +1,6 @@
-import { InputAttr, FullAttr } from './attributes/derived-attr';
+import { InputAttr, FullAttr } from './attributes/derived';
 import { CanvasSpec } from './attributes/components/canvas';
-import { CommonSpec } from './attributes/components/common';
+import { AnimSpec } from './attributes/components/animation';
 import { SchedulerState } from './scheduler';
 
 export type CanvasElement = string | Element;
@@ -8,13 +8,14 @@ export type CanvasElement = string | Element;
 // dispatched from the API, to the client
 export interface DispatchEvent {
     readonly attrs?: InputAttr<CanvasSpec>;
-    readonly defaultattr?: InputAttr<CommonSpec>;
+    readonly defaultattr?: InputAttr<AnimSpec>;
     readonly message?: string;
     readonly withQ?: string | number | null;
     readonly queues?: {
         readonly [k: string]: {
-            readonly action: 'stop' | 'start' | 'clear' | 'pause';
-            readonly duration?: number; // only for pause
+            readonly clear?: boolean;
+            readonly stopped?: boolean;
+            readonly pause?: number;
         };
     };
 }

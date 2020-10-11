@@ -1,5 +1,5 @@
-import { NumSpec } from '../client/attributes/attr-spec';
-import { InputAttr } from '../client/attributes/derived-attr';
+import { NumSpec } from '../client/attributes/spec';
+import { InputAttr } from '../client/attributes/derived';
 import { ElementSpec } from '../client/attributes/components/element';
 
 /**

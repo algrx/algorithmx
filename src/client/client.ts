@@ -13,8 +13,8 @@ export interface Client {
     state: ClientState;
     //layout: layout.ILayoutState;
 
-    onevent(fn: (event: ReceiveEvent) => void): void;
-    event(event: DispatchEvent): void;
+    onreceive(fn: (event: ReceiveEvent) => void): void;
+    dispatch(event: DispatchEvent): void;
 
     eventCallback: (event: ReceiveEvent) => void;
     setState(state: ClientState): void;
@@ -40,11 +40,11 @@ export class Client {
         this.state = state;
     }
 
-    onevent(fn: (event: ReceiveEvent) => void) {
+    onreceive(fn: (event: ReceiveEvent) => void) {
         this.eventCallback = fn;
     }
 
-    event(event: DispatchEvent) {
+    dispatch(event: DispatchEvent) {
         // the default queue is named 'default'
         const withQ = event.withQ === null ? null : String(event.withQ ?? 0);
         const task = scheduleEvent(
@@ -76,7 +76,7 @@ export class Client {
             this.state.scheduler,
             queue,
             event,
-            this.onSchedulerEvent
+            this.onSchedulerEvent.bind(this)
         );
         this.setState({ ...this.state, scheduler: task.state });
         task.execute();

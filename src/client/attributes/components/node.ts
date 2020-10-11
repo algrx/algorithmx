@@ -8,15 +8,9 @@ import {
     ExactStringSpec,
     TupleSpec,
     RecordEntries,
-} from '../attr-spec';
-import { FullAttr, PartialAttr } from '../derived-attr';
-import {
-    WithCommonSpec,
-    withCommonSpec,
-    commonDefaults,
-    CommonSpec,
-    applyDefaults,
-} from './common';
+} from '../spec';
+import { FullAttr, PartialAttr } from '../derived';
+import { WithAnimSpec, withAnimSpec, animDefaults } from './animation';
 import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { CanvasVar, NodeVar, NodeLabelVar, nodeVars, nodeLabelVars } from './expression';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
@@ -33,10 +27,10 @@ export type NodeSpec = RecordSpec<
     {
         readonly labels: DictSpec<LabelSpec>;
         readonly shape: ExactStringSpec<NodeShape>;
-        readonly color: WithCommonSpec<StringSpec>;
-        readonly size: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly pos: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly fixed: WithCommonSpec<BoolSpec>;
+        readonly color: WithAnimSpec<StringSpec>;
+        readonly size: WithAnimSpec<TupleSpec<NumSpec>>;
+        readonly pos: WithAnimSpec<TupleSpec<NumSpec>>;
+        readonly fixed: BoolSpec;
         readonly draggable: BoolSpec;
         readonly listenclick: BoolSpec;
         readonly listenhover: BoolSpec;
@@ -54,10 +48,10 @@ export const nodeSpec: NodeSpec = {
             },
         },
         shape: { type: AttrType.String, validValues: nodeShape },
-        color: withCommonSpec({ type: AttrType.String }),
-        size: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        pos: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        fixed: withCommonSpec({ type: AttrType.Boolean }),
+        color: withAnimSpec({ type: AttrType.String }),
+        size: withAnimSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
+        pos: withAnimSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
+        fixed: { type: AttrType.Boolean },
         draggable: { type: AttrType.Boolean },
         listenclick: { type: AttrType.Boolean },
         listenhover: { type: AttrType.Boolean },
@@ -71,10 +65,10 @@ export const VALUE_LABEL_ID = 'value';
 const nodeDefaults: FullAttr<NodeSpec> = {
     labels: {},
     shape: 'circle',
-    color: { ...commonDefaults, value: COLORS.darkgray },
-    size: { ...commonDefaults, value: [12, 12] },
-    pos: { ...commonDefaults, value: [0, 0] },
-    fixed: { ...commonDefaults, value: false },
+    color: { ...animDefaults, value: COLORS.darkgray },
+    size: { ...animDefaults, value: [12, 12] },
+    pos: { ...animDefaults, value: [0, 0] },
+    fixed: false,
     draggable: false,
     listenclick: false,
     listenhover: false,
@@ -130,10 +124,10 @@ export const createNodeDefaults = (
 
             // apply label defaults
             return mergeDiff(labelDictDefaults[k], {
-                text: { value: name },
+                text: name,
                 radius: { value: { m: 1, x: 'r', c: 3 } },
                 angle: { value: angleToDeg(labelAngle) },
-                align: { value: 'radial' },
+                align: 'radial',
             });
         }
     );
@@ -156,11 +150,11 @@ export const createNodeDictDefaults = (
         filterDict(changes, (_, k) => !attrs || !(k in attrs)),
         (_, k, i) => {
             const valueLabel: FullAttr<LabelSpec> = mergeDiff(labelDefaults, {
-                text: { value: name },
-                align: { value: 'middle' },
+                text: name,
+                align: 'middle',
                 radius: { value: 0 },
                 angle: { value: 90 },
-                rotate: { value: false },
+                rotate: false,
                 color: { value: COLORS.white },
                 size: { value: 12 },
             });

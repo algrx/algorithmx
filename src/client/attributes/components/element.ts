@@ -6,26 +6,27 @@ import {
     ExactStringSpec,
     AttrType,
     RecordEntries,
-} from '../attr-spec';
-import { withCommonSpec, WithCommonSpec, CommonSpec, commonDefaults, commonSpec } from './common';
-import { FullAttr } from '../derived-attr';
+} from '../spec';
+import { WithAnimSpec, withAnimSpec, animDefaults, animSpec } from './animation';
+import { FullAttr } from '../derived';
 
 export const visibleAnimTypes = <const>['fade', 'grow'];
 export type VisibleAnimType = typeof visibleAnimTypes[number];
 
 export type ElementSpec = RecordSpec<{
     readonly visible: RecordSpec<
-        RecordEntries<WithCommonSpec<BoolSpec>> & {
+        RecordEntries<WithAnimSpec<BoolSpec>> & {
             readonly animtype: ExactStringSpec<VisibleAnimType>;
         }
     >;
-    readonly svgattrs: DictSpec<WithCommonSpec<StringSpec>>;
+    readonly svgattrs: DictSpec<WithAnimSpec<StringSpec>>;
+    readonly remove: BoolSpec;
 }>;
 export const elementSpecEntries: RecordEntries<ElementSpec> = {
     visible: {
         type: AttrType.Record,
         entries: {
-            ...commonSpec.entries,
+            ...animSpec.entries,
             value: { type: AttrType.Boolean },
             animtype: {
                 type: AttrType.String,
@@ -35,17 +36,19 @@ export const elementSpecEntries: RecordEntries<ElementSpec> = {
     },
     svgattrs: {
         type: AttrType.Dict,
-        entry: withCommonSpec({ type: AttrType.String }),
+        entry: withAnimSpec({ type: AttrType.String }),
     },
+    remove: { type: AttrType.Boolean },
 };
 
 export const elementDefaults: FullAttr<ElementSpec> = {
     visible: {
-        ...commonDefaults,
+        ...animDefaults,
         value: true,
         animtype: 'fade',
     },
+    remove: false,
     svgattrs: {
-        '*': { value: '', ...commonDefaults },
+        '*': { value: '', ...animDefaults },
     },
 };

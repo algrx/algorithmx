@@ -7,15 +7,15 @@ import {
     ExactStringSpec,
     TupleSpec,
     RecordEntries,
-} from '../attr-spec';
+} from '../spec';
+import { FullAttr, PartialAttr } from '../derived';
 import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { CanvasVar, canvasVars } from './expression';
-import { WithCommonSpec, withCommonSpec, commonDefaults } from './common';
+import { WithAnimSpec, withAnimSpec, animDefaults } from './animation';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { NodeSpec, nodeSpec, createNodeDictDefaults, evalNode } from './node';
 import { EdgeSpec, edgeSpec, createEdgeDictDefaults, edgeDefaults } from './edge';
 import { COLORS } from './color';
-import { FullAttr, PartialAttr } from '../derived-attr';
 import { mergeDiff, mapDict } from '../../utils';
 import { VarDict, evalAttr, usesVars, evalDeep } from '../expr-utils';
 import { combineAttrs } from '../attr-utils';
@@ -28,14 +28,14 @@ export type CanvasSpec = RecordSpec<
         readonly nodes: DictSpec<NodeSpec>;
         readonly edges: DictSpec<EdgeSpec>;
         readonly labels: DictSpec<LabelSpec>;
-        readonly size: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly edgelayout: WithCommonSpec<ExactStringSpec<EdgeLayout>>;
-        readonly edgelength: WithCommonSpec<NumSpec>;
-        readonly pan: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly zoom: WithCommonSpec<NumSpec>;
-        readonly panlimit: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly zoomlimit: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly zoomtoggle: WithCommonSpec<BoolSpec>;
+        readonly size: WithAnimSpec<TupleSpec<NumSpec>>;
+        readonly edgelayout: ExactStringSpec<EdgeLayout>;
+        readonly edgelength: NumSpec;
+        readonly pan: WithAnimSpec<TupleSpec<NumSpec>>;
+        readonly zoom: WithAnimSpec<NumSpec>;
+        readonly panlimit: TupleSpec<NumSpec>;
+        readonly zoomlimit: TupleSpec<NumSpec>;
+        readonly zoomtoggle: BoolSpec;
     } & RecordEntries<ElementSpec>
 >;
 
@@ -54,14 +54,14 @@ export const canvasSpec: CanvasSpec = {
             type: AttrType.Dict,
             entry: labelSpec,
         },
-        size: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        edgelayout: withCommonSpec({ type: AttrType.String, validValues: edgeLengthType }),
-        edgelength: withCommonSpec({ type: AttrType.Number }),
-        pan: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        zoom: withCommonSpec({ type: AttrType.Number }),
-        panlimit: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        zoomlimit: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        zoomtoggle: withCommonSpec({ type: AttrType.Boolean }),
+        size: withAnimSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
+        edgelayout: { type: AttrType.String, validValues: edgeLengthType },
+        edgelength: { type: AttrType.Number },
+        pan: withAnimSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
+        zoom: withAnimSpec({ type: AttrType.Number }),
+        panlimit: { type: AttrType.Tuple, entry: { type: AttrType.Number } },
+        zoomlimit: { type: AttrType.Tuple, entry: { type: AttrType.Number } },
+        zoomtoggle: { type: AttrType.Boolean },
         ...elementSpecEntries,
     },
     validVars: canvasVars,
@@ -72,17 +72,17 @@ export const canvasDefaults: FullAttr<CanvasSpec> = {
     edges: {},
     labels: {},
     size: {
-        ...commonDefaults,
+        ...animDefaults,
         value: [100, 100],
         duration: 0,
     },
-    edgelayout: { ...commonDefaults, value: 'jaccard' },
-    edgelength: { ...commonDefaults, value: 70 },
-    pan: { ...commonDefaults, value: [0, 0] },
-    zoom: { ...commonDefaults, value: 1 },
-    panlimit: { ...commonDefaults, value: [Infinity, Infinity] },
-    zoomlimit: { ...commonDefaults, value: [0.1, 10] },
-    zoomtoggle: { ...commonDefaults, value: false },
+    edgelayout: 'jaccard',
+    edgelength: 70,
+    pan: { ...animDefaults, value: [0, 0] },
+    zoom: { ...animDefaults, value: 1 },
+    panlimit: [Infinity, Infinity],
+    zoomlimit: [0.1, 10],
+    zoomtoggle: false,
     ...elementDefaults,
 };
 
@@ -96,9 +96,9 @@ export const createCanvasDefaults = (
         edges: createEdgeDictDefaults(attrs?.edges, changes.edges ?? {}),
         labels: mapDict(createLabelDictDefaults(attrs?.labels, changes.labels ?? {}), (label) =>
             mergeDiff(label, {
-                align: { value: 'middle' },
+                align: 'middle',
                 pos: { value: [0, { m: 0.5, x: 'cy', c: 0 }] },
-                rotate: { value: true },
+                rotate: true,
                 color: { value: COLORS.gray },
                 size: { value: 20 },
             })

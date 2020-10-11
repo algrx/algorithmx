@@ -13,7 +13,7 @@ import {
     RecordEntries,
     ExactStringSpec,
     EndpointValueSpec,
-} from './attr-spec';
+} from './spec';
 
 // === (Partial) Input ===
 

@@ -1,5 +1,5 @@
+import { InputAttr } from '../client/attributes/derived';
 import { NodeSpec, NodeShape } from '../client/attributes/components/node';
-import { InputAttr } from '../client/attributes/derived-attr';
 import { VisibleAnimType } from '../client/attributes/components/element';
 
 import { LabelSelection } from './LabelSelection';

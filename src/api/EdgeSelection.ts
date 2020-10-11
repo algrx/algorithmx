@@ -1,4 +1,4 @@
-import { InputAttr } from '../client/attributes/derived-attr';
+import { InputAttr } from '../client/attributes/derived';
 import { EdgeSpec, EdgeCurve } from '../client/attributes/components/edge';
 
 import { ElementSelection } from './ElementSelection';

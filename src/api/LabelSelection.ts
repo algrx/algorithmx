@@ -1,4 +1,4 @@
-import { InputAttr } from '../client/attributes/derived-attr';
+import { InputAttr } from '../client/attributes/derived';
 import { LabelSpec, LabelAlign } from '../client/attributes/components/label';
 
 import { ElementSelection } from './ElementSelection';

@@ -6,8 +6,9 @@ import {
     RecordSpec,
     BoolSpec,
     AttrType,
-} from '../attr-spec';
-import { FullAttr } from '../derived-attr';
+    EndpointValueSpec,
+} from '../spec';
+import { FullAttr } from '../derived';
 
 export const animEases = <const>[
     'linear',
@@ -53,14 +54,39 @@ export type AnimEase = typeof animEases[number];
 export type AnimSpec = RecordSpec<{
     readonly duration: NumSpec;
     readonly ease: ExactStringSpec<AnimEase>;
+    readonly highlight: BoolSpec;
+    readonly linger: NumSpec; // how long to highlight for
 }>;
 
-export const animSpecEntries: RecordEntries<AnimSpec> = {
-    duration: { type: AttrType.Number },
-    ease: { type: AttrType.String, validValues: animEases },
+export const animSpec: AnimSpec = {
+    type: AttrType.Record,
+    entries: {
+        duration: { type: AttrType.Number },
+        ease: { type: AttrType.String, validValues: animEases },
+        highlight: { type: AttrType.Boolean },
+        linger: { type: AttrType.Number },
+    },
 };
 
-export const defaultAnim: FullAttr<AnimSpec> = {
+export const animDefaults: FullAttr<AnimSpec> = {
     duration: 0.5,
     ease: 'poly',
+    highlight: false,
+    linger: 0.5,
+};
+
+export type WithAnimSpec<T extends EndpointValueSpec> = RecordSpec<
+    RecordEntries<AnimSpec> & {
+        readonly value: T;
+    }
+>;
+
+export const withAnimSpec = <T extends EndpointValueSpec>(valueSpec: T): WithAnimSpec<T> => {
+    return {
+        type: AttrType.Record,
+        entries: {
+            value: valueSpec,
+            ...animSpec.entries,
+        },
+    };
 };

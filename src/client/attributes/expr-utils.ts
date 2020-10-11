@@ -1,7 +1,7 @@
 import { NumExpr } from './components/expression';
 import { isNumericalStr, Dict, mapDict, dictValues } from '../utils';
-import { AttrSpec, AttrType } from './attr-spec';
-import { PartialAttr } from './derived-attr';
+import { AttrSpec, AttrType } from './spec';
+import { PartialAttr } from './derived';
 import { isPrimitive, combineAttrs } from './attr-utils';
 
 interface ExprTerm {

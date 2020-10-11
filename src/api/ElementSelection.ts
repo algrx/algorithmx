@@ -1,5 +1,4 @@
-import { CommonSpec } from '../client/attributes/components/common';
-import { InputAttr } from '../client/attributes/derived-attr';
+import { InputAttr } from '../client/attributes/derived';
 import { ElementSpec, VisibleAnimType } from '../client/attributes/components/element';
 import { AnimEase } from '../client/attributes/components/animation';
 

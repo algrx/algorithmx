@@ -1,5 +1,4 @@
-import { QueueSelection } from './QueueSelection';
-import { InputAttr } from '../client/attributes/derived-attr';
+import { InputAttr } from '../client/attributes/derived';
 import { CanvasSpec, EdgeLayout } from '../client/attributes/components/canvas';
 import { CanvasElement, ReceiveEvent, DispatchEvent } from '../client/types';
 
@@ -7,6 +6,7 @@ import { ElementSelection } from './ElementSelection';
 import { NodeSelection } from './NodeSelection';
 import { EdgeSelection, EdgeId } from './EdgeSelection';
 import { LabelSelection } from './LabelSelection';
+import { QueueSelection } from './QueueSelection';
 import { ElementContext, ElementObjArg, ElementCallbacks, evalElementObjArg } from './utils';
 import { ElementId, NumAttr } from './types';
 

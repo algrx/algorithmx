@@ -1,5 +1,5 @@
-import { CommonSpec } from '../client/attributes/components/common';
-import { InputAttr } from '../client/attributes/derived-attr';
+import { AnimSpec } from '../client/attributes/components/animation';
+import { InputAttr } from '../client/attributes/derived';
 import { ReceiveEvent, DispatchEvent } from '../client/types';
 import { ElementFn, ElementArg } from './types';
 
@@ -27,7 +27,7 @@ export interface ElementContext<D> {
     readonly ids: ReadonlyArray<string>;
     readonly data?: ReadonlyArray<D>;
     readonly withQ?: string | null;
-    readonly defaultattr?: InputAttr<CommonSpec>;
+    readonly defaultattr?: InputAttr<AnimSpec>;
     readonly parentkey?: string;
     readonly parent?: ElementContext<D | unknown>;
     readonly callbacks: ClientCallbacks;

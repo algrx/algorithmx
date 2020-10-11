@@ -1,6 +1,7 @@
 interface QueueEvent {
-    readonly action: 'stop' | 'start' | 'clear' | 'pause' | 'unpause';
-    readonly duration?: number; // only for pause
+    readonly stopped?: boolean;
+    readonly pause?: number | boolean;
+    readonly clear?: boolean;
 }
 interface BaseEvent {
     readonly queues?: { readonly [k: string]: QueueEvent };
@@ -117,45 +118,52 @@ const updateQueue = (
     event: QueueEvent,
     callback: SchedulerCb
 ): SchedulerTask => {
-    if (event.action === 'start') {
-        return {
-            state: updateQueueState(state, queue, { stopped: false }),
-            execute: () => executeNext(state, queue, callback),
-        };
-    }
-    if (event.action === 'stop') {
-        return {
-            state: updateQueueState(state, queue, { stopped: true }),
-            execute: () => null,
-        };
-    }
-    if (event.action === 'clear') {
-        return {
-            state: updateQueueState(state, queue, { events: [], busy: false }),
-            execute: () => null,
-        };
-    }
-    if (event.action === 'pause') {
-        return {
-            state: updateQueueState(state, queue, { paused: true }),
-            execute: () =>
-                setTimeout(() => {
-                    callback(
-                        {
-                            queues: { [queue]: { action: 'unpause' } },
-                        },
-                        queue
-                    );
-                }, (event.duration ?? 1000) * 1000),
-        };
-    }
-    if (event.action === 'unpause') {
-        return {
-            state: updateQueueState(state, queue, { paused: false }),
-            execute: () => executeNext(state, queue, callback),
-        };
-    }
-    return noTask(state);
+    // pause event
+    const withPause: SchedulerTask =
+        event.pause === false
+            ? {
+                  state: updateQueueState(state, queue, { paused: false }),
+                  execute: () => executeNext(state, queue, callback),
+              }
+            : event.pause !== undefined
+            ? {
+                  state: updateQueueState(state, queue, { paused: true }),
+                  execute: () =>
+                      setTimeout(() => {
+                          callback(
+                              {
+                                  queues: { [queue]: { pause: false } },
+                              },
+                              queue
+                          );
+                      }, (event.pause as number) * 1000),
+              }
+            : noTask(state);
+
+    // stop/start event
+    const withStop: SchedulerTask =
+        event.stopped === true
+            ? {
+                  state: updateQueueState(withPause.state, queue, { stopped: true }),
+                  execute: () => null,
+              }
+            : event.stopped === false
+            ? {
+                  state: updateQueueState(withPause.state, queue, { stopped: false }),
+                  execute: () => executeNext(withPause.state, queue, callback),
+              }
+            : withPause;
+
+    // clear event
+    const withClear: SchedulerTask =
+        event.clear === true
+            ? {
+                  state: updateQueueState(withStop.state, queue, { events: [], busy: false }),
+                  execute: () => null,
+              }
+            : withStop;
+
+    return withClear;
 };
 
 export const scheduleEvent = (

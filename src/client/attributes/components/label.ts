@@ -1,4 +1,3 @@
-import { PartialAttr } from '../derived-attr';
 import {
     AttrType,
     RecordSpec,
@@ -9,15 +8,9 @@ import {
     TupleSpec,
     RecordEntries,
     DictSpec,
-} from '../attr-spec';
-import { FullAttr } from '../derived-attr';
-import {
-    withCommonSpec,
-    CommonSpec,
-    commonDefaults,
-    WithCommonSpec,
-    applyDefaults,
-} from './common';
+} from '../spec';
+import { PartialAttr, FullAttr } from '../derived';
+import { WithAnimSpec, withAnimSpec, animDefaults } from './animation';
 import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { COLORS } from './color';
 import { mapDict, filterDict } from '../../utils';
@@ -40,44 +33,44 @@ export type LabelAlign = typeof labelAlign[number];
 
 export type LabelSpec = RecordSpec<
     {
-        readonly text: WithCommonSpec<StringSpec>;
-        readonly align: WithCommonSpec<ExactStringSpec<LabelAlign>>;
-        readonly pos: WithCommonSpec<TupleSpec<NumSpec>>;
-        readonly radius: WithCommonSpec<NumSpec>;
-        readonly angle: WithCommonSpec<NumSpec>;
-        readonly rotate: WithCommonSpec<BoolSpec>;
-        readonly color: WithCommonSpec<StringSpec>;
-        readonly font: WithCommonSpec<StringSpec>;
-        readonly size: WithCommonSpec<NumSpec>;
+        readonly text: StringSpec;
+        readonly align: ExactStringSpec<LabelAlign>;
+        readonly pos: WithAnimSpec<TupleSpec<NumSpec>>;
+        readonly radius: WithAnimSpec<NumSpec>;
+        readonly angle: WithAnimSpec<NumSpec>;
+        readonly rotate: BoolSpec;
+        readonly color: WithAnimSpec<StringSpec>;
+        readonly font: StringSpec;
+        readonly size: WithAnimSpec<NumSpec>;
     } & RecordEntries<ElementSpec>
 >;
 
 export const labelSpec: LabelSpec = {
     type: AttrType.Record,
     entries: {
-        text: withCommonSpec({ type: AttrType.String }),
-        align: withCommonSpec({ type: AttrType.String, validValues: labelAlign }),
-        pos: withCommonSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
-        radius: withCommonSpec({ type: AttrType.Number }),
-        angle: withCommonSpec({ type: AttrType.Number }),
-        rotate: withCommonSpec({ type: AttrType.Boolean }),
-        color: withCommonSpec({ type: AttrType.String }),
-        font: withCommonSpec({ type: AttrType.String }),
-        size: withCommonSpec({ type: AttrType.Number }),
+        text: { type: AttrType.String },
+        align: { type: AttrType.String, validValues: labelAlign },
+        pos: withAnimSpec({ type: AttrType.Tuple, entry: { type: AttrType.Number } }),
+        radius: withAnimSpec({ type: AttrType.Number }),
+        angle: withAnimSpec({ type: AttrType.Number }),
+        rotate: { type: AttrType.Boolean },
+        color: withAnimSpec({ type: AttrType.String }),
+        font: { type: AttrType.String },
+        size: withAnimSpec({ type: AttrType.Number }),
         ...elementSpecEntries,
     },
 };
 
 export const labelDefaults: FullAttr<LabelSpec> = {
-    text: { ...commonDefaults, value: '' },
-    align: { ...commonDefaults, value: 'bottom-middle' },
-    pos: { ...commonDefaults, value: [0, 0] },
-    radius: { ...commonDefaults, value: 0 },
-    angle: { ...commonDefaults, value: 90 },
-    rotate: { ...commonDefaults, value: false },
-    color: { ...commonDefaults, value: COLORS.gray },
-    font: { ...commonDefaults, value: 'Arial, Helvetica, sans-serif' },
-    size: { ...commonDefaults, value: 12 },
+    text: '',
+    align: 'bottom-middle',
+    pos: { ...animDefaults, value: [0, 0] },
+    radius: { ...animDefaults, value: 0 },
+    angle: { ...animDefaults, value: 90 },
+    rotate: false,
+    color: { ...animDefaults, value: COLORS.gray },
+    font: 'Arial, Helvetica, sans-serif',
+    size: { ...animDefaults, value: 12 },
     ...elementDefaults,
 };
 

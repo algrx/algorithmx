@@ -1,5 +1,3 @@
-import { NodeVar } from './expression';
-import { CanvasVar, NodeLabelVar, nodeVars } from './expression';
 import {
     AttrType,
     DictSpec,
@@ -11,15 +9,14 @@ import {
     TupleSpec,
     RecordEntries,
     ArraySpec,
-} from '../attr-spec';
-import { FullAttr, PartialAttr } from '../derived-attr';
-import { WithCommonSpec, withCommonSpec, commonDefaults, CommonSpec } from './common';
+} from '../spec';
+import { FullAttr, PartialAttr } from '../derived';
+import { WithAnimSpec, withAnimSpec, animDefaults } from './animation';
 import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { COLORS } from './color';
-import { mapDict, filterDict, mergeDiff } from '../../utils';
 import { combineAttrs, mapAttr } from '../attr-utils';
-import { VarDict, evalAttr, evalDeep, usesVars } from '../expr-utils';
+import { mapDict, filterDict, mergeDiff } from '../../utils';
 import { angleToDeg } from '../../math';
 
 export const edgeCurve = <const>[
@@ -43,17 +40,17 @@ export type EdgeSpec = RecordSpec<
         readonly source: StringSpec;
         readonly target: StringSpec;
         readonly directed: BoolSpec;
-        readonly length: WithCommonSpec<NumSpec>;
-        readonly thickness: WithCommonSpec<NumSpec>;
-        readonly flip: WithCommonSpec<BoolSpec>;
+        readonly length: NumSpec;
+        readonly thickness: WithAnimSpec<NumSpec>;
+        readonly flip: BoolSpec;
         readonly color: RecordSpec<
-            RecordEntries<WithCommonSpec<StringSpec>> & {
+            RecordEntries<WithAnimSpec<StringSpec>> & {
                 readonly animtype: ExactStringSpec<'color' | 'traverse'>;
                 readonly animsource: StringSpec;
             }
         >;
-        readonly curve: WithCommonSpec<ExactStringSpec<EdgeCurve>>;
-        readonly path: WithCommonSpec<ArraySpec<TupleSpec<NumSpec>>>;
+        readonly curve: ExactStringSpec<EdgeCurve>;
+        readonly path: ArraySpec<TupleSpec<NumSpec>>;
     } & RecordEntries<ElementSpec>
 >;
 
@@ -67,25 +64,25 @@ export const edgeSpec: EdgeSpec = {
         source: { type: AttrType.String },
         target: { type: AttrType.String },
         directed: { type: AttrType.Boolean },
-        length: withCommonSpec({ type: AttrType.Number }),
-        thickness: withCommonSpec({ type: AttrType.Number }),
-        flip: withCommonSpec({ type: AttrType.Boolean }),
+        length: { type: AttrType.Number },
+        thickness: withAnimSpec({ type: AttrType.Number }),
+        flip: { type: AttrType.Boolean },
         color: {
             type: AttrType.Record,
             entries: {
-                ...withCommonSpec({ type: AttrType.String }).entries,
+                ...withAnimSpec({ type: AttrType.String }).entries,
                 animtype: { type: AttrType.String, validValues: ['color', 'traverse'] },
                 animsource: { type: AttrType.String },
             },
         },
-        curve: withCommonSpec({ type: AttrType.String, validValues: edgeCurve }),
-        path: withCommonSpec({
+        curve: { type: AttrType.String, validValues: edgeCurve },
+        path: {
             type: AttrType.Array,
             entry: {
                 type: AttrType.Tuple,
                 entry: { type: AttrType.Number },
             },
-        }),
+        },
         ...elementSpecEntries,
     },
 };
@@ -95,23 +92,23 @@ export const edgeDefaults: FullAttr<EdgeSpec> = {
     source: '',
     target: '',
     directed: false,
-    length: { ...commonDefaults, value: 70 },
-    thickness: { ...commonDefaults, value: 2.5 },
+    length: 70,
+    thickness: { ...animDefaults, value: 2.5 },
     color: {
-        ...commonDefaults,
+        ...animDefaults,
         value: COLORS.lightgray,
         animtype: 'color',
         animsource: '',
     },
-    flip: { ...commonDefaults, value: true },
-    curve: { ...commonDefaults, value: 'natural' },
-    path: { ...commonDefaults, value: [] },
+    flip: true,
+    curve: 'natural',
+    path: [],
     ...elementDefaults,
 };
 
 const edgeLabelDefaults: FullAttr<LabelSpec> = mergeDiff(labelDefaults, {
-    align: { value: 'radial' },
-    rotate: { value: true },
+    align: 'radial',
+    rotate: true,
     size: { value: 11 },
     radius: { value: 3 },
 });
@@ -129,7 +126,7 @@ export const createEdgeDefaults = (
     const newLabels = mapDict(
         filterDict(changes.labels!, (_, k) => !(k in prevLabelKeys)),
         (labelChanges, k, i) => {
-            const path = changes.path?.value ?? attrs?.path?.value ?? edgeDefaults.path.value;
+            const path = changes.path ?? attrs?.path ?? edgeDefaults.path;
             const pathMidY = path.length === 0 ? 0 : path[Math.floor((path.length - 1) / 2)][1];
             const pathMidYNum = typeof pathMidY === 'number' ? pathMidY : 0;
 
@@ -224,12 +221,10 @@ export const createEdgeDictDefaults = (
                     source,
                     target,
                     directed: parsedId[2],
-                    path: {
-                        value:
-                            source === target
-                                ? loopingPath(index)
-                                : [[0, Math.pow(-1, index + 1) * Math.ceil(index / 2) * 16]],
-                    },
+                    path:
+                        source === target
+                            ? loopingPath(index)
+                            : [[0, Math.pow(-1, index + 1) * Math.ceil(index / 2) * 16]],
                 });
                 return { matrix: newMatrix, edges: { ...acc.edges, [k]: newEdgeDefaults } };
             },

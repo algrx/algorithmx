@@ -14,8 +14,8 @@ import {
     AttrKey,
     CompositeSpec,
     AnyTupleSpec,
-} from './attr-spec';
-import { PartialAttr, FullAttr } from './derived-attr';
+} from './spec';
+import { PartialAttr, FullAttr } from './derived';
 import { mapDict, Dict, dictFromArray } from '../utils';
 
 export const isPrimitive = (spec: AttrSpec): spec is PrimitiveSpec => {
