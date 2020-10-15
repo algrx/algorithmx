@@ -1,4 +1,12 @@
-import { AttrSpec, EntrySpec, AttrType, DictSpec, AnyRecordSpec, AttrKey } from './spec';
+import {
+    AttrSpec,
+    EntrySpec,
+    AttrType,
+    DictSpec,
+    AnyRecordSpec,
+    AttrKey,
+    AnyDictSpec,
+} from './spec';
 import { PartialAttr, FullAttr } from './derived';
 import { AnimSpec, animSpec } from './components/animation';
 import { combineAttrs, getAttrEntry, mapAttr, isPrimitive } from './attr-utils';
@@ -48,6 +56,37 @@ export const applyDefaults = <T extends AttrSpec>(
     });
 };
 
+// merge changes with full attributes
+export const mergeChanges = <T extends AttrSpec>(
+    spec: T,
+    prevAttrs: FullAttr<T> | undefined,
+    changes: PartialAttr<T>
+): FullAttr<T> | undefined => {
+    // remove records with a 'remove=true' entry
+    if (spec.type === AttrType.Record && 'remove' in (spec as AnyRecordSpec).entries) {
+        if ((changes as PartialAttr<AnyRecordSpec>)['remove'] === true) return undefined;
+    }
+
+    // if the changes are completely new,
+    // assume that they have been initialized with full defaults
+    if (prevAttrs === undefined) return changes as FullAttr<T>;
+
+    return combineAttrs(
+        spec,
+        prevAttrs as PartialAttr<T>,
+        changes,
+        (prevChild, childChanges, _, childSpec) => {
+            return childChanges === undefined
+                ? prevChild
+                : (mergeChanges(
+                      childSpec,
+                      prevChild as FullAttr<EntrySpec<T>>,
+                      childChanges
+                  ) as PartialAttr<EntrySpec<T>>);
+        }
+    ) as FullAttr<T>;
+};
+
 // apply animation defaults to endpoints only
 export const applyAnimDefaults = <T extends AttrSpec>(
     spec: T,
@@ -64,6 +103,32 @@ export const applyAnimDefaults = <T extends AttrSpec>(
     return mapAttr(spec, changes, (childChanges, k, childSpec) => {
         return applyAnimDefaults(childSpec, childChanges, anim);
     });
+};
+
+// replace the "*" key in dicts with all existing IDs
+export const fillStarKeys = <T extends AttrSpec>(
+    spec: T,
+    prevAttrs: FullAttr<T> | undefined,
+    changes: PartialAttr<T>
+): PartialAttr<T> => {
+    return combineAttrs(
+        spec,
+        prevAttrs as PartialAttr<T>,
+        changes,
+        (prevChild, childChanges, k, childSpec) => {
+            // fall back on the "*" key
+            const newChildChanges =
+                spec.type === AttrType.Dict && childChanges === undefined && '*' in changes
+                    ? ((changes as PartialAttr<AnyDictSpec>)['*'] as PartialAttr<EntrySpec<T>>)
+                    : childChanges;
+
+            // don't include "*" as an actual attribute
+            if (spec.type === AttrType.Dict && k === '*') return undefined;
+            if (newChildChanges === undefined) return undefined;
+
+            return fillStarKeys(childSpec, prevChild as FullAttr<EntrySpec<T>>, newChildChanges);
+        }
+    );
 };
 
 // remove edges connected to nodes which are being removed
