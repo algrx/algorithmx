@@ -2,7 +2,7 @@ import { NumExpr } from './components/expression';
 import { isNumericalStr, Dict, mapDict, dictValues } from '../utils';
 import { AttrSpec, AttrType } from './spec';
 import { PartialAttr } from './derived';
-import { isPrimitive, combineAttrs } from './attr-utils';
+import { isPrimitive, combineAttrs, nonEmpty } from './attr-utils';
 
 interface ExprTerm {
     readonly num: number;
@@ -123,7 +123,7 @@ export const evalNum = <T extends string>(
 };
 
 export const usesVars = (expr: NumExpr<string> | number, vars: ReadonlyArray<string>): boolean => {
-    if (isNumExpr(expr)) return expr.x in vars;
+    if (isNumExpr(expr)) return vars.includes(expr.x);
     return false;
 };
 
@@ -139,10 +139,11 @@ export const evalAttr = (
 ): { readonly value: number; readonly changed: boolean } => {
     const varValues = mapDict(vars, (v) => v.value);
 
-    if (changes) {
+    if (changes !== undefined) {
+        if (!isNumExpr(changes)) return { value: changes, changed: true };
+
         // if the change is self-referential (e.g. node.size = 2x), the variable won't exist yet
-        if (isNumExpr(changes) && changes.x in vars)
-            return { value: evalNum(changes, varValues), changed: true };
+        if (changes.x in vars) return { value: evalNum(changes, varValues), changed: true };
     }
 
     return { value: evalNum(attr!, varValues), changed: false };
@@ -155,18 +156,19 @@ const evalDeepAux = <T extends AttrSpec, V extends string>(
     vars: VarDict<V>
 ): PartialAttr<T> | undefined => {
     if (spec.type === AttrType.Number) {
-        const varValues = mapDict(vars, (v) => v.value);
-
         // evaluate a changed expression
         if (changes && isNumExpr(changes)) {
+            const varValues = mapDict(vars, (v) => v.value);
             return evalNum(changes, varValues) as PartialAttr<T>;
         }
 
         // evaluate an existing 'permanent' expression
         if (permExpr && isNumExpr(permExpr)) {
             // only evaluate if the variable has changed
-            if (permExpr.x in vars && vars[permExpr.x as V]!.changed)
+            if (permExpr.x in vars && vars[permExpr.x as V]!.changed) {
+                const varValues = mapDict(vars, (v) => v.value);
                 return evalNum(permExpr, varValues) as PartialAttr<T>;
+            }
         }
     }
 
@@ -176,10 +178,11 @@ const evalDeepAux = <T extends AttrSpec, V extends string>(
     }
 
     // evaluate all children
-    const children = combineAttrs(spec, permExpr, changes, (v1, v2, k, s) => {
-        return evalDeepAux(s, v1, v2, vars);
-    });
-    return children === {} ? undefined : children;
+    return nonEmpty(
+        combineAttrs(spec, permExpr, changes, (v1, v2, k, s) => {
+            return evalDeepAux(s, v1, v2, vars);
+        })
+    );
 };
 
 export const evalDeep = <T extends AttrSpec, V extends string>(

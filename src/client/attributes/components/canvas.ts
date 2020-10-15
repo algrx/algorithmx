@@ -1,3 +1,4 @@
+import { nonEmpty } from '../attr-utils';
 import {
     AttrType,
     DictSpec,
@@ -124,32 +125,34 @@ export const evalCanvas = (
         changes,
         (childAttr, childChanges, childKey, childSpec) => {
             if (childKey === 'nodes') {
-                return combineAttrs(
+                const nodeDict = combineAttrs(
                     canvasSpec.entries.nodes,
                     prevAttrs?.nodes,
                     changes.nodes,
-                    (nodeAttrs, nodeChanges) => {
+                    (prevNode, nodeChanges) => {
                         if (nodeChanges)
                             return evalNode(
-                                nodeAttrs as FullAttr<NodeSpec> | undefined,
+                                prevNode as FullAttr<NodeSpec> | undefined,
                                 nodeChanges,
                                 canvasVars,
                                 selfRefOnly
                             );
 
                         if (!selfRefOnly)
-                            return evalDeep(nodeSpec, nodeAttrs, nodeChanges, canvasVars);
+                            return evalDeep(nodeSpec, prevNode, nodeChanges, canvasVars);
 
                         return undefined;
                     }
                 );
+                return nonEmpty(nodeDict);
             }
 
             if (selfRefOnly) {
                 // only evaluate self-referential attributes (e.g. size = '2cx')
                 if (
                     childKey === 'size' &&
-                    changes.size!.value &&
+                    changes.size &&
+                    changes.size.value &&
                     (usesVars(changes.size!.value[0], ['cx', 'cy']) ||
                         usesVars(changes.size!.value[1], ['cx', 'cy']))
                 ) {

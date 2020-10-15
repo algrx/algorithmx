@@ -26,6 +26,12 @@ export const isPrimitive = (spec: AttrSpec): spec is PrimitiveSpec => {
     );
 };
 
+export const nonEmpty = <T>(attr: T): T | undefined => {
+    if (typeof attr === 'object' && Object.keys(attr).length === 0) return undefined;
+    if (Array.isArray(attr) && attr.every((v) => v === undefined)) return undefined;
+    return attr;
+};
+
 export function getAttrEntry<T extends AttrSpec>(
     v: PartialAttr<T>,
     k: AttrKey<T>
@@ -121,7 +127,7 @@ export function combineAttrs<T extends AttrSpec>(
         spec.type === AttrType.Array ||
         spec.type === AttrType.Tuple
     ) {
-        return prevAttr === undefined
+        return newAttr !== undefined
             ? mapAttr(spec, newAttr!, (v, k, s) => fn(undefined, v, k, s))
             : mapAttr(spec, prevAttr!, (v, k, s) => fn(v, undefined, k, s));
     } else {

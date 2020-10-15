@@ -16,7 +16,7 @@ import { CanvasVar, NodeVar, NodeLabelVar, nodeVars, nodeLabelVars } from './exp
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { COLORS } from './color';
 import { mapDict, filterDict, mergeDiff } from '../../utils';
-import { combineAttrs, mapAttr } from '../attr-utils';
+import { combineAttrs, mapAttr, nonEmpty } from '../attr-utils';
 import { VarDict, evalAttr, evalDeep, usesVars } from '../expr-utils';
 import { angleToRad, radiusAtAngleRect, angleToDeg } from '../../math';
 
@@ -60,7 +60,7 @@ export const nodeSpec: NodeSpec = {
     validVars: nodeVars,
 };
 
-export const VALUE_LABEL_ID = 'value';
+export const VALUE_LABEL_ID = '0';
 
 const nodeDefaults: FullAttr<NodeSpec> = {
     labels: {},
@@ -124,7 +124,7 @@ export const createNodeDefaults = (
 
             // apply label defaults
             return mergeDiff(labelDictDefaults[k], {
-                text: name,
+                text: k,
                 radius: { value: { m: 1, x: 'r', c: 3 } },
                 angle: { value: angleToDeg(labelAngle) },
                 align: 'radial',
@@ -150,7 +150,7 @@ export const createNodeDictDefaults = (
         filterDict(changes, (_, k) => !prevAttrs || !(k in prevAttrs)),
         (_, k, i) => {
             const valueLabel: FullAttr<LabelSpec> = mergeDiff(labelDefaults, {
-                text: name,
+                text: k,
                 align: 'middle',
                 radius: { value: 0 },
                 angle: { value: 90 },
@@ -158,11 +158,12 @@ export const createNodeDictDefaults = (
                 color: { value: COLORS.white },
                 size: { value: 12 },
             });
+            const newNodeDefaults = createNodeDefaults(undefined, changes[k]!);
             return {
-                ...createNodeDefaults(undefined, changes[k]!),
-                labels: { [VALUE_LABEL_ID]: valueLabel },
+                ...newNodeDefaults,
+                labels: { ...newNodeDefaults.labels, [VALUE_LABEL_ID]: valueLabel },
                 pos: {
-                    ...nodeDefaults.pos,
+                    ...newNodeDefaults.pos,
                     value: initPos(numPrevNodes + i, (nodeDefaults.size.value[0] as number) * 2),
                 },
             };
@@ -170,7 +171,6 @@ export const createNodeDictDefaults = (
     );
 
     return {
-        '*': nodeDefaults,
         ...mapDict(changes, (nodeChanges, k) => {
             return newNodes[k] ?? createNodeDefaults(prevAttrs?.[k], nodeChanges);
         }),
@@ -186,10 +186,10 @@ export const evalNodeLabels = (
         nodeSpec.entries.labels,
         prevAttrs?.labels,
         changes.labels!,
-        (labelAttr, labelChanges, _, labelSpec) => {
+        (prevLabel, labelChanges, _, labelSpec) => {
             // calculate the 'r' variable based on the angle of the label and the size of the node
             const labelAngle = evalAttr(
-                labelAttr?.angle?.value,
+                prevLabel?.angle?.value,
                 labelChanges?.angle?.value,
                 nodeVars
             );
@@ -210,13 +210,13 @@ export const evalNodeLabels = (
                         changes.shape !== undefined,
                 },
             };
-            return evalDeep(labelSpec, labelAttr, labelChanges, nodeVars);
+            return evalDeep(labelSpec, prevLabel, labelChanges, nodeLabelVars);
         }
     );
 };
 
 export const evalNode = (
-    attrs: FullAttr<NodeSpec> | undefined,
+    prevAttrs: FullAttr<NodeSpec> | undefined,
     changes: PartialAttr<NodeSpec>,
     canvasVars: VarDict<CanvasVar>,
     selfRefOnly: boolean
@@ -224,35 +224,36 @@ export const evalNode = (
     // get node variables from attributes
     const nodeVars: VarDict<NodeVar> = {
         ...canvasVars,
-        x: evalAttr(attrs?.pos.value[0], changes.pos?.value?.[0], canvasVars),
-        y: evalAttr(attrs?.pos.value[1], changes.pos?.value?.[1], canvasVars),
+        x: evalAttr(prevAttrs?.size.value[0], changes.size?.value?.[0], canvasVars),
+        y: evalAttr(prevAttrs?.size.value[1], changes.size?.value?.[1], canvasVars),
     };
 
     // evaluate child attributes
     return combineAttrs(
         nodeSpec,
-        attrs,
+        prevAttrs,
         changes,
-        (childAttr, childChanges, childKey, childSpec) => {
+        (prevChild, childChanges, childKey, childSpec) => {
             if (selfRefOnly) {
                 // only evaluate self-referential attributes (e.g. size = '2x')
                 if (
                     childKey === 'size' &&
-                    changes.size!.value &&
-                    (usesVars(changes.size!.value[0], ['x', 'y']) ||
-                        usesVars(changes.size!.value[1], ['x', 'y']))
+                    changes.size &&
+                    changes.size.value &&
+                    (usesVars(changes.size.value[0], ['x', 'y']) ||
+                        usesVars(changes.size.value[1], ['x', 'y']))
                 ) {
-                    return evalDeep(childSpec, childAttr, childChanges, nodeVars);
+                    return evalDeep(childSpec, prevChild, childChanges, nodeVars);
                 }
 
                 return childChanges;
             }
 
             if (childKey === 'labels') {
-                return evalNodeLabels(attrs, changes, nodeVars);
+                return nonEmpty(evalNodeLabels(prevAttrs, changes, nodeVars));
             }
 
-            return evalDeep(childSpec, childAttr, childChanges, nodeVars);
+            return evalDeep(childSpec, prevChild, childChanges, nodeVars);
         }
     );
 };

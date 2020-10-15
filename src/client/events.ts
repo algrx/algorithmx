@@ -1,4 +1,9 @@
-import { CanvasSpec, canvasSpec, createCanvasDefaults } from './attributes/components/canvas';
+import {
+    CanvasSpec,
+    canvasSpec,
+    createCanvasDefaults,
+    evalCanvas,
+} from './attributes/components/canvas';
 import { AnimSpec, animSpec } from './attributes/components/animation';
 import { InputAttr, FullAttr, PartialAttr } from './attributes/derived';
 import { preprocess } from './attributes/preprocess';
@@ -9,6 +14,8 @@ import {
     adjustEdgeIds,
     applyDefaults,
     applyAnimDefaults,
+    mergeChanges,
+    fillStarKeys,
 } from './attributes/transform';
 
 export interface EventContext {
@@ -59,20 +66,20 @@ const updateAttrs = (
     const state = context.state;
 
     // preprocess the attribute changes changes
-    const preprocChanges = preprocess(
+    const changesPreproc = preprocess(
         canvasSpec,
         { path: [['canvas', AttrType.Record]], validVars: [] },
         inputAttrs
     );
-    if (preprocChanges instanceof Error) {
-        context.callback({ error: { type: 'attribute', message: preprocChanges.message } });
+    if (changesPreproc instanceof Error) {
+        context.callback({ error: { type: 'attribute', message: changesPreproc.message } });
         return state;
     }
 
-    // preprocess the attribute endpoint defaults
+    // preprocess the attribute animation defaults
     const animation = preprocess(
         animSpec,
-        { path: [['defaultattr', AttrType.Record]], validVars: [] },
+        { path: [['animation', AttrType.Record]], validVars: [] },
         inputDefaults ?? {}
     );
     if (animation instanceof Error) {
@@ -80,27 +87,31 @@ const updateAttrs = (
         return state;
     }
 
+    // apply some transformations
+    const transformFns = [
+        (p: FullAttr<CanvasSpec> | undefined, c: PartialAttr<CanvasSpec>) =>
+            fillStarKeys(canvasSpec, p, c),
+        removeInvalidEdges,
+        adjustEdgeIds,
+    ];
+    const changesTransform = transformFns.reduce((acc, fn) => fn(prevAttrs, acc), changesPreproc);
+
+    // apply defaults
     const prevAttrs = state.attributes;
-
-    const transformedChanges = adjustEdgeIds(
-        prevAttrs,
-        removeInvalidEdges(prevAttrs, preprocChanges)
-    );
-    //console.log(transformedChanges)
-    //console.log(animation)
-    //console.log(applyAnimDefaults(canvasSpec, transformedChanges, animation))
-
     const changesWithDefaults = applyDefaults(
         canvasSpec,
         prevAttrs,
-        applyAnimDefaults(canvasSpec, transformedChanges, animation),
-        createCanvasDefaults(prevAttrs, transformedChanges)
+        applyAnimDefaults(canvasSpec, changesTransform, animation),
+        createCanvasDefaults(prevAttrs, changesTransform)
     );
-    console.log(changesWithDefaults);
 
-    const allChanges = preprocChanges;
-    const fullAttrs = state.attributes;
+    //console.log(createCanvasDefaults(prevAttrs, changesTransform))
+    // evaluate self-referential attributes (e.g. node.size="2x")
+    const changesSelfRefEval = evalCanvas(prevAttrs, changesWithDefaults, true);
+    const changesEval = evalCanvas(prevAttrs, changesSelfRefEval, false);
+    console.log(changesEval);
 
+    const fullAttrs = mergeChanges(canvasSpec, prevAttrs, changesSelfRefEval);
     /*
     const renderData = renderElement.preprocess(pipeline.getRenderData(processed));
     const layoutState = layout.update(state.layout, processed.attributes, processed.changes);
@@ -116,7 +127,7 @@ const updateAttrs = (
     }
     */
 
-    if (allChanges?.visible?.value === false) {
+    if (changesEval?.visible?.value === false) {
         // reset the canvas completely
         return {
             ...state,

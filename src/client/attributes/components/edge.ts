@@ -230,7 +230,6 @@ export const createEdgeDictDefaults = (
         ).edges;
 
     return {
-        '*': edgeDefaults,
         ...mapDict(changes, (edgeChanges, k) => {
             return newEdges[k] ?? createEdgeDefaults(prevAttrs?.[k], edgeChanges);
         }),
