@@ -303,7 +303,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
     /**
      * Sends an event to the client, in the form:
      * - attrs: An attribute dictionary, see [[ElementSelection.attrs]].
-     * - animation: A partial animation dictionary which will apply to all attributes, see
+     * - animation: A partial animation dictionary which will apply to all provided attributes, see
      * [[ElementSelection.attrs]].
      * - message: A message, as sent by [[Canvas.message]].
      * - withQ: The event queue to which the event will be added, see [[ElementSelection.withQ]].

@@ -9,7 +9,7 @@ export interface ElementCallbacks {
     readonly hoverout?: () => void;
 }
 
-export interface ClientCallbacks {
+export interface EventCallbacks {
     dispatch?: (event: DispatchEvent) => void;
     receive?: (event: ReceiveEvent) => void;
     message?: (message: string) => void;
@@ -30,7 +30,7 @@ export interface ElementContext<D> {
     readonly animation?: InputAttr<AnimSpec>;
     readonly parentkey?: string;
     readonly parent?: ElementContext<D | unknown>;
-    readonly callbacks: ClientCallbacks;
+    readonly callbacks: EventCallbacks;
 }
 
 export type ElementObjArg<T, D> =

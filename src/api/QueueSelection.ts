@@ -1,11 +1,11 @@
 import { ElementFn, ElementArg } from './types';
 import { DispatchEvent } from '../client/types';
-import { ClientCallbacks } from './utils';
+import { EventCallbacks } from './utils';
 
 interface QueueContext {
     readonly ids: ReadonlyArray<string>;
     readonly withQ?: string | number | null;
-    readonly callbacks: ClientCallbacks;
+    readonly callbacks: EventCallbacks;
 }
 
 const dispatchQueueEvent = (
