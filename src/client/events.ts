@@ -17,6 +17,7 @@ import {
     mergeChanges,
     fillStarKeys,
 } from './attributes/transform';
+import { updateCanvasLayout, resetLayout } from './layout/canvas';
 
 export interface EventContext {
     readonly state: ClientState;
@@ -27,7 +28,6 @@ export interface EventContext {
 //import { RenderBehavior } from './render/canvas/behavior';
 
 /*
-
 const render = (
     canvas: CanvasElement,
     prevAttrs: FullAttr<CanvasSpec>,
@@ -66,13 +66,13 @@ const updateAttrs = (
     const state = context.state;
 
     // preprocess the attribute changes changes
-    const changesPreproc = preprocess(
+    const preprocChanges = preprocess(
         canvasSpec,
         { path: [['canvas', AttrType.Record]], validVars: [] },
         inputAttrs
     );
-    if (changesPreproc instanceof Error) {
-        context.callback({ error: { type: 'attribute', message: changesPreproc.message } });
+    if (preprocChanges instanceof Error) {
+        context.callback({ error: { type: 'attribute', message: preprocChanges.message } });
         return state;
     }
 
@@ -86,6 +86,7 @@ const updateAttrs = (
         context.callback({ error: { type: 'attribute', message: animation.message } });
         return state;
     }
+    //console.log(inputAttrs)
 
     // apply some transformations
     const transformFns = [
@@ -94,24 +95,27 @@ const updateAttrs = (
         removeInvalidEdges,
         adjustEdgeIds,
     ];
-    const changesTransform = transformFns.reduce((acc, fn) => fn(prevAttrs, acc), changesPreproc);
+    //console.log(preprocChanges);
+    const transformedChanges = transformFns.reduce((acc, fn) => fn(prevAttrs, acc), preprocChanges);
 
     // apply defaults
-    const prevAttrs = state.attributes;
+    const prevAttrs = state.attrs;
     const changesWithDefaults = applyDefaults(
         canvasSpec,
         prevAttrs,
-        applyAnimDefaults(canvasSpec, changesTransform, animation),
-        createCanvasDefaults(prevAttrs, changesTransform)
+        applyAnimDefaults(canvasSpec, transformedChanges, animation),
+        createCanvasDefaults(prevAttrs, transformedChanges)
     );
 
-    //console.log(createCanvasDefaults(prevAttrs, changesTransform))
-    // evaluate self-referential attributes (e.g. node.size="2x")
-    const changesSelfRefEval = evalCanvas(prevAttrs, changesWithDefaults, true);
-    const changesEval = evalCanvas(prevAttrs, changesSelfRefEval, false);
-    console.log(changesEval);
+    // evaluate expressions
+    const changesWithoutSelfRef = evalCanvas(prevAttrs, changesWithDefaults, true);
+    const fullChanges = evalCanvas(prevAttrs, changesWithoutSelfRef, false);
 
-    const fullAttrs = mergeChanges(canvasSpec, prevAttrs, changesSelfRefEval);
+    // merge all changes with previous attributes
+    const fullAttrs = mergeChanges(canvasSpec, prevAttrs, changesWithoutSelfRef);
+    console.log(fullChanges);
+
+    //console.log(fullChanges);
     /*
     const renderData = renderElement.preprocess(pipeline.getRenderData(processed));
     const layoutState = layout.update(state.layout, processed.attributes, processed.changes);
@@ -127,20 +131,20 @@ const updateAttrs = (
     }
     */
 
-    if (changesEval?.visible?.value === false) {
+    if (fullAttrs === undefined) {
         // reset the canvas completely
         return {
             ...state,
-            attributes: undefined,
-            //layout: layout.reset(state.layout),
+            attrs: undefined,
+            layout: resetLayout(state.layout),
             //renderBehavior: undefined,
         };
     }
 
     return {
         ...state,
-        attributes: fullAttrs,
-        //layout: layoutState,
+        attrs: fullAttrs,
+        layout: updateCanvasLayout(state.layout, fullAttrs, fullChanges),
         //renderBehavior: newBehavior,
     };
 };

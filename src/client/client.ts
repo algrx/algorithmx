@@ -7,11 +7,12 @@ import {
 } from './scheduler';
 import { DispatchEvent, ReceiveEvent, CanvasElement, ClientState } from './types';
 import { executeEvent, EventContext } from './events';
+import { LayoutState, initLayout } from './layout/canvas';
 
 export interface Client {
     canvas: CanvasElement;
     state: ClientState;
-    //layout: layout.ILayoutState;
+    layout: LayoutState;
 
     onreceive(fn: (event: ReceiveEvent) => void): void;
     dispatch(event: DispatchEvent): void;
@@ -22,16 +23,41 @@ export interface Client {
     onSchedulerEvent(event: SchedulerEvent, queue: string | null): void;
 }
 
-const initState: ClientState = {
-    scheduler: initSchedulerState,
-    attributes: undefined,
-    //renderBehavior: undefined,
+const initState = (tick: () => void): ClientState => {
+    return {
+        scheduler: initSchedulerState,
+        attrs: undefined,
+        layout: initLayout(tick),
+        //renderBehavior: undefined,
+    };
+};
+
+const processEvent = (client: Client, event: SchedulerEvent, queue: string | null) => {
+    // execute the event
+    const state = executeEvent(
+        {
+            state: client.state,
+            callback: client.eventCallback,
+            tick: client.tick,
+        },
+        event as DispatchEvent
+    );
+
+    client.setState(state);
+    client.tick();
+
+    // update the scheduler and execute the next event
+    const task = processSchedulerEvent(client.state.scheduler, queue, event, (e, q) =>
+        processEvent(client, e, q)
+    );
+    client.setState({ ...client.state, scheduler: task.state });
+    task.execute();
 };
 
 export class Client {
     constructor(canvas: CanvasElement) {
         this.canvas = canvas;
-        this.state = initState;
+        this.state = initState(this.tick.bind(this));
         //this.layout = layout.init(this.tick);
         this.eventCallback = () => null;
     }
@@ -47,42 +73,15 @@ export class Client {
     dispatch(event: DispatchEvent) {
         // the default queue is named 'default'
         const withQ = event.withQ === null ? null : String(event.withQ ?? 0);
-        const task = scheduleEvent(
-            this.state.scheduler,
-            withQ,
-            event,
-            this.onSchedulerEvent.bind(this)
-        );
-        this.setState({ ...this.state, scheduler: task.state });
-        task.execute();
-    }
-
-    onSchedulerEvent(event: SchedulerEvent, queue: string | null) {
-        // execute the event
-        const state = executeEvent(
-            {
-                state: this.state,
-                callback: this.eventCallback,
-                tick: this.tick,
-            },
-            event as DispatchEvent
-        );
-
-        this.setState(state);
-        this.tick();
-
-        // update the scheduler and execute the next event
-        const task = processSchedulerEvent(
-            this.state.scheduler,
-            queue,
-            event,
-            this.onSchedulerEvent.bind(this)
+        const task = scheduleEvent(this.state.scheduler, withQ, event, (e, q) =>
+            processEvent(this, e, q)
         );
         this.setState({ ...this.state, scheduler: task.state });
         task.execute();
     }
 
     tick() {
+        console.log('tick');
         //if (this.state.attributes !== undefined)
         //renderCanvasLive.updateCanvas(this.canvas, this.state.attributes, this.layout);
     }

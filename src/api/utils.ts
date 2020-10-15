@@ -86,7 +86,7 @@ export const applyAttrs = <T extends {}, D>(
 
     const parentAttrFn = (data: D, dataIndex: number) => {
         let dict: { [k: string]: T } = {};
-        Object.keys(context.ids).forEach((k, i) => {
+        context.ids.forEach((k, i) => {
             dict[k] =
                 context.data !== undefined
                     ? attrFn(context.data[i], i, i) // use current data
@@ -94,6 +94,7 @@ export const applyAttrs = <T extends {}, D>(
         });
         return { [context.parentkey!]: dict };
     };
+
     // apply attributes on the parent
     applyAttrs(
         {

@@ -131,6 +131,7 @@ export function combineAttrs<T extends AttrSpec>(
             ? mapAttr(spec, newAttr!, (v, k, s) => fn(undefined, v, k, s))
             : mapAttr(spec, prevAttr!, (v, k, s) => fn(v, undefined, k, s));
     } else {
+        // combine based on keys
         const sharedKeys = (Array.from(
             new Set(Object.keys(prevAttr).concat(Object.keys(newAttr)))
         ) as unknown) as ReadonlyArray<AttrKey<T> & string>;

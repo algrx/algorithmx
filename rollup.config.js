@@ -1,6 +1,7 @@
-import { terser } from 'rollup-plugin-terser';
-import nodeResolve from '@rollup/plugin-node-resolve';
-import typescript from '@rollup/plugin-typescript';
+import { terser as pluginTerser } from 'rollup-plugin-terser';
+import pluginNodeResolve from '@rollup/plugin-node-resolve';
+import pluginCommonjs from '@rollup/plugin-commonjs';
+import pluginTypescript from '@rollup/plugin-typescript';
 import * as pkg from './package.json';
 
 const env = {
@@ -10,8 +11,8 @@ const env = {
 };
 
 // the build hangs when these are imported
-const serve = env.dev ? require('rollup-plugin-serve') : () => null;
-const livereload = env.dev ? require('rollup-plugin-livereload') : () => null;
+const pluginServe = env.dev ? require('rollup-plugin-serve') : () => null;
+const pluginLivereload = env.dev ? require('rollup-plugin-livereload') : () => null;
 
 const copyright = `// ${pkg.homepage} v${pkg.version} Copyright ${new Date().getFullYear()} ${
     pkg.author.name
@@ -19,6 +20,8 @@ const copyright = `// ${pkg.homepage} v${pkg.version} Copyright ${new Date().get
 
 const formatExtension = env.format === 'umd' ? '' : `.${env.format}`;
 const fullExtension = env.min ? formatExtension + '.min' : formatExtension;
+
+const bundleDeps = env.dev;
 
 const mainConfig = {
     input: 'src/index.ts',
@@ -29,37 +32,46 @@ const mainConfig = {
         format: process.env.format,
         banner: copyright,
         sourcemap: true,
-        globals: {
-            webcola: 'cola',
-            'd3-color': 'd3',
-            'd3-dispatch': 'd3',
-            'd3-drag': 'd3',
-            'd3-ease': 'd3',
-            'd3-interpolate': 'd3',
-            'd3-path': 'd3',
-            'd3-selection': 'd3',
-            'd3-shape': 'd3',
-            'd3-timer': 'd3',
-            'd3-transition': 'd3',
-            'd3-zoom': 'd3',
-        },
+        globals: bundleDeps
+            ? {}
+            : {
+                  webcola: 'cola',
+                  'd3-color': 'd3',
+                  'd3-dispatch': 'd3',
+                  'd3-drag': 'd3',
+                  'd3-ease': 'd3',
+                  'd3-interpolate': 'd3',
+                  'd3-path': 'd3',
+                  'd3-selection': 'd3',
+                  'd3-shape': 'd3',
+                  'd3-timer': 'd3',
+                  'd3-transition': 'd3',
+                  'd3-zoom': 'd3',
+              },
     },
-    plugins: [...(env.min ? [terser()] : []), nodeResolve(), typescript()],
-    external: [
-        'webcola',
-        'd3-color',
-        'd3-drag',
-        'd3-dispatch',
-        'd3-drag',
-        'd3-ease',
-        'd3-interpolate',
-        'd3-path',
-        'd3-selection',
-        'd3-shape',
-        'd3-timer',
-        'd3-transition',
-        'd3-zoom',
+    plugins: [
+        ...(env.min ? [pluginTerser()] : []),
+        pluginNodeResolve({ browser: env.format === 'iife' }),
+        pluginCommonjs(),
+        pluginTypescript(),
     ],
+    external: bundleDeps
+        ? []
+        : [
+              'webcola',
+              'd3-color',
+              'd3-drag',
+              'd3-dispatch',
+              'd3-drag',
+              'd3-ease',
+              'd3-interpolate',
+              'd3-path',
+              'd3-selection',
+              'd3-shape',
+              'd3-timer',
+              'd3-transition',
+              'd3-zoom',
+          ],
 };
 
 const examplesConfig = {
@@ -74,13 +86,13 @@ const examplesConfig = {
         sourcemap: true,
     },
     plugins: [
-        typescript({ tsconfig: 'examples/tsconfig.json' }),
-        serve({
+        pluginTypescript({ tsconfig: 'examples/tsconfig.json' }),
+        pluginServe({
             open: true,
             contentBase: ['examples', 'dist'],
             port: 8080,
         }),
-        livereload(),
+        pluginLivereload(),
     ],
     watch: {
         clearScreen: false,

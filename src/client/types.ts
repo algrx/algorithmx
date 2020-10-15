@@ -2,6 +2,7 @@ import { InputAttr, FullAttr } from './attributes/derived';
 import { CanvasSpec } from './attributes/components/canvas';
 import { AnimSpec } from './attributes/components/animation';
 import { SchedulerState } from './scheduler';
+import { LayoutState } from './layout/canvas';
 
 export type CanvasElement = string | Element;
 
@@ -38,6 +39,7 @@ export interface ReceiveEvent {
 
 export interface ClientState {
     readonly scheduler: SchedulerState;
-    readonly attributes?: FullAttr<CanvasSpec>;
+    readonly attrs?: FullAttr<CanvasSpec>;
+    readonly layout: LayoutState;
     //readonly renderBehavior?: RenderBehavior;
 }

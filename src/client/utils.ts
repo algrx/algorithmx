@@ -65,7 +65,7 @@ export const isNumericalStr = (value: string): boolean => {
 type RPartial<T> = T extends {} ? { readonly [k in keyof T]?: RPartial<T[k]> } : T;
 
 export const mergeDiff = <T>(obj: T, diff: RPartial<T>): T => {
-    if (typeof obj === 'object') {
+    if (typeof obj === 'object' && !Array.isArray(obj)) {
         let newObj = {} as T;
         const keys = Object.keys(obj);
         for (let i = 0; i < keys.length; i++) {
