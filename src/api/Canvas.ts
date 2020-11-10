@@ -347,6 +347,11 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
         // event callback
         if (cbs.receive) cbs.receive(event);
 
+        // error callbacks
+        if (event.error) {
+            console.error(`${event.error.type} error: ${event.error.message}`);
+        }
+
         // message callbacks
         if (event.message !== undefined && cbs.messages) {
             if (cbs.message) cbs.message(event.message);
