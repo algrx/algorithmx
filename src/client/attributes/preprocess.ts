@@ -12,7 +12,7 @@ import {
 import { InputAttr, PartialAttr } from './derived';
 import { parseExprStr, parseExprObj } from './expr-utils';
 import { getEntrySpec, getAttrEntry, mapAttr } from './attr-utils';
-import { mapDict, dictFromArray } from '../utils';
+import { mapDict, dictFromArray, isObj } from '../utils';
 
 interface PreprocessInfo {
     readonly validVars: ReadonlyArray<string>;
@@ -47,7 +47,7 @@ const preprocessCompound = <T extends AttrSpec>(
     const newAttr = mapAttr(spec, attr as PartialAttr<T>, (childAttr, childKey, childSpec) => {
         const newInfo = {
             ...info,
-            path: info.path.concat([String(childKey), childSpec.type]),
+            path: info.path.concat([[String(childKey), childSpec.type]]),
         };
         return preprocess(childSpec, newInfo, childAttr as InputAttr<EntrySpec<T>>) as PartialAttr<
             EntrySpec<T>
@@ -111,7 +111,7 @@ export const preprocess = <T extends AttrSpec>(
 
     // === record ===
     if (spec.type === AttrType.Record) {
-        if (typeof attr !== 'object') {
+        if (!isObj(attr)) {
             if ('value' in (spec as AnyRecordSpec).entries) {
                 // endpionts can be provided as a single value, or a { value, ... } object
                 return preprocessCompound(spec, info, ({ value: attr } as unknown) as InputAttr<T>);

@@ -85,6 +85,7 @@ export const canvasDefaults: FullAttr<CanvasSpec> = {
     zoomlimit: [0.1, 10],
     zoomtoggle: false,
     ...elementDefaults,
+    visible: { ...elementDefaults.visible, duration: 0 },
 };
 
 export const createCanvasDefaults = (
@@ -111,7 +112,7 @@ export const evalCanvas = (
     prevAttrs: FullAttr<CanvasSpec> | undefined,
     changes: PartialAttr<CanvasSpec>,
     selfRefOnly: boolean
-): PartialAttr<NodeSpec> => {
+): PartialAttr<CanvasSpec> => {
     // get node variables from attributes
     const canvasVars: VarDict<CanvasVar> = {
         cx: evalAttr(prevAttrs?.size.value[0], changes.size?.value?.[0], {}),
@@ -144,7 +145,7 @@ export const evalCanvas = (
                         return undefined;
                     }
                 );
-                return nonEmpty(nodeDict);
+                return selfRefOnly ? nodeDict : nonEmpty(nodeDict);
             }
 
             if (selfRefOnly) {

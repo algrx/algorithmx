@@ -37,6 +37,7 @@ const processEvent = (client: Client, event: SchedulerEvent, queue: string | nul
     const state = executeEvent(
         {
             state: client.state,
+            canvasElement: client.canvas,
             callback: client.eventCallback,
             tick: client.tick,
         },
@@ -58,7 +59,6 @@ export class Client {
     constructor(canvas: CanvasElement) {
         this.canvas = canvas;
         this.state = initState(this.tick.bind(this));
-        //this.layout = layout.init(this.tick);
         this.eventCallback = () => null;
     }
 
@@ -81,7 +81,7 @@ export class Client {
     }
 
     tick() {
-        console.log('tick');
+        //console.log('tick');
         //if (this.state.attributes !== undefined)
         //renderCanvasLive.updateCanvas(this.canvas, this.state.attributes, this.layout);
     }

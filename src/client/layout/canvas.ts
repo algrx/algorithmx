@@ -94,7 +94,6 @@ export const updateCanvasLayout = (
 
     if (didUpdateLayout(changes)) {
         // start the layout process
-        console.log(newState.cola);
         newState.cola.start();
         return { ...newState, adjList: createAdjList(attrs) };
     }

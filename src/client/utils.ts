@@ -4,6 +4,9 @@ export type PartialDict<K extends string, V> = Partial<Dict<K, V>>;
 export const dictValues = <V>(dict: Dict<string, V>): ReadonlyArray<V> => {
     return Object.values(dict);
 };
+export const dictKeys = <K extends string>(dict: Dict<K, unknown>): ReadonlyArray<K> => {
+    return (Object.keys(dict) as unknown) as ReadonlyArray<K>;
+};
 
 export const mapDict = <K extends string, V1, V2>(
     dict: Dict<K, V1>,
@@ -51,21 +54,47 @@ export const dictFromArray = <K extends string, V>(
     fn: (k: K) => V | undefined
 ): Dict<K, V> => {
     let dict = {} as Partial<Dict<K, V>>;
-    for (let i = 0; i < keys.length; i++) {
-        const v = fn(keys[i]);
-        if (v !== undefined) dict[keys[i]] = v;
-    }
+    keys.forEach((k) => {
+        const v = fn(k);
+        if (v !== undefined) dict[k] = v;
+    });
     return dict as Dict<K, V>;
+};
+
+export const assignKeys = <T extends {}>(
+    prevObj: T,
+    newObj: T,
+    keys: ReadonlyArray<keyof T>
+): T => {
+    let mergedObj = { ...prevObj };
+    keys.forEach((k) => {
+        if (!(k in mergedObj) && k in newObj) mergedObj[k] = newObj[k];
+    });
+    return mergedObj;
+};
+
+export const isObj = (value: unknown): value is {} => {
+    return typeof value === 'object' && !Array.isArray(value);
+};
+
+export const isNum = (value: unknown): value is number => {
+    return !isNaN(value as number);
 };
 
 export const isNumericalStr = (value: string): boolean => {
     return !isNaN((value as unknown) as number) && value !== '';
 };
 
+export const dashToUpperCamel = (str: string) =>
+    str
+        .split('-')
+        .map((s) => s.charAt(0).toUpperCase() + s.substr(1))
+        .join('');
+
 type RPartial<T> = T extends {} ? { readonly [k in keyof T]?: RPartial<T[k]> } : T;
 
 export const mergeDiff = <T>(obj: T, diff: RPartial<T>): T => {
-    if (typeof obj === 'object' && !Array.isArray(obj)) {
+    if (isObj(obj)) {
         let newObj = {} as T;
         const keys = Object.keys(obj);
         for (let i = 0; i < keys.length; i++) {
@@ -79,6 +108,7 @@ export const mergeDiff = <T>(obj: T, diff: RPartial<T>): T => {
     }
     return diff as T;
 };
+
 /*
 export interface Lookup<T> {
     readonly [k: string]: T;

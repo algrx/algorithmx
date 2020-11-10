@@ -80,6 +80,7 @@ export type WithAnimSpec<T extends EndpointValueSpec> = RecordSpec<
         readonly value: T;
     }
 >;
+export type AnimAttrSpec = WithAnimSpec<EndpointValueSpec>;
 
 export const withAnimSpec = <T extends EndpointValueSpec>(valueSpec: T): WithAnimSpec<T> => {
     return {

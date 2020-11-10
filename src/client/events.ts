@@ -18,9 +18,11 @@ import {
     fillStarKeys,
 } from './attributes/transform';
 import { updateCanvasLayout, resetLayout } from './layout/canvas';
+import { renderCanvas } from './render/canvas';
 
 export interface EventContext {
     readonly state: ClientState;
+    readonly canvasElement: CanvasElement;
     readonly callback: (event: ReceiveEvent) => void;
     readonly tick: () => void;
 }
@@ -60,7 +62,7 @@ const renderBehavior = (
 
 const updateAttrs = (
     context: EventContext,
-    inputAttrs: InputAttr<CanvasSpec>,
+    inputChanges: InputAttr<CanvasSpec>,
     inputDefaults?: InputAttr<AnimSpec>
 ): ClientState => {
     const state = context.state;
@@ -69,7 +71,7 @@ const updateAttrs = (
     const preprocChanges = preprocess(
         canvasSpec,
         { path: [['canvas', AttrType.Record]], validVars: [] },
-        inputAttrs
+        inputChanges
     );
     if (preprocChanges instanceof Error) {
         context.callback({ error: { type: 'attribute', message: preprocChanges.message } });
@@ -113,7 +115,18 @@ const updateAttrs = (
 
     // merge all changes with previous attributes
     const fullAttrs = mergeChanges(canvasSpec, prevAttrs, changesWithoutSelfRef);
-    console.log(fullChanges);
+
+    // render the canvas
+    renderCanvas(
+        context.canvasElement,
+        fullAttrs ?? prevAttrs ?? (fullChanges as FullAttr<CanvasSpec>),
+        fullChanges
+    );
+    /*
+    renderCanvasMisc.renderWithLayout(canvas, renderData, layoutState);
+    renderCanvasMisc.renderWithTick(canvas, renderData, tick);
+    renderCanvasLive.updateCanvas(canvas, renderData.attr, layoutState);
+    */
 
     //console.log(fullChanges);
     /*
