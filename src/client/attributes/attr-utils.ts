@@ -127,9 +127,12 @@ export function combineAttrs<T extends AttrSpec>(
         spec.type === AttrType.Array ||
         spec.type === AttrType.Tuple
     ) {
-        return newAttr !== undefined
-            ? mapAttr(spec, newAttr!, (v, k, s) => fn(undefined, v, k, s))
-            : mapAttr(spec, prevAttr!, (v, k, s) => fn(v, undefined, k, s));
+        // choose only one of prevAttr, newAttr
+        if (newAttr !== undefined && prevAttr !== undefined)
+            return mapAttr(spec, newAttr, (v, k, s) => fn(getAttrEntry(prevAttr, k), v, k, s));
+        else if (newAttr !== undefined)
+            return mapAttr(spec, newAttr, (v, k, s) => fn(undefined, v, k, s));
+        else return mapAttr(spec, prevAttr!, (v, k, s) => fn(v, undefined, k, s));
     } else {
         // combine based on keys
         const sharedKeys = (Array.from(

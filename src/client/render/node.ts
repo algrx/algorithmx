@@ -2,7 +2,7 @@ import { NodeSpec, nodeSpec, NodeShape } from '../attributes/components/node';
 import { PartialAttr, FullAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
 import { RenderElementFn, renderAnimAttr } from './attribute';
-import { renderElementDict, renderSvgDict, renderSvgAttr, renderElement } from './element';
+import { renderDict, renderSvgDict, renderSvgAttr, renderElement } from './element';
 import { D3Selection, selectOrAdd, createRenderId, isSafari, parseColor } from './utils';
 import * as d3 from './d3.modules';
 import { isNum, assignKeys, dictKeys } from '../utils';

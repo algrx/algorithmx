@@ -64,6 +64,7 @@ export const getCanvasSize = (canvas: CanvasElement): [number, number] => {
 };
 
 const renderCanvasInner: RenderElementFn<CanvasSpec> = (selection, attrs, changes): void => {
+    console.log(changes);
     renderSvgAttr(selection, 'width', changes.size, (v) => v[0]);
     renderSvgAttr(selection, 'height', changes.size, (v) => v[1]);
 
@@ -84,7 +85,9 @@ const renderCanvasInner: RenderElementFn<CanvasSpec> = (selection, attrs, change
     const edgeGroup = selectEdgeGroup(canvasInner);
     const nodeGroup = selectNodeGroup(canvasInner);
 
-    renderDict<NodeSpec>(attrs.nodes, changes.nodes, (k) => selectNode(nodeGroup, k), renderNode);
+    renderDict<NodeSpec>(attrs.nodes, changes.nodes, (k, a, c) =>
+        renderElement(selectNode(nodeGroup, k), a, c, renderNode)
+    );
 
     /*
     renderElementDict(

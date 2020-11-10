@@ -26,12 +26,11 @@ import { isNum } from '../utils';
 export const renderDict = <T extends AttrSpec>(
     attrs: FullAttr<DictSpec<T>>,
     changes: PartialAttr<DictSpec<T>> | undefined,
-    selector: (k: string) => D3Selection,
-    renderFn: RenderElementFn<T>
+    renderFn: (k: string, childAttrs: FullAttr<T>, childChanges: PartialAttr<T>) => void
 ): void => {
     if (changes === undefined) return;
     Object.entries(changes).forEach(([k, childChanges]) => {
-        renderFn(selector(k), attrs[k], childChanges);
+        renderFn(k, attrs[k], childChanges);
     });
 };
 
@@ -125,10 +124,9 @@ export const renderElement = <T extends ElementSpec>(
     initChanges: PartialAttr<T>,
     renderFn: RenderElementFn<T>
 ) => {
-    //if (!attrs.visible.value) return;
     //const renderDataFull = preprocess(renderData);
     //const changes = initChanges.visible === true ? attr :
-    // TODO: set duration = 0 for all attributes
+    if (attrs.visible?.value === false) return;
     const changes = initChanges.visible?.value === true ? (attrs as PartialAttr<T>) : initChanges;
 
     //if (changes.visible?.value === true) selector().remove();
@@ -146,9 +144,7 @@ export const renderElement = <T extends ElementSpec>(
                 t.delay(isNum(visibleAttr.duration) ? visibleAttr.duration * 1000 : 0)
             ).remove();
         }
-    }
-
-    if (changes.visible?.value === true) renderVisible(selection, changes.visible);
+    } else if (changes.visible?.value === true) renderVisible(selection, changes.visible);
 };
 
 /*

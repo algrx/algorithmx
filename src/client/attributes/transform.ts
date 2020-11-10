@@ -6,13 +6,28 @@ import {
     AnyRecordSpec,
     AttrKey,
     AnyDictSpec,
+    RecordSpec,
+    EndpointValueSpec,
 } from './spec';
 import { PartialAttr, FullAttr } from './derived';
-import { AnimSpec, animSpec } from './components/animation';
+import { AnimSpec, animSpec, WithAnimSpec } from './components/animation';
 import { combineAttrs, getAttrEntry, mapAttr, isPrimitive } from './attr-utils';
 import { CanvasSpec } from './components/canvas';
 import { EdgeSpec, parseEdgeId } from './components/edge';
 import { mapDict, mapDictKeys, filterDict } from '../utils';
+
+// the 'value' attribute only exists on endpoints
+const isEndpointSpec = <T extends AttrSpec>(spec: T) =>
+    spec.type === AttrType.Record && 'value' in (spec as AnyRecordSpec).entries;
+
+// remove all animations
+export const withoutAnim = <T extends AttrSpec>(spec: T, attrs: PartialAttr<T>): PartialAttr<T> => {
+    if (isEndpointSpec(spec) && 'duration' in (spec as AnyRecordSpec).entries) {
+        const noAnim: PartialAttr<AnimSpec> = { duration: 0 };
+        return { ...(attrs as PartialAttr<AnyRecordSpec>), ...noAnim } as PartialAttr<T>;
+    }
+    return attrs;
+};
 
 // apply defaults to all attributes which are new (e.g. when a new node is added)
 export const applyDefaults = <T extends AttrSpec>(
@@ -31,13 +46,28 @@ export const applyDefaults = <T extends AttrSpec>(
             defaults as PartialAttr<T>,
             changes,
             (childDefaults, childChanges, k, childSpec) => {
-                if (k === '*') return undefined; // don't include "*" as an actual attribute
-                return applyDefaults(
-                    childSpec,
-                    undefined,
-                    childChanges,
-                    childDefaults as FullAttr<EntrySpec<T>>
-                );
+                if (childDefaults === undefined) {
+                    console.log(defaults, k, childDefaults);
+                    console.error('unexpected error: missing defaults');
+                    return undefined;
+                } else if (k === '*') {
+                    return undefined; // don't include "*" as an actual attribute
+                } else if (isEndpointSpec(childSpec) && k !== 'visible') {
+                    // if an element is new, the only attribute that should be animated is visibility
+                    return applyDefaults(
+                        childSpec,
+                        undefined,
+                        childChanges && withoutAnim(childSpec, childChanges),
+                        withoutAnim(childSpec, childDefaults) as FullAttr<EntrySpec<T>>
+                    );
+                } else {
+                    return applyDefaults(
+                        childSpec,
+                        undefined,
+                        childChanges,
+                        childDefaults as FullAttr<EntrySpec<T>>
+                    );
+                }
             }
         );
     }
@@ -93,8 +123,7 @@ export const applyAnimDefaults = <T extends AttrSpec>(
     changes: PartialAttr<T>,
     anim: PartialAttr<AnimSpec>
 ): PartialAttr<T> => {
-    // the 'value' attribute only exists on endpoints
-    if (spec.type === AttrType.Record && 'value' in (spec as AnyRecordSpec).entries) {
+    if (isEndpointSpec(spec)) {
         // merge animation defaults
         const validAnim = filterDict(anim, (_, k) => k in (spec as AnyRecordSpec).entries);
         return { ...(changes as PartialAttr<AnyRecordSpec>), ...validAnim } as PartialAttr<T>;
