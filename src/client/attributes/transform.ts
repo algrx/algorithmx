@@ -195,7 +195,7 @@ export const removeInvalidEdges = (
         // check if either the source or target was removed
         if (changes.nodes![edge.source]?.remove === true) return { remove: true };
         else if (changes.nodes![edge.target]?.remove === false) return { remove: true };
-        else if (k in changes.edges!) return edge;
+        else if (changes.edges && k in changes.edges) return edge;
         else return undefined;
     });
 
