@@ -7,4 +7,17 @@ import { drag } from 'd3-drag';
 import * as shape from 'd3-shape';
 import { zoom, zoomIdentity } from 'd3-zoom';
 
-export { select, selectAll, transition, ease, dispatch, timer, drag, shape, zoom, zoomIdentity };
+const event = null;
+export {
+    select,
+    selectAll,
+    transition,
+    event,
+    ease,
+    dispatch,
+    timer,
+    drag,
+    shape,
+    zoom,
+    zoomIdentity,
+};

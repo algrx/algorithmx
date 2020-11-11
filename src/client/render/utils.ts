@@ -8,7 +8,7 @@ export type D3Selection = import('d3-selection').Selection<any, unknown, BaseTyp
 export type D3Transition = import('d3-transition').Transition<any, unknown, BaseType, unknown>;
 
 export type D3SelTrans = D3Selection | D3Transition;
-export type D3Zoom = import('d3-zoom').ZoomBehavior<Element, unknown>;
+export type D3ZoomBehaviour = import('d3-zoom').ZoomBehavior<Element, unknown>;
 
 export const isTransition = (sel: D3SelTrans): sel is D3Transition =>
     (sel as D3Transition).duration !== undefined;

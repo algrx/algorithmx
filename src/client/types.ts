@@ -3,6 +3,7 @@ import { CanvasSpec } from './attributes/components/canvas';
 import { AnimSpec } from './attributes/components/animation';
 import { SchedulerState } from './scheduler';
 import { LayoutState } from './layout/canvas';
+import { RenderState } from './render/canvas';
 
 export type CanvasElement = string | Element;
 
@@ -41,5 +42,5 @@ export interface ClientState {
     readonly scheduler: SchedulerState;
     readonly attrs?: FullAttr<CanvasSpec>;
     readonly layout: LayoutState;
-    //readonly renderBehavior?: RenderBehavior;
+    readonly render: RenderState;
 }

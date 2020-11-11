@@ -29,7 +29,7 @@ const initState = (tick: () => void): ClientState => {
         scheduler: initSchedulerState,
         attrs: undefined,
         layout: initLayout(tick),
-        //renderBehavior: undefined,
+        render: {},
     };
 };
 

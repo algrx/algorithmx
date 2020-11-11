@@ -1,10 +1,10 @@
 import * as webcola from 'webcola';
 
+import { LayoutState } from './canvas';
 import { DictSpec } from '../attributes/spec';
 import { PartialAttr, FullAttr } from '../attributes/derived';
 import { NodeSpec } from '../attributes/components/node';
-import { Dict, mapDict } from '../utils';
-import { LayoutState } from './canvas';
+import { Dict, mapDict, asNum } from '../utils';
 
 export const didUpdateNodes = (changes: PartialAttr<DictSpec<NodeSpec>>): boolean => {
     return Object.values(changes).some(
@@ -27,15 +27,14 @@ export const updateNodeLayout = (
     // create a node layout diff
     const layoutNodesDiff = mapDict(attrs, (n, k) => {
         const nodeChanges = changes[k] ?? {};
-        return {
+        const nodeDiff: Partial<webcola.Node> = {
             ...(nodeChanges.size
-                ? { width: n.size.value[0] as number, height: n.size.value[1] as number }
+                ? { width: asNum(n.size.value[0]), height: asNum(n.size.value[1]) }
                 : {}),
-            ...(nodeChanges.pos
-                ? { width: n.pos.value[0] as number, height: n.pos.value[1] as number }
-                : {}),
+            ...(nodeChanges.pos ? { x: asNum(n.pos.value[0]), y: asNum(n.pos.value[1]) } : {}),
             ...(nodeChanges.fixed ? { fixed: n.fixed ? 1 : 0 } : {}),
         };
+        return nodeDiff;
     });
 
     // merge diff with previous layout to preserve node positions and references

@@ -1,9 +1,17 @@
+import * as d3 from './d3.modules';
 import { CanvasElement } from '../types';
 import { NodeSpec } from '../attributes/components/node';
 import { PartialAttr, FullAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
-import { RenderElementFn, renderDict, renderSvgDict, renderSvgAttr, renderElement } from './common';
-import { D3Selection, selectOrAdd, createRenderId, isSafari } from './utils';
+import {
+    RenderElementFn,
+    renderDict,
+    renderSvgDict,
+    renderSvgAttr,
+    renderElement,
+    renderAnimAttr,
+} from './common';
+import { D3Selection, selectOrAdd, createRenderId, isSafari, D3ZoomBehaviour } from './utils';
 import { renderNode } from './node';
 import {
     selectCanvasContainer,
@@ -13,8 +21,14 @@ import {
     selectNode,
     selectCanvas,
 } from './selectors';
-import * as d3 from './d3.modules';
 import { LayoutState } from '../layout/canvas';
+import { AnimAttrSpec } from '../attributes/components/animation';
+import { asNum } from '../utils';
+import { renderPanZoom, updatePanZoomBehaviour } from './canvas-panzoom';
+
+export interface RenderState {
+    readonly zoomBehaviour?: D3ZoomBehaviour;
+}
 
 export const getCanvasSize = (canvas: CanvasElement): [number, number] => {
     const svgBase = selectCanvasContainer(canvas);
@@ -98,7 +112,7 @@ export const renderLiveCanvas = (
         if (nodeAttrs.visible) {
             const nodeLayout = layout.nodes[k];
             const nodeSel = selectNode(selectNodeGroup(innerCanvas), k);
-            nodeSel.attr('transform', `translate(${nodeLayout.x},-${nodeLayout.y})`);
+            nodeSel.attr('transform', `translate(${nodeLayout.x},${-nodeLayout.y})`);
         }
     });
 };
@@ -106,7 +120,24 @@ export const renderLiveCanvas = (
 export const renderAll = (
     canvas: CanvasElement,
     attrs: FullAttr<CanvasSpec>,
-    changes: PartialAttr<CanvasSpec>
-): void => {
-    renderElement(selectCanvas(canvas), attrs, changes, renderCanvas);
+    changes: PartialAttr<CanvasSpec>,
+    renderState: RenderState
+): RenderState => {
+    const canvasSel = selectCanvas(canvas);
+    const innerCanvas = selectInnerCanvas(canvasSel);
+
+    renderElement(canvasSel, attrs, changes, renderCanvas);
+
+    const newZoomBehaviour = updatePanZoomBehaviour(
+        canvasSel,
+        attrs,
+        changes,
+        renderState.zoomBehaviour
+    );
+    renderPanZoom(canvasSel, attrs, changes, newZoomBehaviour);
+
+    return {
+        ...renderState,
+        zoomBehaviour: newZoomBehaviour,
+    };
 };

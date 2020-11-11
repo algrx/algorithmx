@@ -119,11 +119,13 @@ const updateAttrs = (
     const fullAttrs = mergeChanges(canvasSpec, prevAttrs, changesWithoutSelfRef);
 
     // render the canvas
-    renderAll(
+    const newRenderState = renderAll(
         context.canvasElement,
         fullAttrs ?? prevAttrs ?? (fullChanges as FullAttr<CanvasSpec>),
-        fullChanges
+        fullChanges,
+        state.render
     );
+
     /*
     renderCanvasMisc.renderWithLayout(canvas, renderData, layoutState);
     renderCanvasMisc.renderWithTick(canvas, renderData, tick);
@@ -152,7 +154,7 @@ const updateAttrs = (
             ...state,
             attrs: undefined,
             layout: resetLayout(state.layout),
-            //renderBehavior: undefined,
+            render: {},
         };
     }
 
@@ -160,7 +162,7 @@ const updateAttrs = (
         ...state,
         attrs: fullAttrs,
         layout: updateCanvasLayout(state.layout, fullAttrs, fullChanges),
-        //renderBehavior: newBehavior,
+        render: newRenderState,
     };
 };
 

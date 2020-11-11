@@ -1,11 +1,11 @@
 import * as webcola from 'webcola';
 
-import { Dict, mapDict } from '../utils';
+import { LayoutState } from './canvas';
 import { PartialAttr, FullAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
 import { EdgeSpec } from '../attributes/components/edge';
 import { DictSpec } from '../attributes/spec';
-import { LayoutState } from './canvas';
+import { Dict, mapDict, asNum } from '../utils';
 
 export const didUpdateEdges = (changes: PartialAttr<DictSpec<EdgeSpec>>): boolean => {
     return Object.values(changes).some(
@@ -36,12 +36,11 @@ export const updateEdgeLayout = (
         .map((e) => ({
             source: layoutState.nodes[e.source],
             target: layoutState.nodes[e.target],
-            length: e.length as number,
+            length: asNum(e.length),
         }));
 
     // cola doesn't work when you call .links() with a new array
     const layoutEdgeArray = layoutState.cola.links();
     layoutEdgeArray.splice(0, layoutEdgeArray.length, ...layoutEdges);
-    //layoutState.cola.links(layoutEdges as unknown as Array<webcola.Link<number>>)
     return layoutState;
 };
