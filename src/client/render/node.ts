@@ -10,8 +10,15 @@ import {
     renderSvgAttr,
     renderElement,
 } from './common';
-import { D3Selection, selectOrAdd, createRenderId, isSafari, parseColor } from './utils';
-import { isNum, assignKeys, dictKeys } from '../utils';
+import {
+    D3Selection,
+    selectOrAdd,
+    createRenderId,
+    isSafari,
+    parseColor,
+    isTransition,
+} from './utils';
+import { isNum, assignKeys, dictKeys, asNum } from '../utils';
 
 export const selectLabelGroup = (sel: D3Selection): D3Selection =>
     selectOrAdd(sel, '.node-labels', (s) => s.append('g').classed('node-labels', true));
@@ -40,11 +47,11 @@ const renderSize = (
             renderSvgAttr(selection, 'r', size, (v) => v[0]);
             break;
         case 'rect':
-            renderSvgAttr(selection, 'width', size, (v) => isNum(v[0]) && v[0] * 2);
-            renderSvgAttr(selection, 'height', size, (v) => isNum(v[1]) && v[1] * 2);
+            renderSvgAttr(selection, 'width', size, (v) => asNum(v[0]) * 2);
+            renderSvgAttr(selection, 'height', size, (v) => asNum(v[1]) * 2);
 
-            renderSvgAttr(selection, ['x', 'x-pos'], size, (v) => isNum(v[0]) && -v[0]);
-            renderSvgAttr(selection, ['y', 'y-pos'], size, (v) => isNum(v[1]) && -v[1]);
+            renderSvgAttr(selection, ['x', 'width-pos'], size, (v) => -asNum(v[0]));
+            renderSvgAttr(selection, ['y', 'height-pos'], size, (v) => -asNum(v[1]));
             break;
         case 'ellipse':
             renderSvgAttr(selection, 'rx', size, (v) => v[0]);
@@ -53,14 +60,29 @@ const renderSize = (
     }
 };
 
-/*
-export const renderVisible: renderFns.RenderAttrFn<NodeSpec['visible']> = (
-    selection,
-    renderData
+export const renderNodeWithTick = (
+    nodeSel: D3Selection,
+    attrs: FullAttr<NodeSpec>,
+    changes: PartialAttr<NodeSpec>,
+    tick: () => void
 ) => {
-    renderElement.renderVisible(selection.select('.node'), renderData);
+    // changing node size requires the live layout function to be called continuously,
+    // so that connected edges are animated as well
+    if (changes.size) {
+        renderAnimAttr(nodeSel, 'live-size', changes.size, (sel) => {
+            const selWithSize = sel
+                .attr('_width', asNum(changes.size!.value?.[0]))
+                .attr('_height', asNum(changes.size!.value?.[1]));
+
+            if (isTransition(selWithSize))
+                return selWithSize.tween(name, () => () => {
+                    tick();
+                });
+            return selWithSize;
+        });
+    }
 };
-*/
+
 export const renderNode: RenderElementFn<NodeSpec> = (selection, attrs, initChanges): void => {
     const changes = initChanges.shape
         ? assignKeys(

@@ -76,11 +76,11 @@ export const renderAnimAttr = <T extends AnimAttrSpec>(
 export const renderDict = <T extends AttrSpec>(
     attrs: FullAttr<DictSpec<T>>,
     changes: PartialAttr<DictSpec<T>> | undefined,
-    renderFn: (k: string, childAttrs: FullAttr<T>, childChanges: PartialAttr<T>) => void
+    renderFn: (k: string, childAttrs: FullAttr<T> | undefined, childChanges: PartialAttr<T>) => void
 ): void => {
     if (changes === undefined) return;
     Object.entries(changes).forEach(([k, childChanges]) => {
-        renderFn(k, attrs[k], childChanges);
+        renderFn(k, attrs?.[k], childChanges);
     });
 };
 
@@ -163,14 +163,15 @@ export const renderVisible = (
 
 export const renderElement = <T extends ElementSpec>(
     selection: D3Selection,
-    attrs: FullAttr<T>,
+    attrs: FullAttr<T> | undefined,
     initChanges: PartialAttr<T>,
     renderFn: RenderElementFn<T>
 ) => {
-    if (attrs.visible?.value === false) return;
     const changes = initChanges.visible?.value === true ? (attrs as PartialAttr<T>) : initChanges;
 
-    renderFn(selection, attrs, changes);
+    if (attrs && attrs.visible?.value === true) {
+        renderFn(selection, attrs, changes);
+    }
 
     if (changes.remove === true || changes.visible?.value === false) {
         renderVisible(selection, { ...changes.visible, value: false });

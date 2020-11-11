@@ -3,7 +3,7 @@ import { CanvasSpec } from './attributes/components/canvas';
 import { AnimSpec } from './attributes/components/animation';
 import { SchedulerState } from './scheduler';
 import { LayoutState } from './layout/canvas';
-import { RenderState } from './render/canvas';
+import { RenderState } from './render/render';
 
 export type CanvasElement = string | Element;
 
