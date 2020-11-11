@@ -1,4 +1,5 @@
 import * as webcola from 'webcola';
+import * as d3 from '../render/d3.modules';
 
 import { Dict, mapDict } from '../utils';
 import { PartialAttr, FullAttr } from '../attributes/derived';
@@ -15,7 +16,8 @@ export interface LayoutState {
 
 export const initLayout = (tick: () => void): LayoutState => {
     //.d3adaptor(d3)
-    const cola = new webcola.Layout()
+    const cola = webcola
+        .d3adaptor(d3)
         .nodes([])
         .links([])
         .handleDisconnected(false)

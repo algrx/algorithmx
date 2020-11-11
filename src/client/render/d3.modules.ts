@@ -1,4 +1,4 @@
-import { select, selectAll, event } from 'd3-selection';
+import { select, selectAll } from 'd3-selection';
 import { transition } from 'd3-transition';
 import * as ease from 'd3-ease';
 import { dispatch } from 'd3-dispatch';
@@ -7,16 +7,4 @@ import { drag } from 'd3-drag';
 import * as shape from 'd3-shape';
 import { zoom, zoomIdentity } from 'd3-zoom';
 
-export {
-    select,
-    selectAll,
-    event,
-    transition,
-    ease,
-    dispatch,
-    timer,
-    drag,
-    shape,
-    zoom,
-    zoomIdentity,
-};
+export { select, selectAll, transition, ease, dispatch, timer, drag, shape, zoom, zoomIdentity };

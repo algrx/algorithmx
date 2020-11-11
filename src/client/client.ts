@@ -8,6 +8,7 @@ import {
 import { DispatchEvent, ReceiveEvent, CanvasElement, ClientState } from './types';
 import { executeEvent, EventContext } from './events';
 import { LayoutState, initLayout } from './layout/canvas';
+import { renderLiveCanvas } from './render/canvas';
 
 export interface Client {
     canvas: CanvasElement;
@@ -81,8 +82,6 @@ export class Client {
     }
 
     tick() {
-        //console.log('tick');
-        //if (this.state.attributes !== undefined)
-        //renderCanvasLive.updateCanvas(this.canvas, this.state.attributes, this.layout);
+        if (this.state.attrs) renderLiveCanvas(this.canvas, this.state.attrs, this.state.layout);
     }
 }

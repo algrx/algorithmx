@@ -1,55 +1,20 @@
 import { CanvasElement } from '../types';
+import { NodeSpec } from '../attributes/components/node';
 import { PartialAttr, FullAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
-import { RenderElementFn } from './attribute';
-import { renderDict, renderSvgDict, renderSvgAttr, renderElement } from './element';
+import { RenderElementFn, renderDict, renderSvgDict, renderSvgAttr, renderElement } from './common';
 import { D3Selection, selectOrAdd, createRenderId, isSafari } from './utils';
 import { renderNode } from './node';
+import {
+    selectCanvasContainer,
+    selectInnerCanvas,
+    selectEdgeGroup,
+    selectNodeGroup,
+    selectNode,
+    selectCanvas,
+} from './selectors';
 import * as d3 from './d3.modules';
-import { NodeSpec } from '../attributes/components/node';
-//import * as renderNode from '../node/render';
-//import * as renderEdge from '../edge/render';
-//import * as renderLabel from '../label/render';
-
-export const selectCanvasContainer = (canvas: CanvasElement): D3Selection =>
-    typeof canvas === 'string' ? d3.select(`#${canvas}`) : d3.select(canvas);
-
-export const selectCanvas = (canvas: CanvasElement): D3Selection => {
-    const container = selectCanvasContainer(canvas);
-    return selectOrAdd(container, '.algorithmx', (s) =>
-        s.append('svg').classed('algorithmx', true)
-    );
-};
-export const selectCanvasInner = (sel: D3Selection): D3Selection =>
-    selectOrAdd(sel, 'g', (s) => s.append('g'));
-
-export const selectNodeGroup = (sel: D3Selection): D3Selection =>
-    selectOrAdd(sel, '.nodes', (s) => s.append('g').classed('nodes', true));
-
-export const selectEdgeGroup = (sel: D3Selection): D3Selection =>
-    selectOrAdd(sel, '.edges', (s) => s.append('g').classed('edges', true));
-
-export const selectLabelGroup = (sel: D3Selection): D3Selection =>
-    selectOrAdd(sel, '.labels', (s) => s.append('g').classed('labels', true));
-
-export const selectNode = (sel: D3Selection, id: string): D3Selection => {
-    const renderId = createRenderId(id);
-    return selectOrAdd(sel, `#node-${renderId}`, (s) =>
-        s.append('g').attr('id', `node-${renderId}`)
-    );
-};
-export const selectEdge = (sel: D3Selection, id: string): D3Selection => {
-    const renderId = createRenderId(id);
-    return selectOrAdd(sel, `#edge-${renderId}`, (s) =>
-        s.append('g').attr('id', `edge-${renderId}`)
-    );
-};
-export const selectLabel = (sel: D3Selection, id: string): D3Selection => {
-    const renderId = createRenderId(id);
-    return selectOrAdd(sel, `#label-${renderId}`, (s) =>
-        s.append('g').attr('id', `label-${renderId}`)
-    );
-};
+import { LayoutState } from '../layout/canvas';
 
 export const getCanvasSize = (canvas: CanvasElement): [number, number] => {
     const svgBase = selectCanvasContainer(canvas);
@@ -63,7 +28,14 @@ export const getCanvasSize = (canvas: CanvasElement): [number, number] => {
     else return [100, 100];
 };
 
-const renderCanvasInner: RenderElementFn<CanvasSpec> = (selection, attrs, changes): void => {
+const selectLabel = (labelGroup: D3Selection, id: string): D3Selection => {
+    const renderId = createRenderId(id);
+    return selectOrAdd(labelGroup, `#label-${renderId}`, (s) =>
+        s.append('g').attr('id', `label-${renderId}`)
+    );
+};
+
+const renderCanvas: RenderElementFn<CanvasSpec> = (selection, attrs, changes): void => {
     console.log(changes);
     renderSvgAttr(selection, 'width', changes.size, (v) => v[0]);
     renderSvgAttr(selection, 'height', changes.size, (v) => v[1]);
@@ -80,10 +52,12 @@ const renderCanvasInner: RenderElementFn<CanvasSpec> = (selection, attrs, change
         );
     }
 
-    const canvasInner = selectCanvasInner(selection);
-    const labelGroup = selectLabelGroup(canvasInner);
-    const edgeGroup = selectEdgeGroup(canvasInner);
-    const nodeGroup = selectNodeGroup(canvasInner);
+    const innerCanvas = selectInnerCanvas(selection);
+    const labelGroup = selectOrAdd(innerCanvas, '.labels', (s) =>
+        s.append('g').classed('labels', true)
+    );
+    const edgeGroup = selectEdgeGroup(innerCanvas);
+    const nodeGroup = selectNodeGroup(innerCanvas);
 
     renderDict<NodeSpec>(attrs.nodes, changes.nodes, (k, a, c) =>
         renderElement(selectNode(nodeGroup, k), a, c, renderNode)
@@ -113,10 +87,26 @@ const renderCanvasInner: RenderElementFn<CanvasSpec> = (selection, attrs, change
     if (changes.svgattrs) renderSvgDict(selection, changes.svgattrs);
 };
 
-export const renderCanvas = (
+export const renderLiveCanvas = (
+    canvasEl: CanvasElement,
+    attrs: FullAttr<CanvasSpec>,
+    layout: LayoutState
+): void => {
+    const innerCanvas = selectInnerCanvas(selectCanvas(canvasEl));
+
+    Object.entries(attrs.nodes).forEach(([k, nodeAttrs]) => {
+        if (nodeAttrs.visible) {
+            const nodeLayout = layout.nodes[k];
+            const nodeSel = selectNode(selectNodeGroup(innerCanvas), k);
+            nodeSel.attr('transform', `translate(${nodeLayout.x},-${nodeLayout.y})`);
+        }
+    });
+};
+
+export const renderAll = (
     canvas: CanvasElement,
     attrs: FullAttr<CanvasSpec>,
     changes: PartialAttr<CanvasSpec>
 ): void => {
-    renderElement(selectCanvas(canvas), attrs, changes, renderCanvasInner);
+    renderElement(selectCanvas(canvas), attrs, changes, renderCanvas);
 };

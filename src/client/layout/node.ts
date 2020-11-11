@@ -48,7 +48,6 @@ export const updateNodeLayout = (
     // cola doesn't work when you call .nodes() with a new array
     const layoutNodeArray = layoutState.cola.nodes();
     layoutNodeArray.splice(0, layoutNodeArray.length, ...Object.values(layoutNodes));
-    //layoutState.cola.nodes(mergedNodes);
     return {
         ...layoutState,
         nodes: layoutNodes,

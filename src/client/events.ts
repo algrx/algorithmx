@@ -18,7 +18,7 @@ import {
     addVisible,
 } from './attributes/transform';
 import { updateCanvasLayout, resetLayout } from './layout/canvas';
-import { renderCanvas } from './render/canvas';
+import { renderAll } from './render/canvas';
 
 export interface EventContext {
     readonly state: ClientState;
@@ -119,7 +119,7 @@ const updateAttrs = (
     const fullAttrs = mergeChanges(canvasSpec, prevAttrs, changesWithoutSelfRef);
 
     // render the canvas
-    renderCanvas(
+    renderAll(
         context.canvasElement,
         fullAttrs ?? prevAttrs ?? (fullChanges as FullAttr<CanvasSpec>),
         fullChanges

@@ -2,8 +2,14 @@ import * as d3 from './d3.modules';
 import { NodeSpec, nodeSpec, NodeShape } from '../attributes/components/node';
 import { PartialAttr, FullAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
-import { RenderElementFn, renderAnimAttr } from './attribute';
-import { renderDict, renderSvgDict, renderSvgAttr, renderElement } from './element';
+import {
+    RenderElementFn,
+    renderAnimAttr,
+    renderDict,
+    renderSvgDict,
+    renderSvgAttr,
+    renderElement,
+} from './common';
 import { D3Selection, selectOrAdd, createRenderId, isSafari, parseColor } from './utils';
 import { isNum, assignKeys, dictKeys } from '../utils';
 
