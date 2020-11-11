@@ -67,27 +67,47 @@ export const renderSvgDict = (
     return selection;
 };
 
-const animateAdd = <T extends AnimAttrSpec>(selection: D3Selection, attr: PartialAttr<T>): void => {
-    selection.attr('opacity', '0');
-    const transition = animate(selection, 'visible-fade', attr).attr('opacity', '1');
-    newTransition(transition, (t) => t).attr('opacity', null);
+const animateAdd = <T extends AnimAttrSpec>(
+    selection: D3Selection,
+    visible: PartialAttr<ElementSpec['entries']['visible']>
+): void => {
+    if (visible.animtype === 'fade') {
+        selection.attr('opacity', '0');
+        const transition = animate(selection, 'visible-fade', visible).attr('opacity', '1');
+        newTransition(transition, (t) => t).attr('opacity', null);
+    } else if (visible.animtype === 'scale') {
+        selection.attr('transform', 'scale(0,0)');
+        const transition = animate(selection, 'visible-fade', visible).attr(
+            'transform',
+            'scale(1,1)'
+        );
+        newTransition(transition, (t) => t).attr('transform', null);
+    }
 };
 
 const animateRemove = <T extends AnimAttrSpec>(
     selection: D3Selection,
-    attr: PartialAttr<T>
+    visible: PartialAttr<ElementSpec['entries']['visible']>
 ): void => {
-    selection.attr('opacity', '1');
-    animate(selection, 'visible-fade', attr).attr('opacity', '0');
+    if (visible.animtype === 'fade') {
+        selection.attr('opacity', '1');
+        const transition = animate(selection, 'visible-fade', visible).attr('opacity', '0');
+    } else if (visible.animtype === 'scale') {
+        selection.attr('transform', 'scale(1,1)');
+        const transition = animate(selection, 'visible-fade', visible).attr(
+            'transform',
+            'scale(0,0)'
+        );
+    }
 };
 
 export const renderVisible = (
     selection: D3Selection,
-    attr: PartialAttr<WithAnimSpec<BoolSpec>>
+    visible: PartialAttr<ElementSpec['entries']['visible']>
 ) => {
-    if (!isAnimationImmediate(attr)) {
-        if (attr.value === true) animateAdd(selection, attr);
-        else animateRemove(selection, attr);
+    if (!isAnimationImmediate(visible)) {
+        if (visible.value === true) animateAdd(selection, visible);
+        else animateRemove(selection, visible);
     }
 };
 
@@ -106,14 +126,13 @@ export const preprocess = <T extends ElementSpec>(renderData: RenderAttr<T>): Re
 };
 */
 
-const removeElement = <T extends ElementSpec>(selection: D3Selection, attr: PartialAttr<T>) => {
-    const visibleAttr = { ...attr.visible, value: false };
-    renderVisible(selection, visibleAttr);
+const removeElement = <T extends ElementSpec>(selection: D3Selection, changes: PartialAttr<T>) => {
+    renderVisible(selection, { ...changes.visible, value: false });
 
-    if (isAnimationImmediate(visibleAttr)) selection.remove();
+    if (changes.visible === undefined || isAnimationImmediate(changes.visible)) selection.remove();
     else {
         transition(selection, 'remove', (t) =>
-            t.delay(isNum(visibleAttr.duration) ? visibleAttr.duration * 1000 : 0)
+            t.delay(isNum(changes.visible!.duration) ? changes.visible!.duration * 1000 : 0)
         ).remove();
     }
 };
@@ -134,17 +153,9 @@ export const renderElement = <T extends ElementSpec>(
 
     renderFn(selection, attrs, changes);
 
-    if (changes.remove === true || changes.visible?.value === false) {
-        const visibleAttr = { ...changes.visible, value: false };
-        renderVisible(selection, visibleAttr);
-
-        if (isAnimationImmediate(visibleAttr)) selection.remove();
-        else {
-            transition(selection, 'remove', (t) =>
-                t.delay(isNum(visibleAttr.duration) ? visibleAttr.duration * 1000 : 0)
-            ).remove();
-        }
-    } else if (changes.visible?.value === true) renderVisible(selection, changes.visible);
+    if (changes.remove === true || changes.visible?.value === false)
+        removeElement(selection, changes);
+    else if (changes.visible?.value === true) renderVisible(selection, changes.visible);
 };
 
 /*

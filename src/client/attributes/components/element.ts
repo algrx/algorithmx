@@ -10,7 +10,7 @@ import {
 import { WithAnimSpec, withAnimSpec, animDefaults, animSpec } from './animation';
 import { FullAttr } from '../derived';
 
-export const visibleAnimTypes = <const>['fade', 'grow'];
+export const visibleAnimTypes = <const>['fade', 'scale'];
 export type VisibleAnimType = typeof visibleAnimTypes[number];
 
 export type ElementSpec = RecordSpec<{
