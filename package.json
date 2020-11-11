@@ -64,7 +64,7 @@
         "@rollup/plugin-node-resolve": "9.0.0",
         "@rollup/plugin-typescript": "6.0.0",
         "@types/chai": "4.2.12",
-        "@types/d3": "5.7.2",
+        "@types/d3": "6.1.0",
         "@types/mocha": "8.0.3",
         "chai": "4.2.0",
         "codecov": "3.7.2",
