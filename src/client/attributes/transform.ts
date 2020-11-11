@@ -15,10 +15,14 @@ import { combineAttrs, getAttrEntry, mapAttr, isPrimitive } from './attr-utils';
 import { CanvasSpec } from './components/canvas';
 import { EdgeSpec, parseEdgeId } from './components/edge';
 import { mapDict, mapDictKeys, filterDict } from '../utils';
+import { ElementSpec } from './components/element';
 
 // the 'value' attribute only exists on endpoints
 const isEndpointSpec = <T extends AttrSpec>(spec: T) =>
     spec.type === AttrType.Record && 'value' in (spec as AnyRecordSpec).entries;
+
+const isElementSpec = <T extends AttrSpec>(spec: T) =>
+    spec.type === AttrType.Record && 'visible' in (spec as AnyRecordSpec).entries;
 
 // remove all animations
 export const withoutAnim = <T extends AttrSpec>(spec: T, attrs: PartialAttr<T>): PartialAttr<T> => {
@@ -97,6 +101,30 @@ export const applyDefaults = <T extends AttrSpec>(
             [childDefaults as FullAttr<EntrySpec<T>>, animDefaults]
         );
     });
+};
+
+// add visible=true for new elements, visibl=false for elements being removed
+export const addVisible = <T extends AttrSpec>(
+    spec: T,
+    prevAttrs: FullAttr<T> | undefined,
+    changes: PartialAttr<T>
+): PartialAttr<T> => {
+    const withVisible = (visible: boolean) => {
+        const visibleAttr: PartialAttr<ElementSpec> = { visible: { value: visible } };
+        return { ...visibleAttr, ...(changes as {}) } as PartialAttr<T>;
+    };
+
+    const changesWithVisible = isElementSpec(spec)
+        ? prevAttrs === undefined
+            ? withVisible(true)
+            : (changes as PartialAttr<ElementSpec>).remove === true
+            ? withVisible(false)
+            : changes
+        : changes;
+
+    return mapAttr(spec, changesWithVisible, (childChanges, k, childSpec) =>
+        addVisible(childSpec, prevAttrs ? getAttrEntry(prevAttrs, k) : undefined, childChanges)
+    );
 };
 
 // merge changes with full attributes

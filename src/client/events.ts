@@ -15,6 +15,7 @@ import {
     applyDefaults,
     mergeChanges,
     fillStarKeys,
+    addVisible,
 } from './attributes/transform';
 import { updateCanvasLayout, resetLayout } from './layout/canvas';
 import { renderCanvas } from './render/canvas';
@@ -90,17 +91,21 @@ const updateAttrs = (
     //console.log(inputAttrs)
 
     // apply some transformations
-    const transformFns = [
-        (p: FullAttr<CanvasSpec> | undefined, c: PartialAttr<CanvasSpec>) =>
-            fillStarKeys(canvasSpec, p, c),
+    type TransformFn = (
+        p: FullAttr<CanvasSpec> | undefined,
+        c: PartialAttr<CanvasSpec>
+    ) => PartialAttr<CanvasSpec>;
+    const transformFns: ReadonlyArray<TransformFn> = [
+        (p, c) => fillStarKeys(canvasSpec, p, c),
         removeInvalidEdges,
         adjustEdgeIds,
+        (p, c) => addVisible(canvasSpec, p, c),
     ];
     //console.log(preprocChanges);
+    const prevAttrs = state.attrs;
     const transformedChanges = transformFns.reduce((acc, fn) => fn(prevAttrs, acc), preprocChanges);
 
     // apply defaults
-    const prevAttrs = state.attrs;
     const changesWithDefaults = applyDefaults(canvasSpec, prevAttrs, transformedChanges, [
         createCanvasDefaults(prevAttrs, transformedChanges),
         animation,
