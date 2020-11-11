@@ -63,7 +63,7 @@ export const selectOrAdd = (
     else return selected as D3Selection;
 };
 
-export const easeFn = (name: AnimEase): ((t: number) => number) => {
+export const getEaseFn = (name: AnimEase): ((t: number) => number) => {
     // e.g. convert 'linear' to 'easeLinear'
     return d3.ease[('ease' + dashToUpperCamel(name)) as keyof typeof d3.ease];
 };
@@ -78,4 +78,29 @@ export const isSafari = (): boolean => {
 
 export const isInBrowser = (): boolean => {
     return typeof window !== undefined;
+};
+
+export const canAnimate = () => {
+    // only browsers support animations
+    return isInBrowser();
+};
+
+type TransCallback = (trans: D3Transition) => D3Transition;
+export const transition = (
+    selection: D3Selection,
+    name: string,
+    callback: TransCallback
+): D3SelTrans => {
+    if (!canAnimate()) return selection;
+    else return callback(selection.transition(name));
+};
+
+export const newTransition = (selection: D3SelTrans, callback: TransCallback): D3SelTrans => {
+    if (!canAnimate()) return selection;
+    else return callback(selection.transition());
+};
+
+export const updateTransition = (selection: D3SelTrans, callback: TransCallback): D3SelTrans => {
+    if (isTransition(selection)) return callback(selection);
+    else return selection;
 };

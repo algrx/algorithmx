@@ -1,5 +1,5 @@
-import { transition } from './attribute';
-import { D3Selection, D3SelTrans } from './utils';
+import { transition } from './utils';
+import { D3Selection, D3SelTrans, D3Transition, getEaseFn, newTransition } from './utils';
 import { ElementSpec } from '../attributes/components/element';
 import {
     AttrSpec,
@@ -11,17 +11,67 @@ import {
     NumSpec,
 } from '../attributes/spec';
 import { PartialAttr, FullAttr } from '../attributes/derived';
-import { AnimAttrSpec, WithAnimSpec } from '../attributes/components/animation';
-import {
-    renderAnimAttr,
-    RenderElementFn,
-    RenderFn,
-    animate,
-    newTransition,
-    isAnimationImmediate,
-    parseTime,
-} from './attribute';
+import { AnimAttrSpec, WithAnimSpec, AnimSpec } from '../attributes/components/animation';
 import { isNum } from '../utils';
+
+export type RenderFn<T extends AttrSpec> = (
+    selection: D3SelTrans,
+    value: PartialAttr<T>
+) => D3SelTrans;
+export type RenderElementFn<T extends AttrSpec> = (
+    selection: D3Selection,
+    attrs: FullAttr<T>,
+    changes: PartialAttr<T>
+) => void;
+
+export const isAnimationImmediate = <T extends AnimAttrSpec>(animation: PartialAttr<T>) =>
+    animation.duration === undefined || animation.duration === 0;
+
+export const transAnimate = (
+    trans: D3Transition,
+    animation: PartialAttr<AnimSpec>
+): D3Transition => {
+    if (isAnimationImmediate(animation)) return trans.duration(0);
+    else
+        return trans
+            .duration(isNum(animation.duration) ? animation.duration * 1000 : 0)
+            .ease(getEaseFn(animation.ease ?? 'poly'));
+};
+
+export const animate = (
+    selection: D3Selection,
+    name: string,
+    animation: PartialAttr<AnimSpec>
+): D3SelTrans => {
+    if (isAnimationImmediate(animation)) {
+        selection.interrupt(name); // cancel previous transition
+        return selection;
+    } else {
+        return transition(selection, name, (t) => transAnimate(t, animation));
+    }
+};
+
+export const getHighlightTrans = <T extends AnimAttrSpec>(
+    selection: D3SelTrans,
+    attr: PartialAttr<T>
+): D3SelTrans => {
+    const linger = isNum(attr.linger) ? attr.linger * 1000 : 0;
+    return newTransition(selection, (t) => transAnimate(t.delay(linger), attr));
+};
+
+export const renderAnimAttr = <T extends AnimAttrSpec>(
+    selection: D3Selection,
+    name: string,
+    changes: PartialAttr<T>,
+    renderFn: (s: D3SelTrans) => D3SelTrans
+): D3SelTrans => {
+    const newSel = renderFn(animate(selection, name, changes));
+
+    if (changes.highlight !== undefined) {
+        const highlightTrans = getHighlightTrans(newSel, changes);
+        return renderFn(animate(selection, name, changes));
+    } else return newSel;
+};
 
 export const renderDict = <T extends AttrSpec>(
     attrs: FullAttr<DictSpec<T>>,
@@ -111,67 +161,26 @@ export const renderVisible = (
     }
 };
 
-/*
-export const renderRemove = (
-    selection: D3Selection,
-    attr: PartialAttr<WithAnimSpec<BoolSpec>>,
-) => {
-};
-
-export const preprocess = <T extends ElementSpec>(renderData: RenderAttr<T>): RenderAttr<T> => {
-    const visibleData = getEntry(renderData, 'visible');
-    return renderProcess.hasChanged(visibleData) && visibleData.attr === true
-        ? renderProcess.markForUpdate(renderData)
-        : renderData;
-};
-*/
-
-const removeElement = <T extends ElementSpec>(selection: D3Selection, changes: PartialAttr<T>) => {
-    renderVisible(selection, { ...changes.visible, value: false });
-
-    if (changes.visible === undefined || isAnimationImmediate(changes.visible)) selection.remove();
-    else {
-        transition(selection, 'remove', (t) =>
-            t.delay(isNum(changes.visible!.duration) ? changes.visible!.duration * 1000 : 0)
-        ).remove();
-    }
-};
-
 export const renderElement = <T extends ElementSpec>(
     selection: D3Selection,
     attrs: FullAttr<T>,
     initChanges: PartialAttr<T>,
     renderFn: RenderElementFn<T>
 ) => {
-    //const renderDataFull = preprocess(renderData);
-    //const changes = initChanges.visible === true ? attr :
     if (attrs.visible?.value === false) return;
     const changes = initChanges.visible?.value === true ? (attrs as PartialAttr<T>) : initChanges;
 
-    //if (changes.visible?.value === true) selector().remove();
-    //const selection = selector();
-
     renderFn(selection, attrs, changes);
 
-    if (changes.remove === true || changes.visible?.value === false)
-        removeElement(selection, changes);
-    else if (changes.visible?.value === true) renderVisible(selection, changes.visible);
-};
+    if (changes.remove === true || changes.visible?.value === false) {
+        renderVisible(selection, { ...changes.visible, value: false });
 
-/*
-export const renderElementLookup = <T extends ElementSpec>(
-    selector: (k: string) => D3Selection,
-    attr: PartialAttr<DictSpec<T>>,
-    changes: PartialAttr<DictSpec<T>>,
-    renderFn: (key: string, attr: PartialAttr<T>) => void,
-) => {
-    Object.entries(attr).forEach(([k, v]) => {
-        if (v.visible == true) renderElement(() => selector(k), v, renderFn)
-    );
-
-    Object.entries(attr).forEach(([k, v]) => {
-        if (v.remove)
-        renderFns.renderLookupRemovals(renderData, (k, data) => renderElementRemove(selector(k), data));
-    }
+        if (changes.visible === undefined || isAnimationImmediate(changes.visible))
+            selection.remove();
+        else {
+            transition(selection, 'remove', (t) =>
+                t.delay(isNum(changes.visible!.duration) ? changes.visible!.duration * 1000 : 0)
+            ).remove();
+        }
+    } else if (changes.visible?.value === true) renderVisible(selection, changes.visible);
 };
-*/
