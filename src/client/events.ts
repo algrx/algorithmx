@@ -13,7 +13,6 @@ import {
     removeInvalidEdges,
     adjustEdgeIds,
     applyDefaults,
-    applyAnimDefaults,
     mergeChanges,
     fillStarKeys,
 } from './attributes/transform';
@@ -102,12 +101,10 @@ const updateAttrs = (
 
     // apply defaults
     const prevAttrs = state.attrs;
-    const changesWithDefaults = applyDefaults(
-        canvasSpec,
-        prevAttrs,
-        applyAnimDefaults(canvasSpec, transformedChanges, animation),
-        createCanvasDefaults(prevAttrs, transformedChanges)
-    );
+    const changesWithDefaults = applyDefaults(canvasSpec, prevAttrs, transformedChanges, [
+        createCanvasDefaults(prevAttrs, transformedChanges),
+        animation,
+    ]);
 
     // evaluate expressions
     const changesWithoutSelfRef = evalCanvas(prevAttrs, changesWithDefaults, true);

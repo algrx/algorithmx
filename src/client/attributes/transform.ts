@@ -22,9 +22,22 @@ const isEndpointSpec = <T extends AttrSpec>(spec: T) =>
 
 // remove all animations
 export const withoutAnim = <T extends AttrSpec>(spec: T, attrs: PartialAttr<T>): PartialAttr<T> => {
-    if (isEndpointSpec(spec) && 'duration' in (spec as AnyRecordSpec).entries) {
+    if (spec.type === AttrType.Record && 'duration' in (spec as AnyRecordSpec).entries) {
         const noAnim: PartialAttr<AnimSpec> = { duration: 0 };
         return { ...(attrs as PartialAttr<AnyRecordSpec>), ...noAnim } as PartialAttr<T>;
+    }
+    return attrs;
+};
+
+export const withAnim = <T extends AttrSpec>(
+    spec: T,
+    attrs: PartialAttr<T>,
+    anim: PartialAttr<AnimSpec>
+): PartialAttr<T> => {
+    if (spec.type === AttrType.Record) {
+        // merge animation defaults
+        const validAnim = filterDict(anim, (_, k) => k in (spec as AnyRecordSpec).entries);
+        return { ...(attrs as PartialAttr<AnyRecordSpec>), ...validAnim } as PartialAttr<T>;
     }
     return attrs;
 };
@@ -34,7 +47,7 @@ export const applyDefaults = <T extends AttrSpec>(
     spec: T,
     prevAttrs: FullAttr<T> | undefined,
     changes: PartialAttr<T> | undefined,
-    defaults: FullAttr<T>
+    [defaults, animDefaults]: [FullAttr<T>, PartialAttr<AnimSpec>]
 ): PartialAttr<T> => {
     // always fall back on the defaults
     if (isPrimitive(spec)) return changes ?? (defaults as PartialAttr<T>);
@@ -47,41 +60,41 @@ export const applyDefaults = <T extends AttrSpec>(
             changes,
             (childDefaults, childChanges, k, childSpec) => {
                 if (childDefaults === undefined) {
-                    console.log(defaults, k, childDefaults);
                     console.error('unexpected error: missing defaults');
                     return undefined;
-                } else if (k === '*') {
-                    return undefined; // don't include "*" as an actual attribute
-                } else if (isEndpointSpec(childSpec) && k !== 'visible') {
-                    // if an element is new, the only attribute that should be animated is visibility
-                    return applyDefaults(
-                        childSpec,
-                        undefined,
-                        childChanges && withoutAnim(childSpec, childChanges),
-                        withoutAnim(childSpec, childDefaults) as FullAttr<EntrySpec<T>>
-                    );
-                } else {
-                    return applyDefaults(
-                        childSpec,
-                        undefined,
-                        childChanges,
-                        childDefaults as FullAttr<EntrySpec<T>>
-                    );
                 }
+                if (k === '*') return undefined; // don't include "*" as an actual attribute
+
+                // if an element is new, the only attribute that should be animated is visibility
+                const newChildDefaults = isEndpointSpec(childSpec)
+                    ? k === 'visible'
+                        ? withAnim(childSpec, childDefaults, animDefaults)
+                        : withoutAnim(childSpec, childDefaults)
+                    : childDefaults;
+
+                return applyDefaults(childSpec, undefined, childChanges, [
+                    newChildDefaults as FullAttr<EntrySpec<T>>,
+                    animDefaults,
+                ]);
             }
         );
     }
 
+    // include animation defautls
+    const defaultsWithAnim = isEndpointSpec(spec)
+        ? (withAnim(spec, defaults as PartialAttr<T>, animDefaults) as FullAttr<T>)
+        : defaults;
+
     return mapAttr(spec, changes, (childChanges, k, childSpec) => {
         // the "*" entry in a dict contains defaults for all of the children
         const childDefaults =
-            getAttrEntry(defaults, k) ?? (defaults as PartialAttr<DictSpec<T>>['*']);
+            getAttrEntry(defaultsWithAnim, k) ?? getAttrEntry(defaultsWithAnim, '*' as AttrKey<T>);
 
         return applyDefaults(
             childSpec,
             prevAttrs ? getAttrEntry(prevAttrs, k) : undefined,
             childChanges,
-            childDefaults as FullAttr<EntrySpec<T>>
+            [childDefaults as FullAttr<EntrySpec<T>>, animDefaults]
         );
     });
 };
@@ -115,23 +128,6 @@ export const mergeChanges = <T extends AttrSpec>(
                   ) as PartialAttr<EntrySpec<T>>);
         }
     ) as FullAttr<T>;
-};
-
-// apply animation defaults to endpoints only
-export const applyAnimDefaults = <T extends AttrSpec>(
-    spec: T,
-    changes: PartialAttr<T>,
-    anim: PartialAttr<AnimSpec>
-): PartialAttr<T> => {
-    if (isEndpointSpec(spec)) {
-        // merge animation defaults
-        const validAnim = filterDict(anim, (_, k) => k in (spec as AnyRecordSpec).entries);
-        return { ...(changes as PartialAttr<AnyRecordSpec>), ...validAnim } as PartialAttr<T>;
-    }
-
-    return mapAttr(spec, changes, (childChanges, k, childSpec) => {
-        return applyAnimDefaults(childSpec, childChanges, anim);
-    });
 };
 
 // replace the "*" key in dicts with all existing IDs
