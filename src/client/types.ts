@@ -1,4 +1,4 @@
-import { InputAttr, FullAttr } from './attributes/derived';
+import { InputAttr, PartialAttr, FullAttr } from './attributes/derived';
 import { CanvasSpec } from './attributes/components/canvas';
 import { AnimSpec } from './attributes/components/animation';
 import { SchedulerState } from './scheduler';
@@ -40,7 +40,8 @@ export interface ReceiveEvent {
 
 export interface ClientState {
     readonly scheduler: SchedulerState;
-    readonly attrs?: FullAttr<CanvasSpec>;
+    readonly attributes?: FullAttr<CanvasSpec>;
+    readonly expressions: PartialAttr<CanvasSpec>;
     readonly layout: LayoutState;
     readonly render: RenderState;
 }

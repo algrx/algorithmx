@@ -1,8 +1,13 @@
-import { NumExpr } from './components/expression';
 import { isNumericalStr, Dict, mapDict, dictValues } from '../utils';
 import { AttrSpec, AttrType } from './spec';
-import { PartialAttr } from './derived';
-import { isPrimitive, combineAttrs, nonEmpty } from './attr-utils';
+import { PartialAttr, FullAttr } from './derived';
+import { isPrimitive, combineAttrs, nonEmpty } from './utils';
+
+export interface NumExpr<T extends string> {
+    readonly m: number;
+    readonly x: T;
+    readonly c: number;
+}
 
 interface ExprTerm {
     readonly num: number;
@@ -104,8 +109,12 @@ export const parseExprStr = <T extends string>(
     return validateExpr(expr, validVars, rawValue);
 };
 
-export const isNumExpr = (attr: {} | number): attr is NumExpr<string> => {
+const isNumExpr = (attr: {} | number): attr is NumExpr<string> => {
     return typeof attr === 'object';
+};
+
+export const isExpr = <T extends AttrSpec>(spec: T, attr: PartialAttr<T>) => {
+    return spec.type === AttrType.Number && isNumExpr(attr);
 };
 
 export const evalNum = <T extends string>(
@@ -132,26 +141,26 @@ export type VarDict<V extends string> = Dict<
     { readonly value: number; readonly changed: boolean }
 >;
 
-export const evalAttr = (
-    attr: NumExpr<string> | number | undefined,
-    changes: NumExpr<string> | number | undefined,
+export const evalAttr = <T extends AttrSpec>(
+    // at least one of prevAttr, change should be defined
+    prevAttr: NumExpr<string> | number | undefined,
+    change: NumExpr<string> | number | undefined,
     vars: VarDict<string>
 ): { readonly value: number; readonly changed: boolean } => {
     const varValues = mapDict(vars, (v) => v.value);
 
-    if (changes !== undefined) {
-        if (!isNumExpr(changes)) return { value: changes, changed: true };
-
-        // if the change is self-referential (e.g. node.size = 2x), the variable won't exist yet
-        if (changes.x in vars) return { value: evalNum(changes, varValues), changed: true };
+    if (change !== undefined) {
+        if (!isNumExpr(change)) return { value: change, changed: true };
+        // note that if the change is self-referential (e.g. node.size = 2x), the variable won't exist yet
+        else if (change.x in vars) return { value: evalNum(change, varValues), changed: true };
     }
 
-    return { value: evalNum(attr!, varValues), changed: false };
+    return { value: evalNum(prevAttr!, varValues), changed: false };
 };
 
 const evalDeepAux = <T extends AttrSpec, V extends string>(
     spec: T,
-    permExpr: PartialAttr<T> | undefined,
+    prevExprs: PartialAttr<T> | undefined,
     changes: PartialAttr<T> | undefined,
     vars: VarDict<V>
 ): PartialAttr<T> | undefined => {
@@ -163,11 +172,11 @@ const evalDeepAux = <T extends AttrSpec, V extends string>(
         }
 
         // evaluate an existing 'permanent' expression
-        if (permExpr && isNumExpr(permExpr)) {
+        if (prevExprs && isNumExpr(prevExprs)) {
             // only evaluate if the variable has changed
-            if (permExpr.x in vars && vars[permExpr.x as V]!.changed) {
+            if (prevExprs.x in vars && vars[prevExprs.x as V]!.changed) {
                 const varValues = mapDict(vars, (v) => v.value);
-                return evalNum(permExpr, varValues) as PartialAttr<T>;
+                return evalNum(prevExprs, varValues) as PartialAttr<T>;
             }
         }
     }
@@ -179,7 +188,7 @@ const evalDeepAux = <T extends AttrSpec, V extends string>(
 
     // evaluate all children
     return nonEmpty(
-        combineAttrs(spec, permExpr, changes, (v1, v2, k, s) => {
+        combineAttrs(spec, prevExprs, changes, (v1, v2, k, s) => {
             return evalDeepAux(s, v1, v2, vars);
         })
     );
@@ -194,5 +203,13 @@ export const evalDeep = <T extends AttrSpec, V extends string>(
     // optimisation: stop evaluating if there are no changed attributes or changed variables
     if (!changes && dictValues(vars).every((v) => !v.changed)) return changes;
 
-    return evalDeepAux(spec, permExpr, changes, vars);
+    return evalDeepAux(spec, permExpr, changes, vars) ?? changes;
 };
+
+export type EvalChangesFn<T extends AttrSpec, V extends string> = (args: {
+    readonly prevAttrs: FullAttr<T> | undefined;
+    readonly prevExprs: PartialAttr<T>;
+    readonly changes: PartialAttr<T>;
+    readonly selfRefOnly: boolean;
+    readonly parentVars: VarDict<V>;
+}) => PartialAttr<T>;

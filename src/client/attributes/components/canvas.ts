@@ -1,4 +1,10 @@
-import { nonEmpty } from '../attr-utils';
+import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
+import { CanvasVar, canvasVars } from './expression';
+import { WithAnimSpec, withAnimSpec, animDefaults } from './animation';
+import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
+import { NodeSpec, nodeSpec, createNodeDictDefaults, evalNodeChanges } from './node';
+import { EdgeSpec, edgeSpec, createEdgeDictDefaults, edgeDefaults, parseEdgeId } from './edge';
+import { COLORS } from './color';
 import {
     AttrType,
     DictSpec,
@@ -10,16 +16,9 @@ import {
     RecordEntries,
 } from '../spec';
 import { FullAttr, PartialAttr } from '../derived';
-import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
-import { CanvasVar, canvasVars } from './expression';
-import { WithAnimSpec, withAnimSpec, animDefaults } from './animation';
-import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
-import { NodeSpec, nodeSpec, createNodeDictDefaults, evalNode } from './node';
-import { EdgeSpec, edgeSpec, createEdgeDictDefaults, edgeDefaults, parseEdgeId } from './edge';
-import { COLORS } from './color';
-import { mergeDiff, mapDict } from '../../utils';
-import { VarDict, evalAttr, usesVars, evalDeep } from '../expr-utils';
-import { combineAttrs } from '../attr-utils';
+import { nonEmpty, combineAttrs } from '../utils';
+import { VarDict, evalAttr, usesVars, evalDeep, EvalChangesFn } from '../expression';
+import { mergeDiff, mapDict, isEmptyObj } from '../../utils';
 
 export const edgeLengthType = <const>['individual', 'symmetric', 'jaccard'];
 export type EdgeLayout = typeof edgeLengthType[number];
@@ -108,44 +107,52 @@ export const createCanvasDefaults = (
     };
 };
 
-export const evalCanvas = (
-    prevAttrs: FullAttr<CanvasSpec> | undefined,
-    changes: PartialAttr<CanvasSpec>,
-    selfRefOnly: boolean
-): PartialAttr<CanvasSpec> => {
+export const evalCanvasChanges: EvalChangesFn<CanvasSpec, string> = ({
+    prevAttrs,
+    prevExprs,
+    changes,
+    selfRefOnly,
+}) => {
     // get node variables from attributes
     const canvasVars: VarDict<CanvasVar> = {
-        cx: evalAttr(prevAttrs?.size.value[0], changes.size?.value?.[0], {}),
-        cy: evalAttr(prevAttrs?.size.value[1], changes.size?.value?.[1], {}),
+        cx: evalAttr(
+            prevExprs.size?.value?.[0] ?? prevAttrs?.size.value[0],
+            changes.size?.value?.[0],
+            {}
+        ),
+        cy: evalAttr(
+            prevExprs.size?.value?.[1] ?? prevAttrs?.size.value[1],
+            changes.size?.value?.[1],
+            {}
+        ),
     };
 
     // evaluate child attributes
     return combineAttrs(
         canvasSpec,
-        prevAttrs,
+        prevExprs,
         changes,
-        (childAttr, childChanges, childKey, childSpec) => {
+        (prevChildExprs, childChanges, childKey, childSpec) => {
             if (childKey === 'nodes') {
                 const nodeDict = combineAttrs(
                     canvasSpec.entries.nodes,
-                    prevAttrs?.nodes,
+                    prevExprs.nodes,
                     changes.nodes,
-                    (prevNode, nodeChanges) => {
+                    (prevNodeExprs, nodeChanges, k) => {
                         if (nodeChanges)
-                            return evalNode(
-                                prevNode as FullAttr<NodeSpec> | undefined,
-                                nodeChanges,
-                                canvasVars,
-                                selfRefOnly
-                            );
-
-                        if (!selfRefOnly)
-                            return evalDeep(nodeSpec, prevNode, nodeChanges, canvasVars);
-
-                        return undefined;
+                            return evalNodeChanges({
+                                prevAttrs: prevAttrs?.nodes[k],
+                                prevExprs: prevNodeExprs ?? {},
+                                changes: nodeChanges,
+                                selfRefOnly,
+                                parentVars: canvasVars,
+                            });
+                        else if (!selfRefOnly)
+                            return evalDeep(nodeSpec, prevNodeExprs, nodeChanges, canvasVars);
+                        else return undefined;
                     }
                 );
-                return selfRefOnly ? nodeDict : nonEmpty(nodeDict);
+                return isEmptyObj(nodeDict) ? childChanges : nodeDict;
             }
 
             if (selfRefOnly) {
@@ -157,13 +164,13 @@ export const evalCanvas = (
                     (usesVars(changes.size!.value[0], ['cx', 'cy']) ||
                         usesVars(changes.size!.value[1], ['cx', 'cy']))
                 ) {
-                    return evalDeep(childSpec, childAttr, childChanges, canvasVars);
+                    return evalDeep(childSpec, prevChildExprs, childChanges, canvasVars);
                 }
 
                 return childChanges;
             }
 
-            return evalDeep(childSpec, childAttr, childChanges, canvasVars);
+            return evalDeep(childSpec, prevChildExprs, childChanges, canvasVars);
         }
     );
 };

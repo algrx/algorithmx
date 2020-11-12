@@ -15,9 +15,9 @@ import { WithAnimSpec, withAnimSpec, animDefaults } from './animation';
 import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { COLORS } from './color';
-import { combineAttrs, mapAttr } from '../attr-utils';
-import { mapDict, filterDict, mergeDiff } from '../../utils';
+import { combineAttrs, mapAttr } from '../utils';
 import { angleToDeg } from '../../math';
+import { mapDict, filterDict, mergeDiff } from '../../utils';
 
 export const edgeCurve = <const>[
     'basis',

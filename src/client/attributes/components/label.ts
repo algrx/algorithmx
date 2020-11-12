@@ -13,8 +13,8 @@ import { PartialAttr, FullAttr } from '../derived';
 import { WithAnimSpec, withAnimSpec, animDefaults } from './animation';
 import { ElementSpec, elementSpecEntries, elementDefaults } from './element';
 import { COLORS } from './color';
+import { combineAttrs, mapAttr } from '../utils';
 import { mapDict, filterDict } from '../../utils';
-import { combineAttrs, mapAttr } from '../attr-utils';
 import { restrictAngle } from '../../math';
 
 const labelAlign = <const>[

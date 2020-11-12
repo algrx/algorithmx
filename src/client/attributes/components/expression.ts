@@ -1,9 +1,3 @@
-export interface NumExpr<T extends string> {
-    readonly m: number;
-    readonly x: T;
-    readonly c: number;
-}
-
 export const canvasVars = <const>['cx', 'cy'];
 export type CanvasVar = typeof canvasVars[number];
 

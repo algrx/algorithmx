@@ -10,8 +10,8 @@ import {
     ExactStringSpec,
 } from './spec';
 import { InputAttr, PartialAttr } from './derived';
-import { parseExprStr, parseExprObj } from './expr-utils';
-import { getEntrySpec, getAttrEntry, mapAttr } from './attr-utils';
+import { parseExprStr, parseExprObj } from './expression';
+import { getEntrySpec, getAttrEntry, mapAttr } from './utils';
 import { mapDict, dictFromArray, isObj } from '../utils';
 
 interface PreprocessInfo {

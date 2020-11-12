@@ -11,11 +11,12 @@ import {
 } from './spec';
 import { PartialAttr, FullAttr } from './derived';
 import { AnimSpec, animSpec, WithAnimSpec } from './components/animation';
-import { combineAttrs, getAttrEntry, mapAttr, isPrimitive } from './attr-utils';
+import { combineAttrs, getAttrEntry, mapAttr, isPrimitive, nonEmpty } from './utils';
 import { CanvasSpec } from './components/canvas';
 import { EdgeSpec, parseEdgeId } from './components/edge';
-import { mapDict, mapDictKeys, filterDict } from '../utils';
 import { ElementSpec } from './components/element';
+import { isExpr } from './expression';
+import { mapDict, mapDictKeys, filterDict } from '../utils';
 
 // the 'value' attribute only exists on endpoints
 const isEndpointSpec = <T extends AttrSpec>(spec: T) =>
@@ -133,9 +134,9 @@ export const mergeChanges = <T extends AttrSpec>(
     prevAttrs: FullAttr<T> | undefined,
     changes: PartialAttr<T>
 ): FullAttr<T> | undefined => {
-    // remove records with a 'remove=true' entry
-    if (spec.type === AttrType.Record && 'remove' in (spec as AnyRecordSpec).entries) {
-        if ((changes as PartialAttr<AnyRecordSpec>)['remove'] === true) return undefined;
+    // remove elements with a 'remove=true' entry
+    if (isElementSpec(spec) && (changes as PartialAttr<ElementSpec>).remove === true) {
+        return undefined;
     }
 
     // if the changes are completely new,
@@ -156,6 +157,30 @@ export const mergeChanges = <T extends AttrSpec>(
                   ) as PartialAttr<EntrySpec<T>>);
         }
     ) as FullAttr<T>;
+};
+
+// merge only expressions
+export const mergeExprs = <T extends AttrSpec>(
+    spec: T,
+    prevExprs: PartialAttr<T> | undefined,
+    changes: PartialAttr<T>
+): PartialAttr<T> | undefined => {
+    if (isElementSpec(spec) && (changes as PartialAttr<ElementSpec>).remove === true) {
+        return undefined;
+    }
+    if (isPrimitive(spec)) {
+        if (isExpr(spec, changes)) return changes;
+        else if (prevExprs !== undefined && isExpr(spec, prevExprs)) return prevExprs;
+        else return undefined;
+    }
+
+    return nonEmpty(
+        combineAttrs(spec, prevExprs, changes, (prevChildExprs, childChanges, _, childSpec) => {
+            return childChanges === undefined
+                ? prevChildExprs
+                : mergeExprs(childSpec, prevChildExprs, childChanges);
+        })
+    );
 };
 
 // replace the "*" key in dicts with all existing IDs

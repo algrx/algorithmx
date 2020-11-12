@@ -1,4 +1,4 @@
-import { NumExpr } from './components/expression';
+import { NumExpr } from './expression';
 import {
     AttrType,
     AttrSpec,

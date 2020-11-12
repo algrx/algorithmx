@@ -27,7 +27,8 @@ export interface Client {
 const initState = (tick: () => void): ClientState => {
     return {
         scheduler: initSchedulerState,
-        attrs: undefined,
+        attributes: undefined,
+        expressions: {},
         layout: initLayout(tick),
         render: initRenderState,
     };
@@ -82,6 +83,7 @@ export class Client {
     }
 
     tick() {
-        if (this.state.attrs) renderLive(this.canvas, this.state.attrs, this.state.layout);
+        if (this.state.attributes)
+            renderLive(this.canvas, this.state.attributes, this.state.layout);
     }
 }

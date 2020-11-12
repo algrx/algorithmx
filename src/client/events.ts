@@ -2,7 +2,7 @@ import {
     CanvasSpec,
     canvasSpec,
     createCanvasDefaults,
-    evalCanvas,
+    evalCanvasChanges,
 } from './attributes/components/canvas';
 import { AnimSpec, animSpec } from './attributes/components/animation';
 import { InputAttr, FullAttr, PartialAttr } from './attributes/derived';
@@ -16,6 +16,7 @@ import {
     mergeChanges,
     fillStarKeys,
     addVisible,
+    mergeExprs,
 } from './attributes/transform';
 import { updateCanvasLayout, resetLayout } from './layout/canvas';
 import { renderCanvas } from './render/canvas';
@@ -26,39 +27,6 @@ export interface EventContext {
     readonly receive: (event: ReceiveEvent) => void;
     readonly tick: () => void;
 }
-
-//import { RenderBehavior } from './render/canvas/behavior';
-
-/*
-const render = (
-    canvas: CanvasElement,
-    prevAttrs: FullAttr<CanvasSpec>,
-    changes: PartialAttr<CanvasSpec>,
-    tick: () => void,
-    layoutState: layout.ILayoutState
-): void => {
-    renderCanvas.renderCanvas(canvas, renderData);
-    if (renderData.attr.visible === false) return;
-
-    renderCanvasMisc.renderWithLayout(canvas, renderData, layoutState);
-
-    renderCanvasMisc.renderWithTick(canvas, renderData, tick);
-    renderCanvasLive.updateCanvas(canvas, renderData.attr, layoutState);
-};
-
-const renderBehavior = (
-    canvas: CanvasElement,
-    renderData: RenderAttr<CanvasSpec>,
-    behavior: RenderBehavior
-): RenderBehavior => {
-    if (renderData.attr.visible === false) return behavior;
-
-    const newBehavior = renderCanvasBehavior.update(canvas, renderData, behavior);
-    renderCanvasBehavior.render(canvas, renderData, newBehavior);
-
-    return newBehavior;
-};
-*/
 
 const updateAttrs = (
     context: EventContext,
@@ -102,7 +70,7 @@ const updateAttrs = (
         (p, c) => addVisible(canvasSpec, p, c),
     ];
     //console.log(preprocChanges);
-    const prevAttrs = state.attrs;
+    const prevAttrs = state.attributes;
     const transformedChanges = transformFns.reduce((acc, fn) => fn(prevAttrs, acc), preprocChanges);
 
     // apply defaults
@@ -112,15 +80,28 @@ const updateAttrs = (
     ]);
 
     // evaluate expressions
-    const changesWithoutSelfRef = evalCanvas(prevAttrs, changesWithDefaults, true);
-    const fullChanges = evalCanvas(prevAttrs, changesWithoutSelfRef, false);
+    const changesWithoutSelfRef = evalCanvasChanges({
+        prevAttrs,
+        prevExprs: state.expressions,
+        changes: changesWithDefaults,
+        selfRefOnly: true,
+        parentVars: {},
+    });
+    const fullChanges = evalCanvasChanges({
+        prevAttrs,
+        prevExprs: state.expressions,
+        changes: changesWithoutSelfRef,
+        selfRefOnly: false,
+        parentVars: {},
+    });
 
     // merge all changes with previous attributes
-    const fullAttrs = mergeChanges(canvasSpec, prevAttrs, changesWithoutSelfRef);
+    const newAttrs = mergeChanges(canvasSpec, prevAttrs, fullChanges);
+    const newExprs = mergeExprs(canvasSpec, state.expressions, changesWithoutSelfRef) ?? {};
 
     // update layout
-    const newLayout = fullAttrs
-        ? updateCanvasLayout(state.layout, fullAttrs, fullChanges)
+    const newLayout = newAttrs
+        ? updateCanvasLayout(state.layout, newAttrs, fullChanges)
         : resetLayout(state.layout);
 
     // render the canvas
@@ -132,35 +113,14 @@ const updateAttrs = (
             receive: context.receive,
             tick: context.tick,
         },
-        fullAttrs,
+        newAttrs,
         fullChanges
     );
 
-    /*
-    renderCanvasMisc.renderWithLayout(canvas, renderData, layoutState);
-    renderCanvasMisc.renderWithTick(canvas, renderData, tick);
-    renderCanvasLive.updateCanvas(canvas, renderData.attr, layoutState);
-    */
-
-    //console.log(fullChanges);
-    /*
-    const renderData = renderElement.preprocess(pipeline.getRenderData(processed));
-    const layoutState = layout.update(state.layout, processed.attributes, processed.changes);
-
-    render(state.canvas, renderData, context.tick, layoutState);
-    const newBehavior = renderBehavior(state.canvas, renderData, state.renderBehavior);
-
-    if (processed.attributes.visible) {
-        const clickFn = (n: string) => context.listener(dispatchClick(n));
-        const hoverFn = (n: string, h: boolean) => context.listener(dispatchHover(n, h));
-        renderCanvasListeners.registerNodeClick(state.canvas, renderData, clickFn);
-        renderCanvasListeners.registerNodeHover(state.canvas, renderData, hoverFn);
-    }
-    */
-
     return {
         ...state,
-        attrs: fullAttrs,
+        attributes: newAttrs,
+        expressions: newExprs,
         layout: newLayout,
         render: newRenderState,
     };
