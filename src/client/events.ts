@@ -18,12 +18,12 @@ import {
     addVisible,
 } from './attributes/transform';
 import { updateCanvasLayout, resetLayout } from './layout/canvas';
-import { renderAttrs, renderWithState, renderWithTick, renderWithLayout } from './render/render';
+import { renderCanvas } from './render/canvas';
 
 export interface EventContext {
     readonly state: ClientState;
     readonly canvasElement: CanvasElement;
-    readonly callback: (event: ReceiveEvent) => void;
+    readonly receive: (event: ReceiveEvent) => void;
     readonly tick: () => void;
 }
 
@@ -74,7 +74,7 @@ const updateAttrs = (
         inputChanges
     );
     if (preprocChanges instanceof Error) {
-        context.callback({ error: { type: 'attribute', message: preprocChanges.message } });
+        context.receive({ error: { type: 'attribute', message: preprocChanges.message } });
         return state;
     }
 
@@ -85,7 +85,7 @@ const updateAttrs = (
         inputDefaults ?? {}
     );
     if (animation instanceof Error) {
-        context.callback({ error: { type: 'attribute', message: animation.message } });
+        context.receive({ error: { type: 'attribute', message: animation.message } });
         return state;
     }
     //console.log(inputAttrs)
@@ -118,14 +118,22 @@ const updateAttrs = (
     // merge all changes with previous attributes
     const fullAttrs = mergeChanges(canvasSpec, prevAttrs, changesWithoutSelfRef);
 
+    // update layout
+    const newLayout = fullAttrs
+        ? updateCanvasLayout(state.layout, fullAttrs, fullChanges)
+        : resetLayout(state.layout);
+
     // render the canvas
-    renderAttrs(context.canvasElement, fullAttrs, fullChanges);
-    renderWithLayout(context.canvasElement, fullAttrs, fullChanges, state.layout);
-    const newRenderState = renderWithState(
+    const newRenderState = renderCanvas(
         context.canvasElement,
+        {
+            state: state.render,
+            layout: newLayout,
+            receive: context.receive,
+            tick: context.tick,
+        },
         fullAttrs,
-        fullChanges,
-        state.render
+        fullChanges
     );
 
     /*
@@ -150,27 +158,17 @@ const updateAttrs = (
     }
     */
 
-    if (fullAttrs === undefined) {
-        // reset the canvas completely
-        return {
-            ...state,
-            attrs: undefined,
-            layout: resetLayout(state.layout),
-            render: {},
-        };
-    }
-
     return {
         ...state,
         attrs: fullAttrs,
-        layout: updateCanvasLayout(state.layout, fullAttrs, fullChanges),
+        layout: newLayout,
         render: newRenderState,
     };
 };
 
 export const executeEvent = (context: EventContext, event: DispatchEvent): ClientState => {
     if (event.message !== undefined) {
-        context.callback({ message: event.message });
+        context.receive({ message: event.message });
     }
 
     const attrState =

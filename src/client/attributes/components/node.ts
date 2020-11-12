@@ -69,7 +69,7 @@ const nodeDefaults: FullAttr<NodeSpec> = {
     size: { ...animDefaults, value: [12, 12] },
     pos: { ...animDefaults, value: [0, 0] },
     fixed: false,
-    draggable: false,
+    draggable: true,
     listenclick: false,
     listenhover: false,
     ...elementDefaults,

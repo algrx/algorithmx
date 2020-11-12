@@ -1,5 +1,5 @@
 import * as d3 from './d3.modules';
-import { CanvasElement } from '../types';
+import { CanvasElement, ReceiveEvent } from '../types';
 import { NodeSpec } from '../attributes/components/node';
 import { PartialAttr, FullAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
@@ -23,8 +23,25 @@ import {
 } from './selectors';
 import { LayoutState } from '../layout/canvas';
 import { AnimAttrSpec } from '../attributes/components/animation';
-import { asNum } from '../utils';
 import { renderPanZoom, updatePanZoomBehaviour } from './canvas-panzoom';
+
+export interface RenderState {
+    readonly zoomBehaviour?: D3ZoomBehaviour;
+    isMouseover: boolean;
+    isDragging: boolean;
+}
+
+export interface RenderContext {
+    readonly state: RenderState;
+    readonly layout: LayoutState;
+    readonly tick: () => void;
+    readonly receive: (event: ReceiveEvent) => void;
+}
+
+export const initRenderState: RenderState = {
+    isDragging: false,
+    isMouseover: false,
+};
 
 export const getCanvasSize = (canvas: CanvasElement): [number, number] => {
     const svgBase = selectCanvasContainer(canvas);
@@ -45,7 +62,7 @@ const selectLabel = (labelGroup: D3Selection, id: string): D3Selection => {
     );
 };
 
-export const renderCanvas: RenderElementFn<CanvasSpec> = (canvasSel, attrs, changes): void => {
+const renderCanvasAttrs: RenderElementFn<CanvasSpec> = (canvasSel, attrs, changes): void => {
     console.log(changes);
     renderSvgAttr(canvasSel, 'width', changes.size, (v) => v[0]);
     renderSvgAttr(canvasSel, 'height', changes.size, (v) => v[1]);
@@ -69,10 +86,6 @@ export const renderCanvas: RenderElementFn<CanvasSpec> = (canvasSel, attrs, chan
     const edgeGroup = selectEdgeGroup(innerCanvas);
     const nodeGroup = selectNodeGroup(innerCanvas);
 
-    Object.entries(changes.nodes ?? {}).forEach(([k, nodeChanges]) =>
-        renderElement(selectNode(nodeGroup, k), attrs.nodes[k], nodeChanges, renderNode)
-    );
-
     /*
     renderElementDict(
         (k) => canvasUtils.selectEdge(edgeGroup, k),
@@ -95,4 +108,49 @@ export const renderCanvas: RenderElementFn<CanvasSpec> = (canvasSel, attrs, chan
         */
 
     if (changes.svgattrs) renderSvgDict(canvasSel, changes.svgattrs);
+};
+
+export const renderLive = (
+    canvasEl: CanvasElement,
+    attrs: FullAttr<CanvasSpec>,
+    layout: LayoutState
+): void => {
+    const innerCanvas = selectInnerCanvas(selectCanvas(canvasEl));
+
+    Object.entries(attrs.nodes).forEach(([k, nodeAttrs]) => {
+        if (nodeAttrs.visible) {
+            const nodeLayout = layout.nodes[k];
+            const nodeSel = selectNode(selectNodeGroup(innerCanvas), k);
+            nodeSel.attr('transform', `translate(${nodeLayout.x},${-nodeLayout.y})`);
+        }
+    });
+};
+
+export const renderCanvas = (
+    canvasEl: CanvasElement,
+    context: RenderContext,
+    attrs: FullAttr<CanvasSpec> | undefined,
+    changes: PartialAttr<CanvasSpec>
+): RenderState => {
+    const canvasSel = selectCanvas(canvasEl);
+    renderElement(selectCanvas(canvasEl), attrs, changes, renderCanvasAttrs);
+
+    if (!attrs || attrs.visible.value === false) return initRenderState;
+
+    Object.entries(changes.nodes ?? {}).forEach(([k, nodeChanges]) => {
+        renderNode([canvasSel, k], attrs.nodes[k], nodeChanges, context);
+    });
+
+    const newZoomBehaviour = updatePanZoomBehaviour(
+        canvasSel,
+        attrs,
+        changes,
+        context.state.zoomBehaviour
+    );
+    renderPanZoom(canvasSel, attrs, changes, newZoomBehaviour);
+
+    return {
+        ...context.state,
+        zoomBehaviour: newZoomBehaviour,
+    };
 };

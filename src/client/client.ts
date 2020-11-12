@@ -8,7 +8,7 @@ import {
 import { DispatchEvent, ReceiveEvent, CanvasElement, ClientState } from './types';
 import { executeEvent, EventContext } from './events';
 import { LayoutState, initLayout } from './layout/canvas';
-import { renderLive } from './render/render';
+import { renderLive, initRenderState } from './render/canvas';
 
 export interface Client {
     canvas: CanvasElement;
@@ -29,7 +29,7 @@ const initState = (tick: () => void): ClientState => {
         scheduler: initSchedulerState,
         attrs: undefined,
         layout: initLayout(tick),
-        render: {},
+        render: initRenderState,
     };
 };
 
@@ -39,7 +39,7 @@ const processEvent = (client: Client, event: SchedulerEvent, queue: string | nul
         {
             state: client.state,
             canvasElement: client.canvas,
-            callback: client.eventCallback,
+            receive: client.eventCallback,
             tick: client.tick,
         },
         event as DispatchEvent

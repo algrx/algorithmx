@@ -3,7 +3,6 @@ import { PartialAttr, FullAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
 import { renderAnimAttr } from './common';
 import { D3Selection, D3ZoomBehaviour } from './utils';
-import { renderNode } from './node';
 import {
     selectCanvasContainer,
     selectInnerCanvas,

@@ -169,7 +169,7 @@ export const renderElement = <T extends ElementSpec>(
 ) => {
     const changes = initChanges.visible?.value === true ? (attrs as PartialAttr<T>) : initChanges;
 
-    if (attrs && attrs.visible?.value === true) {
+    if (attrs && attrs.visible.value === true) {
         renderFn(selection, attrs, changes);
     }
 
