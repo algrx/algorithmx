@@ -85,10 +85,6 @@ export const isNum = (value: unknown): value is number => {
     return !isNaN(value as number);
 };
 
-export const asNum = (value: unknown, defaultNum = 0) => {
-    return isNum(value) ? value : defaultNum;
-};
-
 export const isNumericalStr = (value: string): boolean => {
     return !isNaN((value as unknown) as number) && value !== '';
 };

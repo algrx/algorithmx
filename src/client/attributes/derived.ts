@@ -51,29 +51,35 @@ export type InputAttr<T extends AttrSpec> = T extends EndpointValueSpec
     : never;
 
 // === Full ===
-export type FullAttr<T extends AttrSpec> = T extends BoolSpec
+export type FullAttr<T extends AttrSpec, Eval = false> = T extends BoolSpec
     ? boolean
     : T extends NumSpec
-    ? number | NumExpr<string>
+    ? Eval extends true
+        ? number
+        : number | NumExpr<string>
     : T extends ExactStringSpec<infer ST>
     ? ST
     : T extends StringSpec
     ? string
     : T extends TupleSpec<infer TE>
-    ? [FullAttr<TE>, FullAttr<TE>]
+    ? [FullAttr<TE, Eval>, FullAttr<TE, Eval>]
     : T extends ArraySpec<infer AE>
-    ? ReadonlyArray<FullAttr<AE>>
+    ? ReadonlyArray<FullAttr<AE, Eval>>
     : T extends RecordSpec<infer RES>
-    ? { readonly [k in keyof RES]: FullAttr<RES[k]> }
+    ? { readonly [k in keyof RES]: FullAttr<RES[k], Eval> }
     : T extends DictSpec<infer DE>
-    ? { readonly [k: string]: FullAttr<DE> }
+    ? { readonly [k: string]: FullAttr<DE, Eval> }
     : never;
 
+export type FullEvalAttr<T extends AttrSpec> = FullAttr<T, true>;
+
 // === Partial ===
-export type PartialAttr<T extends AttrSpec> = T extends RecordSpec<infer RES>
-    ? { readonly [k in keyof RES]?: PartialAttr<RES[k]> }
+export type PartialAttr<T extends AttrSpec, Eval = false> = T extends RecordSpec<infer RES>
+    ? { readonly [k in keyof RES]?: PartialAttr<RES[k], Eval> }
     : T extends DictSpec<infer DE>
-    ? { readonly [k: string]: PartialAttr<DE> }
+    ? { readonly [k: string]: PartialAttr<DE, Eval> }
     : T extends ArraySpec<infer AE>
-    ? ReadonlyArray<PartialAttr<AE>>
-    : FullAttr<T>;
+    ? ReadonlyArray<PartialAttr<AE, Eval>>
+    : FullAttr<T, Eval>;
+
+export type PartialEvalAttr<T extends AttrSpec> = PartialAttr<T, true>;

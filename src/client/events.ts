@@ -5,7 +5,13 @@ import {
     evalCanvasChanges,
 } from './attributes/components/canvas';
 import { AnimSpec, animSpec } from './attributes/components/animation';
-import { InputAttr, FullAttr, PartialAttr } from './attributes/derived';
+import {
+    InputAttr,
+    FullAttr,
+    PartialAttr,
+    PartialEvalAttr,
+    FullEvalAttr,
+} from './attributes/derived';
 import { preprocess } from './attributes/preprocess';
 import { AttrType } from './attributes/spec';
 import { CanvasElement, ClientState, ReceiveEvent, DispatchEvent } from './types';
@@ -101,7 +107,11 @@ const updateAttrs = (
 
     // update layout
     const newLayout = newAttrs
-        ? updateCanvasLayout(state.layout, newAttrs, fullChanges)
+        ? updateCanvasLayout(
+              state.layout,
+              newAttrs as FullEvalAttr<CanvasSpec>,
+              fullChanges as PartialEvalAttr<CanvasSpec>
+          )
         : resetLayout(state.layout);
 
     // render the canvas
@@ -113,8 +123,8 @@ const updateAttrs = (
             receive: context.receive,
             tick: context.tick,
         },
-        newAttrs,
-        fullChanges
+        newAttrs as FullEvalAttr<CanvasSpec>,
+        fullChanges as PartialEvalAttr<CanvasSpec>
     );
 
     return {

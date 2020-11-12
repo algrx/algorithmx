@@ -1,7 +1,7 @@
 import * as d3 from './d3.modules';
 import { CanvasElement, ReceiveEvent } from '../types';
 import { NodeSpec } from '../attributes/components/node';
-import { PartialAttr, FullAttr } from '../attributes/derived';
+import { FullEvalAttr, PartialEvalAttr, FullAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
 import {
     RenderElementFn,
@@ -129,8 +129,8 @@ export const renderLive = (
 export const renderCanvas = (
     canvasEl: CanvasElement,
     context: RenderContext,
-    attrs: FullAttr<CanvasSpec> | undefined,
-    changes: PartialAttr<CanvasSpec>
+    attrs: FullEvalAttr<CanvasSpec> | undefined,
+    changes: PartialEvalAttr<CanvasSpec>
 ): RenderState => {
     const canvasSel = selectCanvas(canvasEl);
     renderElement(selectCanvas(canvasEl), attrs, changes, renderCanvasAttrs);

@@ -2,11 +2,11 @@ import * as webcola from 'webcola';
 
 import { LayoutState } from './canvas';
 import { DictSpec } from '../attributes/spec';
-import { PartialAttr, FullAttr } from '../attributes/derived';
+import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import { NodeSpec } from '../attributes/components/node';
-import { Dict, mapDict, asNum } from '../utils';
+import { Dict, mapDict } from '../utils';
 
-export const didUpdateNodes = (changes: PartialAttr<DictSpec<NodeSpec>>): boolean => {
+export const didUpdateNodes = (changes: PartialEvalAttr<DictSpec<NodeSpec>>): boolean => {
     return Object.values(changes).some(
         (n) =>
             n.size !== undefined ||
@@ -18,8 +18,8 @@ export const didUpdateNodes = (changes: PartialAttr<DictSpec<NodeSpec>>): boolea
 
 export const updateNodeLayout = (
     layoutState: LayoutState,
-    attrs: FullAttr<DictSpec<NodeSpec>>,
-    changes: PartialAttr<DictSpec<NodeSpec>>
+    attrs: FullEvalAttr<DictSpec<NodeSpec>>,
+    changes: PartialEvalAttr<DictSpec<NodeSpec>>
 ): LayoutState => {
     // check for updates
     if (!didUpdateNodes(changes)) return layoutState;
@@ -28,10 +28,8 @@ export const updateNodeLayout = (
     const layoutNodesDiff = mapDict(attrs, (n, k) => {
         const nodeChanges = changes[k] ?? {};
         const nodeDiff: Partial<webcola.Node> = {
-            ...(nodeChanges.size
-                ? { width: asNum(n.size.value[0]), height: asNum(n.size.value[1]) }
-                : {}),
-            ...(nodeChanges.pos ? { x: asNum(n.pos.value[0]), y: asNum(n.pos.value[1]) } : {}),
+            ...(nodeChanges.size ? { width: n.size.value[0], height: n.size.value[1] } : {}),
+            ...(nodeChanges.pos ? { x: n.pos.value[0], y: n.pos.value[1] } : {}),
             ...(nodeChanges.fixed ? { fixed: n.fixed ? 1 : 0 } : {}),
         };
         return nodeDiff;

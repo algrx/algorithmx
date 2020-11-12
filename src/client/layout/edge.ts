@@ -1,13 +1,13 @@
 import * as webcola from 'webcola';
 
 import { LayoutState } from './canvas';
-import { PartialAttr, FullAttr } from '../attributes/derived';
+import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
 import { EdgeSpec } from '../attributes/components/edge';
 import { DictSpec } from '../attributes/spec';
-import { Dict, mapDict, asNum } from '../utils';
+import { Dict, mapDict } from '../utils';
 
-export const didUpdateEdges = (changes: PartialAttr<DictSpec<EdgeSpec>>): boolean => {
+export const didUpdateEdges = (changes: PartialEvalAttr<DictSpec<EdgeSpec>>): boolean => {
     return Object.values(changes).some(
         (e) =>
             e.source !== undefined ||
@@ -19,8 +19,8 @@ export const didUpdateEdges = (changes: PartialAttr<DictSpec<EdgeSpec>>): boolea
 
 export const updateEdgeLayout = (
     layoutState: LayoutState,
-    attrs: FullAttr<CanvasSpec>,
-    changes: PartialAttr<CanvasSpec>
+    attrs: FullEvalAttr<CanvasSpec>,
+    changes: PartialEvalAttr<CanvasSpec>
 ): LayoutState => {
     // check for updates
     if (
@@ -36,7 +36,7 @@ export const updateEdgeLayout = (
         .map((e) => ({
             source: layoutState.nodes[e.source],
             target: layoutState.nodes[e.target],
-            length: asNum(e.length),
+            length: e.length,
         }));
 
     // cola doesn't work when you call .links() with a new array
