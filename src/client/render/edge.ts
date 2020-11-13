@@ -16,10 +16,12 @@ import { RenderState, RenderContext } from './canvas';
 import { selectInnerCanvas, selectEdge, selectEdgeGroup } from './selectors';
 import { assignKeys, dictKeys } from '../utils';
 
-export const selectLabel = (edgeSel: D3Selection, id: string): D3Selection => {
-    const labelGroup = selectOrAdd(edgeSel, '.edge-labels', (s) =>
-        s.append('g').classed('edge-labels', true)
-    );
+export const selectEdgeLabelGroup = (edgeSel: D3Selection): D3Selection => {
+    return selectOrAdd(edgeSel, '.edge-labels', (s) => s.append('g').classed('edge-labels', true));
+};
+
+const selectLabel = (edgeSel: D3Selection, id: string): D3Selection => {
+    const labelGroup = selectEdgeLabelGroup(edgeSel);
     const renderId = createRenderId(id);
     return selectOrAdd(edgeSel, `#label-${renderId}`, (s) =>
         s.append('g').attr('id', `label-${renderId}`)
@@ -51,8 +53,9 @@ export const renderEdge = (
     attrs: FullEvalAttr<EdgeSpec> | undefined,
     changes: PartialEvalAttr<EdgeSpec>
 ) => {
+    renderElement(edgeSel, attrs, changes, renderEdgeAttrs);
+
     if (!attrs || attrs.visible.value === false) return;
-    renderEdgeAttrs(edgeSel, attrs, changes);
 
     Object.entries(changes.labels ?? {}).forEach(([k, labelChanges]) => {
         const labelSel = selectLabel(edgeSel, k);

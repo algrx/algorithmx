@@ -1,8 +1,4 @@
 import * as d3 from './d3.modules';
-import { CanvasElement, ReceiveEvent } from '../types';
-import { NodeSpec } from '../attributes/components/node';
-import { FullEvalAttr, PartialEvalAttr, FullAttr } from '../attributes/derived';
-import { CanvasSpec } from '../attributes/components/canvas';
 import {
     RenderElementFn,
     renderDict,
@@ -22,10 +18,16 @@ import {
     selectCanvas,
     selectEdge,
 } from './selectors';
-import { LayoutState } from '../layout/canvas';
 import { AnimAttrSpec } from '../attributes/components/animation';
 import { renderPanZoom, updatePanZoomBehaviour } from './canvas-panzoom';
+import { NodeSpec } from '../attributes/components/node';
+import { FullEvalAttr, PartialEvalAttr, FullAttr } from '../attributes/derived';
+import { CanvasSpec } from '../attributes/components/canvas';
 import { renderEdge } from './edge';
+import { LayoutState } from '../layout/canvas';
+import { Dict } from '../utils';
+import { CanvasElement, ReceiveEvent } from '../types';
+import { renderLiveEdges } from './live-edge';
 
 export interface RenderState {
     readonly zoomBehaviour?: D3ZoomBehaviour;
@@ -114,9 +116,10 @@ const renderCanvasAttrs: RenderElementFn<CanvasSpec> = (canvasSel, attrs, change
 
 export const renderLive = (
     canvasEl: CanvasElement,
-    attrs: FullAttr<CanvasSpec>,
+    attrs: FullEvalAttr<CanvasSpec>,
     layout: LayoutState
 ): void => {
+    const canvasSel = selectCanvas(canvasEl);
     const innerCanvas = selectInnerCanvas(selectCanvas(canvasEl));
 
     Object.entries(attrs.nodes).forEach(([k, nodeAttrs]) => {
@@ -126,21 +129,7 @@ export const renderLive = (
         nodeSel.attr('transform', `translate(${nodeLayout.x},${-nodeLayout.y})`);
     });
 
-    Object.entries(attrs.edges).forEach(([k, edgeAttrs]) => {
-        if (!edgeAttrs.visible) return;
-        const edgeSel = selectEdge(selectEdgeGroup(innerCanvas), k);
-
-        const origin = liveEdge.getEdgeOrigin(edge);
-        edgeSel.attr(
-            'transform',
-            `translate(${origin[0]},${-origin[1]})rotate(${-math.angleToDeg(edge.angle)})`
-        );
-
-        const edgeLabels = renderEdge.selectLabelGroup(edgeSel);
-        edgeLabels.attr('transform', liveEdge.shouldFlip(edge) ? 'scale(-1, -1)' : null);
-
-        //liveEdge.renderEdgePath(edgeSel, edge, origin);
-    });
+    renderLiveEdges(canvasSel, attrs, layout);
 };
 
 export const renderCanvas = (

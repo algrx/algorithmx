@@ -1,4 +1,5 @@
 import * as d3 from './d3.modules';
+import { CurveFactory } from 'd3';
 import { AnimEase } from '../attributes/components/animation';
 import { dashToUpperCamel } from '../utils';
 
@@ -65,6 +66,11 @@ export const selectOrAdd = (
 export const getEaseFn = (name: AnimEase): ((t: number) => number) => {
     // e.g. convert 'linear' to 'easeLinear'
     return d3.ease[('ease' + dashToUpperCamel(name)) as keyof typeof d3.ease];
+};
+
+export const getCurveFn = (name: string): CurveFactory => {
+    // e.g. convert 'natural' to 'curveNatural'
+    return d3.shape[('curve' + dashToUpperCamel(name)) as keyof typeof d3.shape] as CurveFactory;
 };
 
 export const isSafari = (): boolean => {

@@ -1,5 +1,4 @@
 import * as d3 from './d3.modules';
-import * as webcola from 'webcola';
 import { NodeSpec, nodeSpec, NodeShape } from '../attributes/components/node';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import {
@@ -10,26 +9,18 @@ import {
     renderSvgAttr,
     renderElement,
 } from './common';
-import {
-    D3Selection,
-    selectOrAdd,
-    createRenderId,
-    isSafari,
-    parseColor,
-    isTransition,
-} from './utils';
+import { D3Selection, selectOrAdd, createRenderId, parseColor, isTransition } from './utils';
 import { RenderState, RenderContext } from './canvas';
 import { selectInnerCanvas, selectNode, selectNodeGroup } from './selectors';
-import { isNum, assignKeys, dictKeys } from '../utils';
-import { ReceiveEvent } from '../types';
+import { assignKeys, dictKeys } from '../utils';
 import { updateNodeListeners } from './node-events';
 
-const selectLabelGroup = (sel: D3Selection): D3Selection =>
-    selectOrAdd(sel, '.node-labels', (s) => s.append('g').classed('node-labels', true));
-
-const selectLabel = (sel: D3Selection, id: string): D3Selection => {
+const selectLabel = (nodeSel: D3Selection, id: string): D3Selection => {
+    const labelGroup = selectOrAdd(nodeSel, '.node-labels', (s) =>
+        s.append('g').classed('node-labels', true)
+    );
     const renderId = createRenderId(id);
-    return selectOrAdd(sel, `#label-${renderId}`, (s) =>
+    return selectOrAdd(nodeSel, `#label-${renderId}`, (s) =>
         s.append('g').attr('id', `label-${renderId}`)
     );
 };
@@ -60,7 +51,7 @@ const renderSize = (
     }
 };
 
-const renderNodeAttrs: RenderElementFn<NodeSpec> = (selection, attrs, initChanges): void => {
+const renderNodeAttrs: RenderElementFn<NodeSpec> = (nodeSel, attrs, initChanges): void => {
     const changes = initChanges.shape
         ? assignKeys(
               initChanges,
@@ -71,23 +62,12 @@ const renderNodeAttrs: RenderElementFn<NodeSpec> = (selection, attrs, initChange
           )
         : initChanges;
 
-    if (changes.shape) renderShape(selection, changes.shape);
+    if (changes.shape) renderShape(nodeSel, changes.shape);
+    const shapeSel = nodeSel.select('.shape');
 
-    const shapeSelection = selection.select('.shape');
-    const labelGroup = selectLabelGroup(selection);
-
-    /*
-    renderElementDict(
-        attrs?.labels,
-        changes.labels,
-        (k, a, c) => renderLabel(selectLabel(labelGroup, k), a, c),
-    );
-    */
-
-    renderSvgAttr(selection, 'fill', changes.color, (v) => parseColor(v));
-
-    if (changes.size) renderSize(shapeSelection, attrs.shape, changes.size);
-    if (changes.svgattrs) renderSvgDict(shapeSelection, changes.svgattrs);
+    renderSvgAttr(shapeSel, 'fill', changes.color, (v) => parseColor(v));
+    if (changes.size) renderSize(shapeSel, attrs.shape, changes.size);
+    if (changes.svgattrs) renderSvgDict(shapeSel, changes.svgattrs);
 };
 
 const renderWithTick = (
@@ -123,5 +103,12 @@ export const renderNode = (
     renderElement(nodeSel, attrs, changes, renderNodeAttrs);
 
     if (!attrs || attrs.visible.value === false) return;
+
+    Object.entries(changes.labels ?? {}).forEach(([k, labelChanges]) => {
+        const labelSel = selectLabel(nodeSel, k);
+
+        //renderElement(labelSel, attrs.labels[k], changes, renderLabelAttrs);
+    });
+
     updateNodeListeners([canvasSel, nodeSel, nodeId], changes, context);
 };

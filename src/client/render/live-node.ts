@@ -1,32 +1,26 @@
 import * as d3 from './d3.modules';
-import { NodeSpec, nodeSpec, NodeShape, radiusAtAngle } from '../attributes/components/node';
-import { PartialAttr, FullAttr } from '../attributes/derived';
-import { CanvasSpec } from '../attributes/components/canvas';
+import { Node as NodeLayout } from 'webcola';
 import { renderDict, renderSvgDict, renderSvgAttr, renderElement } from './common';
-import { D3Selection, selectOrAdd, createRenderId, isSafari, parseColor } from './utils';
-import { LayoutState } from '../layout/canvas';
 import { selectNodeGroup, selectNode } from './selectors';
+import { D3Selection, selectOrAdd, createRenderId, isSafari, parseColor } from './utils';
+import { NodeSpec, radiusAtAngle } from '../attributes/components/node';
+import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
+import { CanvasSpec } from '../attributes/components/canvas';
+import { LayoutState } from '../layout/canvas';
 
-interface LiveNodeAttrs {
+export interface LiveNodeAttrs {
     readonly pos: [number, number];
     readonly size: [number, number];
 }
 
 export const getLiveNodeAttrs = (
-    canvasSel: D3Selection,
-    layoutState: LayoutState,
-    canvasAttrs: FullAttr<CanvasSpec>,
-    nodeId: string
+    nodeSel: D3Selection,
+    nodeLayout: NodeLayout,
+    attrs: FullEvalAttr<NodeSpec>
 ): LiveNodeAttrs => {
-    const nodeGroup = selectNodeGroup(canvasSel);
-
-    const nodeAttrs = canvasAttrs.nodes[nodeId];
-    const nodeLayout = layoutState.nodes[nodeId];
-
     const livePos: [number, number] = [nodeLayout.x, nodeLayout.y!];
 
-    if (nodeAttrs.visible) {
-        const nodeSel = selectNode(nodeGroup, nodeId);
+    if (attrs.visible) {
         const liveWidth = nodeSel.attr('_width');
         const liveHeight = nodeSel.attr('_height');
 
@@ -46,8 +40,7 @@ export const getLiveNodeAttrs = (
 };
 
 export const getPointAtNodeBoundary = (
-    attrs: FullAttr<NodeSpec>,
-    liveAttrs: LiveNodeAttrs,
+    [attrs, liveAttrs]: [FullEvalAttr<NodeSpec>, LiveNodeAttrs],
     angle: number,
     offset: number = 0
 ): [number, number] => {
