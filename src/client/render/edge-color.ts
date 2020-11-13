@@ -38,7 +38,7 @@ export const renderTraverse = (
     attrs: FullEvalAttr<EdgeSpec>,
     changes: PartialEvalAttr<EdgeSpec>
 ): void => {
-    if (!changes.color?.value) return;
+    if (changes.color?.value === undefined) return;
 
     edgeSel.select('.edge-path-overlay').remove();
     const overlaySel = edgeSel
@@ -63,7 +63,7 @@ export const renderTraverse = (
         return tweenOverlay(trans, () => getPathLength(pathSel), isReverse, true);
     };
 
-    if (changes.color.highlight !== undefined) {
+    if (changes.color.highlight === true) {
         const renderOut = (sel: D3SelTrans): D3SelTrans => {
             sel.on('start', () => {
                 const pathLength = getPathLength(pathSel);
@@ -96,7 +96,8 @@ export const renderEdgeColor = (
     attrs: FullEvalAttr<EdgeSpec>,
     changes: PartialEvalAttr<EdgeSpec>
 ): void => {
-    if (!changes.color?.value) return;
+    if (changes.color?.value === undefined) return;
+
     if (changes.color.animtype === 'traverse') renderTraverse([edgeSel, pathSel], attrs, changes);
     else renderSvgAttr(pathSel, 'stroke', changes.color, (v) => parseColor(v));
 

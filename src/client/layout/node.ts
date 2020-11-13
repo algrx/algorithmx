@@ -28,7 +28,9 @@ export const updateNodeLayout = (
     const layoutNodesDiff = mapDict(attrs, (n, k) => {
         const nodeChanges = changes[k] ?? {};
         const nodeDiff: Partial<webcola.Node> = {
-            ...(nodeChanges.size ? { width: n.size.value[0], height: n.size.value[1] } : {}),
+            ...(nodeChanges.size
+                ? { width: n.size.value[0] * 2, height: n.size.value[1] * 2 }
+                : {}),
             ...(nodeChanges.pos ? { x: n.pos.value[0], y: n.pos.value[1] } : {}),
             ...(nodeChanges.fixed ? { fixed: n.fixed ? 1 : 0 } : {}),
         };

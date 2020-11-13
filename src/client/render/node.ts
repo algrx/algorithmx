@@ -9,7 +9,14 @@ import {
     renderSvgAttr,
     renderElement,
 } from './common';
-import { D3Selection, selectOrAdd, createRenderId, parseColor, isTransition } from './utils';
+import {
+    D3Selection,
+    selectOrAdd,
+    createRenderId,
+    parseColor,
+    isTransition,
+    transition,
+} from './utils';
 import { RenderState, RenderContext } from './canvas';
 import { selectInnerCanvas, selectNode, selectNodeGroup } from './selectors';
 import { assignKeys, dictKeys } from '../utils';
@@ -78,18 +85,25 @@ const renderWithTick = (
 ) => {
     // changing node size requires the live layout function to be called continuously,
     // so that connected edges are animated as well
-    if (changes.size && changes.size.value) {
+    if (changes.size?.value !== undefined) {
         renderAnimAttr(nodeSel, 'live-size', changes.size, (sel) => {
-            const selWithSize = sel
-                .attr('_width', changes.size!.value![0])
-                .attr('_height', changes.size!.value![1]);
+            if (isTransition(sel)) {
+                const selWithSize = sel
+                    .attr('_width', changes.size!.value![0])
+                    .attr('_height', changes.size!.value![1]);
 
-            if (isTransition(selWithSize))
                 return selWithSize.tween(name, () => () => {
                     tick();
                 });
-            return selWithSize;
+            }
+            return sel;
         });
+
+        transition(nodeSel, 'live-size-remove', (t) =>
+            t.delay((changes.size!.duration ?? 0) * 1000)
+        )
+            .attr('_width', null)
+            .attr('_height', null);
     }
 };
 
@@ -103,6 +117,8 @@ export const renderNode = (
     renderElement(nodeSel, attrs, changes, renderNodeAttrs);
 
     if (!attrs || attrs.visible.value === false) return;
+
+    renderWithTick(nodeSel, attrs, changes, context.tick);
 
     Object.entries(changes.labels ?? {}).forEach(([k, labelChanges]) => {
         const labelSel = selectLabel(nodeSel, k);

@@ -68,7 +68,7 @@ export const renderAnimAttr = <T extends AnimAttrSpec>(
     animAttr: PartialEvalAttr<T>,
     renderFn: (s: D3SelTrans) => D3SelTrans
 ): D3SelTrans => {
-    if (animAttr.highlight !== undefined) {
+    if (animAttr.highlight === true) {
         return renderHighlightAttr(selection, name, animAttr, [renderFn, renderFn]);
     } else return renderFn(animate(selection, name, animAttr));
 };
@@ -185,7 +185,7 @@ export const renderElement = <T extends ElementSpec>(
             selection.remove();
         else {
             transition(selection, 'remove', (t) =>
-                t.delay(isNum(changes.visible!.duration) ? changes.visible!.duration * 1000 : 0)
+                t.delay((changes.visible!.duration ?? 0) * 1000)
             ).remove();
         }
     } else if (changes.visible?.value === true) renderVisible(selection, changes.visible);

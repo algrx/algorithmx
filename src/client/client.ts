@@ -41,7 +41,7 @@ const processEvent = (client: Client, event: SchedulerEvent, queue: string | nul
             state: client.state,
             canvasElement: client.canvas,
             receive: client.eventCallback,
-            tick: client.tick,
+            tick: client.tick.bind(client),
         },
         event as DispatchEvent
     );

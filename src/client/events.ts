@@ -109,7 +109,7 @@ const updateAttrs = (
     const changesWithoutSelfRef = evalCanvasChanges({
         prevAttrs,
         prevExprs: state.expressions,
-        changes: changesWithDefaults,
+        changes: postTransformedChanges,
         selfRefOnly: true,
         parentVars: {},
     });

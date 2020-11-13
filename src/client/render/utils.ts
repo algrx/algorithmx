@@ -1,14 +1,13 @@
 import * as d3 from './d3.modules';
-import { CurveFactory } from 'd3';
+import { BaseType, Selection, Transition, ZoomBehavior, CurveFactory } from 'd3';
 import { AnimEase } from '../attributes/components/animation';
 import { dashToUpperCamel } from '../utils';
 
-type BaseType = import('d3-selection').BaseType;
-export type D3Selection = import('d3-selection').Selection<any, unknown, BaseType, unknown>;
-export type D3Transition = import('d3-transition').Transition<any, unknown, BaseType, unknown>;
+export type D3Selection = Selection<any, unknown, BaseType, unknown>;
+export type D3Transition = Transition<any, unknown, BaseType, unknown>;
 
 export type D3SelTrans = D3Selection | D3Transition;
-export type D3ZoomBehaviour = import('d3-zoom').ZoomBehavior<Element, unknown>;
+export type D3ZoomBehaviour = ZoomBehavior<Element, unknown>;
 
 export const isTransition = (sel: D3SelTrans): sel is D3Transition =>
     (sel as D3Transition).duration !== undefined;

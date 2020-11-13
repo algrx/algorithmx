@@ -212,7 +212,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
             animation: {
                 ...this._selection.animation,
                 highlight: true,
-                linger: seconds,
+                ...(seconds !== undefined ? { linger: seconds } : {}),
             },
         }) as this;
     }

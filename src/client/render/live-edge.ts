@@ -28,8 +28,6 @@ import { selectEdgeLabelGroup } from './edge';
 
 export interface LiveEdgeAttrs {
     readonly angle: number;
-    readonly sourceOffset: number;
-    readonly targetOffset: number;
 }
 
 const getLoopAngle = (
@@ -67,7 +65,6 @@ const getLiveEdgeAttrs = (
     liveNodes: Dict<string, LiveNodeAttrs>,
     attrs: FullEvalAttr<EdgeSpec>
 ): LiveEdgeAttrs => {
-    const targetOffset = attrs.directed ? MARKER_SIZE / 2 : 0;
     const liveSource = liveNodes[attrs.source];
     const liveTarget = liveNodes[attrs.target];
 
@@ -81,14 +78,10 @@ const getLiveEdgeAttrs = (
                   )
               );
 
-    return {
-        angle,
-        sourceOffset: 0,
-        targetOffset,
-    };
+    return { angle };
 };
 
-export const shouldFlip = (attrs: FullEvalAttr<EdgeSpec>, liveAttrs: LiveEdgeAttrs): boolean => {
+const shouldFlip = (attrs: FullEvalAttr<EdgeSpec>, liveAttrs: LiveEdgeAttrs): boolean => {
     return (
         attrs.flip &&
         attrs.source !== attrs.source &&
@@ -143,16 +136,9 @@ export const renderEdgePath = (
         pointBeforeTarget[0] - liveTarget.pos[0]
     );
 
-    const pointAtSource = getPointAtNodeBoundary(
-        [source, liveSource],
-        angleAtSource,
-        liveAttrs.sourceOffset
-    );
-    const pointAtTarget = getPointAtNodeBoundary(
-        [target, liveTarget],
-        angleAtTarget,
-        liveAttrs.targetOffset
-    );
+    const targetOffset = attrs.directed ? MARKER_SIZE / 2 : 0;
+    const pointAtSource = getPointAtNodeBoundary([source, liveSource], angleAtSource, 0);
+    const pointAtTarget = getPointAtNodeBoundary([target, liveTarget], angleAtTarget, targetOffset);
 
     const pointAtSourceRel = rotate(
         translate(pointAtSource, [-origin[0], -origin[1]]),
