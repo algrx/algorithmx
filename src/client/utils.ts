@@ -77,7 +77,7 @@ export const isObj = (value: unknown): value is {} => {
     return typeof value === 'object' && !Array.isArray(value);
 };
 
-export const isEmptyObj = (value: {}) => {
+export const isObjEmpty = (value: {}) => {
     return Object.keys(value).length === 0;
 };
 

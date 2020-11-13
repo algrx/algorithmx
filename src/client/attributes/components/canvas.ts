@@ -18,7 +18,7 @@ import {
 import { FullAttr, PartialAttr } from '../derived';
 import { nonEmpty, combineAttrs } from '../utils';
 import { VarDict, evalAttr, usesVars, evalDeep, EvalChangesFn } from '../expression';
-import { mergeDiff, mapDict, isEmptyObj } from '../../utils';
+import { mergeDiff, mapDict, isObjEmpty } from '../../utils';
 
 export const edgeLengthType = <const>['individual', 'symmetric', 'jaccard'];
 export type EdgeLayout = typeof edgeLengthType[number];
@@ -152,7 +152,7 @@ export const evalCanvasChanges: EvalChangesFn<CanvasSpec, string> = ({
                         else return undefined;
                     }
                 );
-                return isEmptyObj(nodeDict) ? childChanges : nodeDict;
+                return isObjEmpty(nodeDict) ? childChanges : nodeDict;
             }
 
             if (selfRefOnly) {

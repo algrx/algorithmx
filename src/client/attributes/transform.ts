@@ -16,7 +16,7 @@ import { CanvasSpec } from './components/canvas';
 import { EdgeSpec, parseEdgeId } from './components/edge';
 import { ElementSpec } from './components/element';
 import { isExpr } from './expression';
-import { mapDict, mapDictKeys, filterDict } from '../utils';
+import { mapDict, mapDictKeys, filterDict, isObjEmpty } from '../utils';
 
 // the 'value' attribute only exists on endpoints
 const isEndpointSpec = <T extends AttrSpec>(spec: T) =>
@@ -209,27 +209,6 @@ export const fillStarKeys = <T extends AttrSpec>(
     );
 };
 
-// remove edges connected to nodes which are being removed
-export const removeInvalidEdges = (
-    prevAttrs: FullAttr<CanvasSpec> | undefined,
-    changes: PartialAttr<CanvasSpec>
-): PartialAttr<CanvasSpec> => {
-    if (!prevAttrs || !changes.nodes) return changes;
-
-    const edgeChanges = mapDict(prevAttrs.edges, (edge, k) => {
-        // check if either the source or target was removed
-        if (changes.nodes![edge.source]?.remove === true) return { remove: true };
-        else if (changes.nodes![edge.target]?.remove === false) return { remove: true };
-        else if (changes.edges && k in changes.edges) return edge;
-        else return undefined;
-    });
-
-    return {
-        ...changes,
-        ...(Object.keys(edgeChanges).length > 0 ? { edges: edgeChanges } : {}),
-    };
-};
-
 // change "target-source(-ID)" to "source-target(-ID)" for undirected edges
 export const adjustEdgeIds = (
     prevAttrs: FullAttr<CanvasSpec> | undefined,
@@ -257,4 +236,68 @@ export const adjustEdgeIds = (
         ...changes,
         edges: edgeChanges,
     };
+};
+
+// remove edges connected to nodes which will be removed
+export const removeEdgesWithNodes = (
+    prevAttrs: FullAttr<CanvasSpec> | undefined,
+    changes: PartialAttr<CanvasSpec>
+): PartialAttr<CanvasSpec> => {
+    const invalidEdges = mapDict(changes.edges ?? {}, (e, k) => {
+        if (
+            e.source !== undefined &&
+            !(e.source in (changes.nodes ?? {})) &&
+            !(e.source in (prevAttrs?.nodes ?? {}))
+        ) {
+            console.error(`edge '${k}' has invalid source node '${e.source}'`);
+            return { remove: true };
+        }
+        if (
+            e.target !== undefined &&
+            !(e.target in (changes.nodes ?? {})) &&
+            !(e.target in (prevAttrs?.nodes ?? {}))
+        ) {
+            console.error(`edge '${k}' has invalid target node '${e.source}'`);
+            return { remove: true };
+        }
+        return undefined;
+    });
+
+    const removedEdges = mapDict(prevAttrs?.edges ?? {}, (e, k) => {
+        // check if the source/target will be removed
+        if (changes.nodes?.[e.source]?.remove === true) return { remove: true };
+        if (changes.nodes?.[e.target]?.remove === true) return { remove: true };
+        return undefined;
+    });
+
+    return {
+        ...changes,
+        ...(isObjEmpty(invalidEdges) && isObjEmpty(removedEdges)
+            ? {}
+            : { edges: { ...changes.edges, ...removedEdges, ...invalidEdges } }),
+    };
+};
+
+// check for edges connected to invalid nodes
+export const checkInvalidEdges = (
+    prevAttrs: FullAttr<CanvasSpec> | undefined,
+    changes: PartialAttr<CanvasSpec>
+): Error | undefined => {
+    return Object.entries(changes.edges ?? {}).reduce((acc, [k, e]) => {
+        if (
+            e.source !== undefined &&
+            !(e.source in (changes.nodes ?? {})) &&
+            !(e.source in (prevAttrs?.nodes ?? {}))
+        ) {
+            return new Error(`edge '${k}' has invalid source node '${e.source}'`);
+        }
+        if (
+            e.target !== undefined &&
+            !(e.target in (changes.nodes ?? {})) &&
+            !(e.target in (prevAttrs?.nodes ?? {}))
+        ) {
+            return new Error(`edge '${k}' has invalid target node '${e.source}'`);
+        }
+        return acc;
+    }, undefined as Error | undefined);
 };

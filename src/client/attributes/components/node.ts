@@ -18,7 +18,7 @@ import { COLORS } from './color';
 import { combineAttrs, mapAttr, nonEmpty } from '../utils';
 import { VarDict, evalAttr, evalDeep, usesVars, EvalChangesFn } from '../expression';
 import { angleToRad, radiusAtAngleRect, angleToDeg } from '../../math';
-import { mapDict, filterDict, mergeDiff, isEmptyObj } from '../../utils';
+import { mapDict, filterDict, mergeDiff, isObjEmpty } from '../../utils';
 
 export const nodeShape = <const>['circle', 'rect', 'ellipse'];
 export type NodeShape = typeof nodeShape[number];
@@ -214,7 +214,7 @@ export const evalNodeLabelChanges: EvalChangesFn<NodeSpec, NodeVar> = ({
             return evalDeep(labelSpec, prevLabelExprs, labelChanges, nodeLabelVars);
         }
     );
-    return { labels: isEmptyObj(labelDict) ? changes.labels : labelDict };
+    return { labels: isObjEmpty(labelDict) ? changes.labels : labelDict };
 };
 
 export const evalNodeChanges: EvalChangesFn<NodeSpec, CanvasVar> = ({

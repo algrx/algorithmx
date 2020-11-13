@@ -16,13 +16,14 @@ import { preprocess } from './attributes/preprocess';
 import { AttrType } from './attributes/spec';
 import { CanvasElement, ClientState, ReceiveEvent, DispatchEvent } from './types';
 import {
-    removeInvalidEdges,
     adjustEdgeIds,
     applyDefaults,
     mergeChanges,
     fillStarKeys,
     addVisible,
     mergeExprs,
+    removeEdgesWithNodes,
+    checkInvalidEdges,
 } from './attributes/transform';
 import { updateCanvasLayout, resetLayout } from './layout/canvas';
 import { renderCanvas } from './render/canvas';
@@ -34,12 +35,28 @@ export interface EventContext {
     readonly tick: () => void;
 }
 
+type TransformFn = (
+    p: FullAttr<CanvasSpec> | undefined,
+    c: PartialAttr<CanvasSpec>
+) => PartialAttr<CanvasSpec>;
+
+// after preprocess, before defaults
+const preTransformFns: ReadonlyArray<TransformFn> = [
+    (p, c) => fillStarKeys(canvasSpec, p, c),
+    adjustEdgeIds,
+    (p, c) => addVisible(canvasSpec, p, c),
+];
+
+// after defaults, before evaluation
+const postTransformFns: ReadonlyArray<TransformFn> = [removeEdgesWithNodes];
+
 const updateAttrs = (
     context: EventContext,
     inputChanges: InputAttr<CanvasSpec>,
     inputDefaults?: InputAttr<AnimSpec>
 ): ClientState => {
     const state = context.state;
+    const prevAttrs = state.attributes;
 
     // preprocess the attribute changes changes
     const preprocChanges = preprocess(
@@ -62,28 +79,31 @@ const updateAttrs = (
         context.receive({ error: { type: 'attribute', message: animation.message } });
         return state;
     }
-    //console.log(inputAttrs)
 
-    // apply some transformations
-    type TransformFn = (
-        p: FullAttr<CanvasSpec> | undefined,
-        c: PartialAttr<CanvasSpec>
-    ) => PartialAttr<CanvasSpec>;
-    const transformFns: ReadonlyArray<TransformFn> = [
-        (p, c) => fillStarKeys(canvasSpec, p, c),
-        removeInvalidEdges,
-        adjustEdgeIds,
-        (p, c) => addVisible(canvasSpec, p, c),
-    ];
-    //console.log(preprocChanges);
-    const prevAttrs = state.attributes;
-    const transformedChanges = transformFns.reduce((acc, fn) => fn(prevAttrs, acc), preprocChanges);
+    // apply transformations
+    const preTransformedChanges = preTransformFns.reduce(
+        (acc, fn) => fn(prevAttrs, acc),
+        preprocChanges
+    );
 
     // apply defaults
-    const changesWithDefaults = applyDefaults(canvasSpec, prevAttrs, transformedChanges, [
-        createCanvasDefaults(prevAttrs, transformedChanges),
+    const changesWithDefaults = applyDefaults(canvasSpec, prevAttrs, preTransformedChanges, [
+        createCanvasDefaults(prevAttrs, preTransformedChanges),
         animation,
     ]);
+
+    // apply more transformations
+    const postTransformedChanges = postTransformFns.reduce(
+        (acc, fn) => fn(prevAttrs, acc),
+        changesWithDefaults
+    );
+
+    // validate the changes
+    const validationError = checkInvalidEdges(prevAttrs, changesWithDefaults);
+    if (validationError !== undefined) {
+        context.receive({ error: { type: 'validation', message: validationError.message } });
+        return state;
+    }
 
     // evaluate expressions
     const changesWithoutSelfRef = evalCanvasChanges({
@@ -99,19 +119,19 @@ const updateAttrs = (
         changes: changesWithoutSelfRef,
         selfRefOnly: false,
         parentVars: {},
-    });
+    }) as PartialEvalAttr<CanvasSpec>;
 
     // merge all changes with previous attributes
-    const newAttrs = mergeChanges(canvasSpec, prevAttrs, fullChanges);
-    const newExprs = mergeExprs(canvasSpec, state.expressions, changesWithoutSelfRef) ?? {};
+    const newAttrs = mergeChanges(canvasSpec, prevAttrs, fullChanges) as
+        | FullEvalAttr<CanvasSpec>
+        | undefined;
+    const newExprs =
+        mergeExprs(canvasSpec, state.expressions, changesWithoutSelfRef) ??
+        ({} as PartialEvalAttr<CanvasSpec>);
 
     // update layout
     const newLayout = newAttrs
-        ? updateCanvasLayout(
-              state.layout,
-              newAttrs as FullEvalAttr<CanvasSpec>,
-              fullChanges as PartialEvalAttr<CanvasSpec>
-          )
+        ? updateCanvasLayout(state.layout, newAttrs, fullChanges)
         : resetLayout(state.layout);
 
     // render the canvas
@@ -123,8 +143,8 @@ const updateAttrs = (
             receive: context.receive,
             tick: context.tick,
         },
-        newAttrs as FullEvalAttr<CanvasSpec>,
-        fullChanges as PartialEvalAttr<CanvasSpec>
+        newAttrs,
+        fullChanges
     );
 
     return {

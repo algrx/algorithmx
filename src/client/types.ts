@@ -1,4 +1,4 @@
-import { InputAttr, PartialAttr, FullAttr } from './attributes/derived';
+import { InputAttr, PartialAttr, FullEvalAttr } from './attributes/derived';
 import { CanvasSpec } from './attributes/components/canvas';
 import { AnimSpec } from './attributes/components/animation';
 import { SchedulerState } from './scheduler';
@@ -25,7 +25,7 @@ export interface DispatchEvent {
 // recieved by the API, from the client
 export interface ReceiveEvent {
     readonly error?: {
-        readonly type: 'attribute' | 'unknown';
+        readonly type: 'attribute' | 'validation';
         readonly message: string;
     };
     readonly message?: string;
@@ -40,7 +40,7 @@ export interface ReceiveEvent {
 
 export interface ClientState {
     readonly scheduler: SchedulerState;
-    readonly attributes?: FullAttr<CanvasSpec>;
+    readonly attributes?: FullEvalAttr<CanvasSpec>;
     readonly expressions: PartialAttr<CanvasSpec>;
     readonly layout: LayoutState;
     readonly render: RenderState;
