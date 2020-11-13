@@ -24,53 +24,53 @@ export type RenderElementFn<T extends AttrSpec> = (
     changes: PartialEvalAttr<T>
 ) => void;
 
-export const isAnimationImmediate = <T extends AnimAttrSpec>(animation: PartialEvalAttr<T>) =>
-    animation.duration === undefined || animation.duration === 0;
+export const isAnimationImmediate = <T extends AnimAttrSpec>(animAttr: PartialEvalAttr<T>) =>
+    animAttr.duration === undefined || animAttr.duration === 0;
 
 export const transAnimate = (
     trans: D3Transition,
-    animation: PartialEvalAttr<AnimSpec>
+    animAttr: PartialEvalAttr<AnimSpec>
 ): D3Transition => {
-    if (isAnimationImmediate(animation)) return trans.duration(0);
+    if (isAnimationImmediate(animAttr)) return trans.duration(0);
     else
         return trans
-            .duration(isNum(animation.duration) ? animation.duration * 1000 : 0)
-            .ease(getEaseFn(animation.ease ?? 'poly'));
+            .duration(isNum(animAttr.duration) ? animAttr.duration * 1000 : 0)
+            .ease(getEaseFn(animAttr.ease ?? 'poly'));
 };
 
 export const animate = (
     selection: D3Selection,
     name: string,
-    animation: PartialEvalAttr<AnimSpec>
+    animAttr: PartialEvalAttr<AnimSpec>
 ): D3SelTrans => {
-    if (isAnimationImmediate(animation)) {
+    if (isAnimationImmediate(animAttr)) {
         selection.interrupt(name); // cancel previous transition
         return selection;
     } else {
-        return transition(selection, name, (t) => transAnimate(t, animation));
+        return transition(selection, name, (t) => transAnimate(t, animAttr));
     }
 };
 
-export const getHighlightTrans = <T extends AnimAttrSpec>(
-    selection: D3SelTrans,
-    attr: PartialEvalAttr<T>
+export const renderHighlightAttr = <T extends AnimAttrSpec>(
+    selection: D3Selection,
+    name: string,
+    animAttr: PartialEvalAttr<T>,
+    [renderIn, renderOut]: [(s: D3SelTrans) => D3SelTrans, (s: D3SelTrans) => D3SelTrans]
 ): D3SelTrans => {
-    const linger = isNum(attr.linger) ? attr.linger * 1000 : 0;
-    return newTransition(selection, (t) => transAnimate(t.delay(linger), attr));
+    const highlightIn = renderIn(animate(selection, name, animAttr));
+    const linger = isNum(animAttr.linger) ? animAttr.linger * 1000 : 0;
+    return renderOut(newTransition(highlightIn, (t) => transAnimate(t.delay(linger), animAttr)));
 };
 
 export const renderAnimAttr = <T extends AnimAttrSpec>(
     selection: D3Selection,
     name: string,
-    changes: PartialEvalAttr<T>,
+    animAttr: PartialEvalAttr<T>,
     renderFn: (s: D3SelTrans) => D3SelTrans
 ): D3SelTrans => {
-    const newSel = renderFn(animate(selection, name, changes));
-
-    if (changes.highlight !== undefined) {
-        const highlightTrans = getHighlightTrans(newSel, changes);
-        return renderFn(animate(selection, name, changes));
-    } else return newSel;
+    if (animAttr.highlight !== undefined) {
+        return renderHighlightAttr(selection, name, animAttr, [renderFn, renderFn]);
+    } else return renderFn(animate(selection, name, animAttr));
 };
 
 export const renderDict = <T extends AttrSpec>(

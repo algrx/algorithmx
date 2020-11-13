@@ -20,10 +20,12 @@ import {
     selectNodeGroup,
     selectNode,
     selectCanvas,
+    selectEdge,
 } from './selectors';
 import { LayoutState } from '../layout/canvas';
 import { AnimAttrSpec } from '../attributes/components/animation';
 import { renderPanZoom, updatePanZoomBehaviour } from './canvas-panzoom';
+import { renderEdge } from './edge';
 
 export interface RenderState {
     readonly zoomBehaviour?: D3ZoomBehaviour;
@@ -118,11 +120,26 @@ export const renderLive = (
     const innerCanvas = selectInnerCanvas(selectCanvas(canvasEl));
 
     Object.entries(attrs.nodes).forEach(([k, nodeAttrs]) => {
-        if (nodeAttrs.visible) {
-            const nodeLayout = layout.nodes[k];
-            const nodeSel = selectNode(selectNodeGroup(innerCanvas), k);
-            nodeSel.attr('transform', `translate(${nodeLayout.x},${-nodeLayout.y})`);
-        }
+        if (!nodeAttrs.visible) return;
+        const nodeLayout = layout.nodes[k];
+        const nodeSel = selectNode(selectNodeGroup(innerCanvas), k);
+        nodeSel.attr('transform', `translate(${nodeLayout.x},${-nodeLayout.y})`);
+    });
+
+    Object.entries(attrs.edges).forEach(([k, edgeAttrs]) => {
+        if (!edgeAttrs.visible) return;
+        const edgeSel = selectEdge(selectEdgeGroup(innerCanvas), k);
+
+        const origin = liveEdge.getEdgeOrigin(edge);
+        edgeSel.attr(
+            'transform',
+            `translate(${origin[0]},${-origin[1]})rotate(${-math.angleToDeg(edge.angle)})`
+        );
+
+        const edgeLabels = renderEdge.selectLabelGroup(edgeSel);
+        edgeLabels.attr('transform', liveEdge.shouldFlip(edge) ? 'scale(-1, -1)' : null);
+
+        //liveEdge.renderEdgePath(edgeSel, edge, origin);
     });
 };
 
@@ -139,6 +156,10 @@ export const renderCanvas = (
 
     Object.entries(changes.nodes ?? {}).forEach(([k, nodeChanges]) => {
         renderNode([canvasSel, k], attrs.nodes[k], nodeChanges, context);
+    });
+    Object.entries(changes.edges ?? {}).forEach(([k, edgeChanges]) => {
+        const edgeSel = selectEdge(selectEdgeGroup(selectInnerCanvas(canvasSel)), k);
+        renderEdge(edgeSel, attrs.edges[k], edgeChanges);
     });
 
     const newZoomBehaviour = updatePanZoomBehaviour(

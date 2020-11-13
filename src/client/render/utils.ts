@@ -1,6 +1,5 @@
-import { AnimEase } from '../attributes/components/animation';
 import * as d3 from './d3.modules';
-
+import { AnimEase } from '../attributes/components/animation';
 import { dashToUpperCamel } from '../utils';
 
 type BaseType = import('d3-selection').BaseType;
