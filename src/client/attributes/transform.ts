@@ -85,15 +85,20 @@ export const applyDefaults = <T extends AttrSpec>(
         );
     }
 
-    // include animation defautls
-    const defaultsWithAnim = isEndpointSpec(spec)
-        ? (withAnim(spec, defaults as PartialAttr<T>, animDefaults) as FullAttr<T>)
-        : defaults;
+    // always include animations on endpoints
+    const changesWithAnim = isEndpointSpec(spec)
+        ? ({
+              ...(withAnim(spec, defaults as PartialAttr<T>, animDefaults) as PartialAttr<
+                  AnimSpec
+              >),
+              ...(changes as PartialAttr<AnyRecordSpec>),
+          } as PartialAttr<T>)
+        : changes;
 
-    return mapAttr(spec, changes, (childChanges, k, childSpec) => {
+    return mapAttr(spec, changesWithAnim, (childChanges, k, childSpec) => {
         // the "*" entry in a dict contains defaults for all of the children
         const childDefaults =
-            getAttrEntry(defaultsWithAnim, k) ?? getAttrEntry(defaultsWithAnim, '*' as AttrKey<T>);
+            getAttrEntry(defaults, k) ?? getAttrEntry(defaults, '*' as AttrKey<T>);
 
         return applyDefaults(
             childSpec,
