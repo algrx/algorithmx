@@ -91,17 +91,17 @@ export const renderDict = <T extends AttrSpec>(
 export const renderSvgAttr = <T extends PartialEvalAttr<AnimAttrSpec>>(
     selection: D3Selection,
     name: string | [string, string], // attrName | [attrName, animName]
-    changes: T | undefined,
+    change: T | undefined,
     valueFn: (v: NonNullable<T['value']>) => FullEvalAttr<PrimitiveSpec> | null = (v) =>
         v as FullEvalAttr<PrimitiveSpec>
 ): D3SelTrans => {
-    if (changes === undefined || changes.value === undefined) return selection;
-    const value = valueFn(changes.value as NonNullable<T['value']>);
+    if (change?.value === undefined) return selection;
+    const value = valueFn(change.value as NonNullable<T['value']>);
 
     const attrName = Array.isArray(name) ? name[0] : name;
     const animName = Array.isArray(name) ? name[1] : name;
-    return renderAnimAttr(selection, animName, changes, (sel) => {
-        return value == null ? sel.attr(attrName, null) : sel.attr(attrName, String(value));
+    return renderAnimAttr(selection, animName, change, (s) => {
+        return value == null ? s.attr(attrName, null) : s.attr(attrName, String(value));
     });
 };
 

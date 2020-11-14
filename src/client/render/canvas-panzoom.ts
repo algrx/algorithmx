@@ -20,21 +20,24 @@ export const updatePanZoomBehaviour = (
     zoomBehaviour: D3ZoomBehaviour | undefined
 ): D3ZoomBehaviour => {
     if (
-        changes.zoomlimit ||
         changes.panlimit ||
+        changes.zoomlimit ||
         changes.zoomtoggle ||
         zoomBehaviour === undefined
     ) {
+        const panlimit = changes.panlimit ?? attrs.panlimit;
+        const zoomlimit = changes.zoomlimit ?? attrs.zoomlimit;
+        const zoomtoggle = changes.zoomtoggle ?? attrs.zoomtoggle;
         const newZoomBehaviour = d3
             .zoom()
             .translateExtent([
-                [-attrs.panlimit[0], -attrs.panlimit[1]],
-                [attrs.panlimit[0], attrs.panlimit[1]],
+                [-panlimit[0], -panlimit[1]],
+                [panlimit[0], panlimit[1]],
             ])
-            .scaleExtent([attrs.zoomlimit[0], attrs.zoomlimit[1]])
+            .scaleExtent([zoomlimit[0], zoomlimit[1]])
             .on('zoom', (event) => selectInnerCanvas(canvasSel).attr('transform', event.transform))
             .filter((event) =>
-                attrs.zoomtoggle && event.type === 'wheel' ? event.ctrlKey || event.metaKey : true
+                zoomtoggle && event.type === 'wheel' ? event.ctrlKey || event.metaKey : true
             );
 
         canvasSel.call(newZoomBehaviour);
@@ -48,18 +51,18 @@ export const renderPanZoom = (
     changes: PartialEvalAttr<CanvasSpec>,
     zoomBehaviour: D3ZoomBehaviour
 ) => {
-    if (changes.pan || changes.zoom || changes.size) {
-        const panZoomAnim: PartialEvalAttr<AnimAttrSpec> =
-            changes.pan ?? changes.zoom ?? changes.size!;
+    const panZoomAnim = changes.pan ?? changes.zoom ?? changes.size;
+    if (panZoomAnim !== undefined) {
+        const size = changes.size?.value ?? attrs.size.value;
+        const pan = changes.pan?.value ?? attrs.pan.value;
+        const zoom = changes.zoom?.value ?? attrs.zoom.value;
 
         renderAnimAttr(canvasSel, 'pan-zoom', panZoomAnim, (sel) => {
             const panCenter: [number, number] = [
-                attrs.size.value[0] / 2 - attrs.pan.value[0] * attrs.zoom.value,
-                attrs.size.value[1] / 2 + attrs.pan.value[1] * attrs.zoom.value,
+                size[0] / 2 - pan[0] * zoom,
+                size[1] / 2 + pan[1] * zoom,
             ];
-            const transform = d3.zoomIdentity
-                .translate(panCenter[0], panCenter[1])
-                .scale(attrs.zoom.value);
+            const transform = d3.zoomIdentity.translate(panCenter[0], panCenter[1]).scale(zoom);
 
             return sel.call(zoomBehaviour.transform, transform);
         });

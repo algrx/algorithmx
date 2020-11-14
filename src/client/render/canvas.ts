@@ -24,10 +24,11 @@ import { NodeSpec } from '../attributes/components/node';
 import { FullEvalAttr, PartialEvalAttr, FullAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
 import { renderEdge } from './edge';
-import { LayoutState } from '../layout/canvas';
-import { Dict } from '../utils';
-import { CanvasElement, ReceiveEvent } from '../types';
 import { renderLiveEdges } from './live-edge';
+import { getLiveNodeAttrs } from './live-node';
+import { LayoutState } from '../layout/canvas';
+import { Dict, mapDict } from '../utils';
+import { CanvasElement, ReceiveEvent } from '../types';
 
 export interface RenderState {
     readonly zoomBehaviour?: D3ZoomBehaviour;
@@ -66,7 +67,7 @@ const selectLabel = (labelGroup: D3Selection, id: string): D3Selection => {
     );
 };
 
-const renderCanvasAttrs: RenderElementFn<CanvasSpec> = (canvasSel, attrs, changes): void => {
+const renderCanvasAttrs: RenderElementFn<CanvasSpec> = (canvasSel, attrs, changes) => {
     console.log(changes);
     renderSvgAttr(canvasSel, 'width', changes.size, (v) => v[0]);
     renderSvgAttr(canvasSel, 'height', changes.size, (v) => v[1]);
@@ -122,14 +123,21 @@ export const renderLive = (
     const canvasSel = selectCanvas(canvasEl);
     const innerCanvas = selectInnerCanvas(selectCanvas(canvasEl));
 
-    Object.entries(attrs.nodes).forEach(([k, nodeAttrs]) => {
-        if (!nodeAttrs.visible) return;
-        const nodeLayout = layout.nodes[k];
+    const liveNodes = mapDict(attrs.nodes, (nodeAttrs, k) =>
+        getLiveNodeAttrs(
+            selectNode(selectNodeGroup(selectInnerCanvas(canvasSel)), k),
+            layout.nodes[k],
+            nodeAttrs
+        )
+    );
+
+    Object.entries(liveNodes).forEach(([k, liveNode]) => {
+        if (!attrs.nodes[k].visible) return;
         const nodeSel = selectNode(selectNodeGroup(innerCanvas), k);
-        nodeSel.attr('transform', `translate(${nodeLayout.x},${-nodeLayout.y})`);
+        nodeSel.attr('transform', `translate(${liveNode.pos[0]},${-liveNode.pos[1]})`);
     });
 
-    renderLiveEdges(canvasSel, attrs, layout);
+    renderLiveEdges(canvasSel, liveNodes, attrs, layout);
 };
 
 export const renderCanvas = (

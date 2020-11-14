@@ -12,9 +12,7 @@ import {
 import { D3Selection, selectOrAdd, createRenderId, parseColor } from './utils';
 import { renderEdgeMarker, getEdgeMarkerId } from './edge-marker';
 import { renderEdgeColor } from './edge-color';
-import { RenderState, RenderContext } from './canvas';
 import { selectInnerCanvas, selectEdge, selectEdgeGroup } from './selectors';
-import { assignKeys, dictKeys } from '../utils';
 
 export const selectEdgeLabelGroup = (edgeSel: D3Selection): D3Selection => {
     return selectOrAdd(edgeSel, '.edge-labels', (s) => s.append('g').classed('edge-labels', true));
@@ -28,7 +26,7 @@ const selectLabel = (edgeSel: D3Selection, id: string): D3Selection => {
     );
 };
 
-const renderEdgeAttrs: RenderElementFn<EdgeSpec> = (edgeSel, attrs, changes): void => {
+const renderEdgeAttrs: RenderElementFn<EdgeSpec> = (edgeSel, attrs, changes) => {
     const pathSel = selectOrAdd(edgeSel, '.edge-path', (s) =>
         s
             .append('path')

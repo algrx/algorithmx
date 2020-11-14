@@ -3,8 +3,8 @@ import { BaseType, Selection, Transition, ZoomBehavior, CurveFactory } from 'd3'
 import { AnimEase } from '../attributes/components/animation';
 import { dashToUpperCamel } from '../utils';
 
-export type D3Selection = Selection<any, unknown, BaseType, unknown>;
-export type D3Transition = Transition<any, unknown, BaseType, unknown>;
+export type D3Selection = Selection<any, unknown, any, unknown>;
+export type D3Transition = Transition<any, unknown, any, unknown>;
 
 export type D3SelTrans = D3Selection | D3Transition;
 export type D3ZoomBehaviour = ZoomBehavior<Element, unknown>;

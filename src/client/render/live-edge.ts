@@ -163,17 +163,10 @@ export const renderEdgePath = (
 
 export const renderLiveEdges = (
     canvasSel: D3Selection,
+    liveNodes: Dict<string, LiveNodeAttrs>,
     canvasAttrs: FullEvalAttr<CanvasSpec>,
     layout: LayoutState
 ): void => {
-    const liveNodes = mapDict(canvasAttrs.nodes, (nodeAttrs, k) =>
-        getLiveNodeAttrs(
-            selectNode(selectNodeGroup(selectInnerCanvas(canvasSel)), k),
-            layout.nodes[k],
-            nodeAttrs
-        )
-    );
-
     Object.entries(canvasAttrs.edges).forEach(([k, attrs]) => {
         if (!attrs.visible) return;
 

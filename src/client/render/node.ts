@@ -21,13 +21,14 @@ import { RenderState, RenderContext } from './canvas';
 import { selectInnerCanvas, selectNode, selectNodeGroup } from './selectors';
 import { assignKeys, dictKeys } from '../utils';
 import { updateNodeListeners } from './node-events';
+import { renderLabel } from './label';
 
 const selectLabel = (nodeSel: D3Selection, id: string): D3Selection => {
     const labelGroup = selectOrAdd(nodeSel, '.node-labels', (s) =>
         s.append('g').classed('node-labels', true)
     );
     const renderId = createRenderId(id);
-    return selectOrAdd(nodeSel, `#label-${renderId}`, (s) =>
+    return selectOrAdd(labelGroup, `#label-${renderId}`, (s) =>
         s.append('g').attr('id', `label-${renderId}`)
     );
 };
@@ -58,7 +59,13 @@ const renderSize = (
     }
 };
 
-const renderNodeAttrs: RenderElementFn<NodeSpec> = (nodeSel, attrs, initChanges): void => {
+const renderNodeAttrs: RenderElementFn<NodeSpec> = (nodeSel, attrs, initChanges) => {
+    /*
+    const posAttrs = combineAttrs(labelSpec, attrs, initChanges, (a, c, k) => {
+        return k === 'pos' || k === 'radius' || k === 'rotate' || k === 'angle' ? c ?? a : undefined;
+    }) as PartialEvalAttr<NodeSpec>
+    */
+
     const changes = initChanges.shape
         ? assignKeys(
               initChanges,
@@ -122,8 +129,7 @@ export const renderNode = (
 
     Object.entries(changes.labels ?? {}).forEach(([k, labelChanges]) => {
         const labelSel = selectLabel(nodeSel, k);
-
-        //renderElement(labelSel, attrs.labels[k], changes, renderLabelAttrs);
+        renderLabel(labelSel, attrs.labels[k], labelChanges);
     });
 
     updateNodeListeners([canvasSel, nodeSel, nodeId], changes, context);
