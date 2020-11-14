@@ -26,6 +26,13 @@ export const isPrimitive = (spec: AttrSpec): spec is PrimitiveSpec => {
     );
 };
 
+// the 'value' attribute only exists on endpoints
+export const isEndpointSpec = <T extends AttrSpec>(spec: T) =>
+    spec.type === AttrType.Record && 'value' in (spec as AnyRecordSpec).entries;
+
+export const isElementSpec = <T extends AttrSpec>(spec: T) =>
+    spec.type === AttrType.Record && 'visible' in (spec as AnyRecordSpec).entries;
+
 export const nonEmpty = <T>(attr: T): T | undefined => {
     if (typeof attr === 'object' && Object.keys(attr).length === 0) return undefined;
     if (Array.isArray(attr) && attr.every((v) => v === undefined)) return undefined;

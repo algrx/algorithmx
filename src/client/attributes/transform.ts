@@ -11,19 +11,20 @@ import {
 } from './spec';
 import { PartialAttr, FullAttr } from './derived';
 import { AnimSpec, animSpec, WithAnimSpec } from './components/animation';
-import { combineAttrs, getAttrEntry, mapAttr, isPrimitive, nonEmpty } from './utils';
+import {
+    combineAttrs,
+    getAttrEntry,
+    mapAttr,
+    isPrimitive,
+    nonEmpty,
+    isEndpointSpec,
+    isElementSpec,
+} from './utils';
 import { CanvasSpec } from './components/canvas';
 import { EdgeSpec, parseEdgeId } from './components/edge';
 import { ElementSpec } from './components/element';
 import { isExpr } from './expression';
 import { mapDict, mapDictKeys, filterDict, isObjEmpty } from '../utils';
-
-// the 'value' attribute only exists on endpoints
-const isEndpointSpec = <T extends AttrSpec>(spec: T) =>
-    spec.type === AttrType.Record && 'value' in (spec as AnyRecordSpec).entries;
-
-const isElementSpec = <T extends AttrSpec>(spec: T) =>
-    spec.type === AttrType.Record && 'visible' in (spec as AnyRecordSpec).entries;
 
 // remove all animations
 export const withoutAnim = <T extends AttrSpec>(spec: T, attrs: PartialAttr<T>): PartialAttr<T> => {
@@ -140,9 +141,12 @@ export const mergeChanges = <T extends AttrSpec>(
     changes: PartialAttr<T>
 ): FullAttr<T> | undefined => {
     // remove elements with a 'remove=true' entry
-    if (isElementSpec(spec) && (changes as PartialAttr<ElementSpec>).remove === true) {
+    if (isElementSpec(spec) && (changes as PartialAttr<ElementSpec>).remove === true)
         return undefined;
-    }
+
+    // ignore temporary changes
+    if (isEndpointSpec(spec) && (changes as PartialAttr<AnimSpec>).highlight === true)
+        return prevAttrs;
 
     // if the changes are completely new,
     // assume that they have been initialized with full defaults

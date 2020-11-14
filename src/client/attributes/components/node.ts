@@ -16,7 +16,7 @@ import { CanvasVar, NodeVar, NodeLabelVar, nodeVars, nodeLabelVars } from './exp
 import { LabelSpec, labelSpec, labelDefaults, createLabelDictDefaults } from './label';
 import { COLORS } from './color';
 import { combineAttrs, mapAttr, nonEmpty } from '../utils';
-import { VarDict, evalAttr, evalDeep, usesVars, EvalChangesFn } from '../expression';
+import { VarDict, evalAnimAttr, evalDeep, usesVars, EvalChangesFn } from '../expression';
 import { angleToRad, radiusAtAngleRect, angleToDeg } from '../../math';
 import { mapDict, filterDict, mergeDiff, isObjEmpty } from '../../utils';
 
@@ -189,23 +189,29 @@ export const evalNodeLabelChanges: EvalChangesFn<NodeSpec, NodeVar> = ({
         changes.labels!,
         (prevLabelExprs, labelChanges, k, labelSpec) => {
             // calculate the 'r' variable based on the angle of the label and the size of the node
-            const labelAngle = evalAttr(
-                prevLabelExprs?.angle?.value ?? prevAttrs?.labels[k]?.angle.value,
-                labelChanges?.angle?.value,
-                parentVars
+            const angleVar = evalAnimAttr(
+                parentVars,
+                prevLabelExprs?.angle ?? prevAttrs?.labels[k]?.angle,
+                labelChanges?.angle
             );
 
             const nodeLabelVars: VarDict<NodeLabelVar> = {
                 ...parentVars,
                 r: {
-                    value: radiusAtAngle(
-                        angleToRad(labelAngle.value),
-                        parentVars.x.value,
-                        parentVars.y.value,
-                        prevAttrs?.shape ?? changes.shape!
-                    ),
+                    attr: {
+                        ...((angleVar.changed && angleVar.attr) ||
+                            (parentVars.x.changed && parentVars.x.attr) ||
+                            (parentVars.y.changed && parentVars.y.attr) ||
+                            {}),
+                        value: radiusAtAngle(
+                            angleToRad(angleVar.attr.value),
+                            parentVars.x.attr.value,
+                            parentVars.y.attr.value,
+                            prevAttrs?.shape ?? changes.shape!
+                        ),
+                    },
                     changed:
-                        labelAngle.changed ||
+                        angleVar.changed ||
                         parentVars.x.changed ||
                         parentVars.y.changed ||
                         changes.shape !== undefined,
@@ -227,16 +233,8 @@ export const evalNodeChanges: EvalChangesFn<NodeSpec, CanvasVar> = ({
     // get node variables from attributes
     const nodeVars: VarDict<NodeVar> = {
         ...parentVars,
-        x: evalAttr(
-            prevExprs.size?.value?.[0] ?? prevAttrs?.size.value[0],
-            changes.size?.value?.[0],
-            parentVars
-        ),
-        y: evalAttr(
-            prevExprs.size?.value?.[1] ?? prevAttrs?.size.value[1],
-            changes.size?.value?.[1],
-            parentVars
-        ),
+        x: evalAnimAttr(parentVars, prevExprs.size ?? prevAttrs?.size, changes.size, (v) => v[0]),
+        y: evalAnimAttr(parentVars, prevExprs.size ?? prevAttrs?.size, changes.size, (v) => v[1]),
     };
 
     // evaluate child attributes

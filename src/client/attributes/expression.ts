@@ -1,7 +1,8 @@
-import { isNumericalStr, Dict, mapDict, dictValues } from '../utils';
-import { AttrSpec, AttrType } from './spec';
+import { AttrSpec, AttrType, AnyRecordSpec, NumSpec } from './spec';
 import { PartialAttr, FullAttr } from './derived';
-import { isPrimitive, combineAttrs, nonEmpty } from './utils';
+import { isPrimitive, combineAttrs, nonEmpty, isEndpointSpec } from './utils';
+import { AnimSpec, WithAnimSpec, AnimAttrSpec } from './components/animation';
+import { isNumericalStr, Dict, mapDict, dictValues } from '../utils';
 
 export interface NumExpr<T extends string> {
     readonly m: number;
@@ -136,26 +137,49 @@ export const usesVars = (expr: NumExpr<string> | number, vars: ReadonlyArray<str
     return false;
 };
 
-export type VarDict<V extends string> = Dict<
-    V,
-    { readonly value: number; readonly changed: boolean }
->;
+interface VarInfo {
+    readonly attr: PartialAttr<AnimSpec> & { readonly value: number };
+    readonly changed: boolean;
+}
+export type VarDict<V extends string> = Dict<V, VarInfo>;
 
-export const evalAttr = <T extends AttrSpec>(
+export const evalAnimAttr = <T extends PartialAttr<AnimAttrSpec>>(
+    vars: VarDict<string>,
     // at least one of prevAttr, change should be defined
-    prevAttr: NumExpr<string> | number | undefined,
-    change: NumExpr<string> | number | undefined,
-    vars: VarDict<string>
-): { readonly value: number; readonly changed: boolean } => {
-    const varValues = mapDict(vars, (v) => v.value);
+    prevAttr: T | undefined,
+    change: T | undefined,
+    valueFn: (v: NonNullable<T['value']>) => NumExpr<string> | number = (v) =>
+        v as NumExpr<string> | number
+): VarInfo => {
+    const varValues = mapDict(vars, (v) => v.attr.value);
 
-    if (change !== undefined) {
-        if (!isNumExpr(change)) return { value: change, changed: true };
+    if (change?.value !== undefined) {
+        const value = valueFn(change.value as NonNullable<T['value']>);
+
         // note that if the change is self-referential (e.g. node.size = 2x), the variable won't exist yet
-        else if (change.x in vars) return { value: evalNum(change, varValues), changed: true };
+        if (!isNumExpr(value) || value.x in vars) {
+            return {
+                attr: {
+                    ...change,
+                    value: evalNum(value, varValues),
+                },
+                changed: true,
+            };
+        }
     }
 
-    return { value: evalNum(prevAttr!, varValues), changed: false };
+    if (prevAttr?.value !== undefined && isNumExpr(prevAttr)) {
+        const value = valueFn(prevAttr.value as NonNullable<T['value']>);
+        return {
+            attr: {
+                ...vars[prevAttr.x]?.attr,
+                value: evalNum(value, varValues),
+            },
+            changed: false,
+        };
+    }
+
+    return { attr: { value: 0 }, changed: false };
 };
 
 const evalDeepAux = <T extends AttrSpec, V extends string>(
@@ -164,20 +188,34 @@ const evalDeepAux = <T extends AttrSpec, V extends string>(
     changes: PartialAttr<T> | undefined,
     vars: VarDict<V>
 ): PartialAttr<T> | undefined => {
-    if (spec.type === AttrType.Number) {
+    if (changes !== undefined && spec.type === AttrType.Number && isNumExpr(changes)) {
         // evaluate a changed expression
-        if (changes && isNumExpr(changes)) {
-            const varValues = mapDict(vars, (v) => v.value);
-            return evalNum(changes, varValues) as PartialAttr<T>;
-        }
+        const varValues = mapDict(vars, (v) => v.attr.value);
+        return evalNum(changes, varValues) as PartialAttr<T>;
+    }
 
-        // evaluate an existing 'permanent' expression
-        if (prevExprs && isNumExpr(prevExprs)) {
-            // only evaluate if the variable has changed
-            if (prevExprs.x in vars && vars[prevExprs.x as V]!.changed) {
-                const varValues = mapDict(vars, (v) => v.value);
-                return evalNum(prevExprs, varValues) as PartialAttr<T>;
-            }
+    if (prevExprs !== undefined) {
+        // evaluate an existing animation
+        const exprValue = isEndpointSpec(spec)
+            ? (prevExprs as PartialAttr<WithAnimSpec<NumSpec>>).value
+            : prevExprs;
+
+        if (
+            exprValue &&
+            isNumExpr(exprValue) &&
+            exprValue.x in vars &&
+            vars[exprValue.x as V]!.changed
+        ) {
+            const evalValue = evalNum(
+                exprValue,
+                mapDict(vars, (v) => v.attr.value)
+            );
+
+            return isEndpointSpec(spec)
+                ? (({ ...vars[exprValue.x as V].attr, value: evalValue } as unknown) as PartialAttr<
+                      T
+                  >)
+                : (evalValue as PartialAttr<T>);
         }
     }
 
