@@ -1,5 +1,4 @@
 import * as d3 from './d3.modules';
-import { renderDict, renderSvgDict, renderSvgAttr, renderElement } from './common';
 import {
     selectNodeGroup,
     selectNode,

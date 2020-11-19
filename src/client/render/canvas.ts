@@ -1,11 +1,11 @@
 import * as d3 from './d3.modules';
 import {
     RenderElementFn,
-    renderDict,
     renderSvgDict,
     renderSvgAttr,
-    renderElement,
     renderAnimAttr,
+    getAllElementChanges,
+    renderVisRemove,
 } from './common';
 import { D3Selection, selectOrAdd, createRenderId, isSafari, D3ZoomBehaviour } from './utils';
 import { renderNode } from './node';
@@ -22,13 +22,14 @@ import { AnimAttrSpec } from '../attributes/components/animation';
 import { renderPanZoom, updatePanZoomBehaviour } from './canvas-panzoom';
 import { NodeSpec } from '../attributes/components/node';
 import { FullEvalAttr, PartialEvalAttr, FullAttr } from '../attributes/derived';
-import { CanvasSpec } from '../attributes/components/canvas';
+import { CanvasSpec, canvasSpec } from '../attributes/components/canvas';
 import { renderEdge } from './edge';
 import { renderLiveEdges } from './live-edge';
 import { getLiveNodeAttrs } from './live-node';
 import { LayoutState } from '../layout/canvas';
 import { Dict, mapDict } from '../utils';
 import { CanvasElement, ReceiveEvent } from '../types';
+import { renderLabel } from './label';
 
 export interface RenderState {
     readonly zoomBehaviour?: D3ZoomBehaviour;
@@ -60,7 +61,10 @@ export const getCanvasSize = (canvas: CanvasElement): [number, number] => {
     else return [100, 100];
 };
 
-const selectLabel = (labelGroup: D3Selection, id: string): D3Selection => {
+const selectLabel = (canvasSel: D3Selection, id: string): D3Selection => {
+    const labelGroup = selectOrAdd(selectInnerCanvas(canvasSel), '.labels', (s) =>
+        s.append('g').classed('labels', true)
+    );
     const renderId = createRenderId(id);
     return selectOrAdd(labelGroup, `#label-${renderId}`, (s) =>
         s.append('g').attr('id', `label-${renderId}`)
@@ -69,8 +73,11 @@ const selectLabel = (labelGroup: D3Selection, id: string): D3Selection => {
 
 const renderCanvasAttrs: RenderElementFn<CanvasSpec> = (canvasSel, attrs, changes) => {
     console.log(changes);
-    renderSvgAttr(canvasSel, 'width', changes.size, (v) => v[0]);
-    renderSvgAttr(canvasSel, 'height', changes.size, (v) => v[1]);
+    if (!('width' in attrs.svgattrs))
+        renderSvgAttr(canvasSel, 'width', [attrs.size, changes.size], (v) => v[0]);
+
+    if (!('height' in attrs.svgattrs))
+        renderSvgAttr(canvasSel, 'height', [attrs.size, changes.size], (v) => v[0]);
 
     // add an invisible rectangle to fix zooming in Safari
     if (isSafari()) {
@@ -85,34 +92,10 @@ const renderCanvasAttrs: RenderElementFn<CanvasSpec> = (canvasSel, attrs, change
     }
 
     const innerCanvas = selectInnerCanvas(canvasSel);
-    const labelGroup = selectOrAdd(innerCanvas, '.labels', (s) =>
-        s.append('g').classed('labels', true)
-    );
     const edgeGroup = selectEdgeGroup(innerCanvas);
     const nodeGroup = selectNodeGroup(innerCanvas);
 
-    /*
-    renderElementDict(
-        (k) => canvasUtils.selectEdge(edgeGroup, k),
-        getEntry(renderData, 'edges'),
-        renderEdge.render
-    );
-
-    renderElementDict(
-        (k) => canvasUtils.selectLabel(labelGroup, k),
-        getEntry(renderData, 'labels'),
-        renderLabel.render
-    );
-    */
-
-    // re-render svg attributes when size changes
-    /*
-    const updatedRenderData = renderProcess.hasChanged(getEntry(renderData, 'size'))
-        ? renderProcess.markKeysForUpdate(renderData, ['svgattr'])
-        : renderData;
-        */
-
-    if (changes.svgattrs) renderSvgDict(canvasSel, changes.svgattrs);
+    if (changes.svgattrs) renderSvgDict(canvasSel, attrs.svgattrs, changes.svgattrs);
 };
 
 export const renderLive = (
@@ -144,19 +127,26 @@ export const renderCanvas = (
     canvasEl: CanvasElement,
     context: RenderContext,
     attrs: FullEvalAttr<CanvasSpec> | undefined,
-    changes: PartialEvalAttr<CanvasSpec>
+    initChanges: PartialEvalAttr<CanvasSpec>
 ): RenderState => {
     const canvasSel = selectCanvas(canvasEl);
-    renderElement(selectCanvas(canvasEl), attrs, changes, renderCanvasAttrs);
+    const changes = getAllElementChanges(canvasSpec, attrs, initChanges);
 
-    if (!attrs || attrs.visible.value === false) return initRenderState;
+    renderVisRemove(canvasSel, changes.visible, changes.remove);
+    if (attrs?.visible.value === true) renderCanvasAttrs(canvasSel, attrs, changes);
+    else return initRenderState;
 
     Object.entries(changes.nodes ?? {}).forEach(([k, nodeChanges]) => {
         renderNode([canvasSel, k], attrs.nodes[k], nodeChanges, context);
     });
+
     Object.entries(changes.edges ?? {}).forEach(([k, edgeChanges]) => {
         const edgeSel = selectEdge(selectEdgeGroup(selectInnerCanvas(canvasSel)), k);
         renderEdge(edgeSel, attrs.edges[k], edgeChanges);
+    });
+
+    Object.entries(changes.labels ?? {}).forEach(([k, labelChanges]) => {
+        renderLabel(selectLabel(canvasSel, k), attrs.labels[k], labelChanges);
     });
 
     const newZoomBehaviour = updatePanZoomBehaviour(

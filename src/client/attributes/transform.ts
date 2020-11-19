@@ -174,9 +174,14 @@ export const mergeExprs = <T extends AttrSpec>(
     prevExprs: PartialAttr<T> | undefined,
     changes: PartialAttr<T>
 ): PartialAttr<T> | undefined => {
-    if (isElementSpec(spec) && (changes as PartialAttr<ElementSpec>).remove === true) {
+    // remove elements with a 'remove=true' entry
+    if (isElementSpec(spec) && (changes as PartialAttr<ElementSpec>).remove === true)
         return undefined;
-    }
+
+    // ignore temporary changes
+    if (isEndpointSpec(spec) && (changes as PartialAttr<AnimSpec>).highlight === true)
+        return undefined;
+
     if (isPrimitive(spec)) {
         if (isExpr(spec, changes)) return changes;
         else if (prevExprs !== undefined && isExpr(spec, prevExprs)) return prevExprs;

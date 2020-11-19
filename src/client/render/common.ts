@@ -40,73 +40,67 @@ export const transAnimate = (
 
 export const animate = (
     selection: D3Selection,
-    name: string,
-    animAttr: PartialEvalAttr<AnimSpec>
+    animName: string,
+    anim: PartialEvalAttr<AnimSpec>
 ): D3SelTrans => {
-    if (isAnimationImmediate(animAttr)) {
-        selection.interrupt(name); // cancel previous transition
+    if (isAnimationImmediate(anim)) {
+        selection.interrupt(animName); // cancel previous transition
         return selection;
     } else {
-        return transition(selection, name, (t) => transAnimate(t, animAttr));
+        return transition(selection, animName, (t) => transAnimate(t, anim));
     }
 };
 
-export const renderHighlightAttr = <T extends AnimAttrSpec>(
+interface AnimRenderInfo<T extends PartialEvalAttr<AnimAttrSpec>> {
+    readonly selection: D3Selection;
+    readonly animName?: string;
+    readonly change?: T;
+    readonly attr: T;
+}
+
+export const renderHighlightAttr = <T>(
     selection: D3Selection,
-    name: string,
-    animAttr: PartialEvalAttr<T>,
+    [anim, animName]: [PartialEvalAttr<AnimSpec>, string],
     [renderIn, renderOut]: [(s: D3SelTrans) => D3SelTrans, (s: D3SelTrans) => D3SelTrans]
 ): D3SelTrans => {
-    const highlightIn = renderIn(animate(selection, name, animAttr));
-    const linger = isNum(animAttr.linger) ? animAttr.linger * 1000 : 0;
-    return renderOut(newTransition(highlightIn, (t) => transAnimate(t.delay(linger), animAttr)));
+    const highlightIn = renderIn(animate(selection, animName, anim));
+    const linger = anim.linger ? anim.linger * 1000 : 0;
+    return renderOut(newTransition(highlightIn, (t) => transAnimate(t.delay(linger), anim)));
 };
 
-export const renderAnimAttr = <T extends AnimAttrSpec>(
+export const renderAnimAttr = <T>(
     selection: D3Selection,
-    name: string,
-    animAttr: PartialEvalAttr<T>,
-    renderFn: (s: D3SelTrans) => D3SelTrans
+    [anim, animName]: [PartialEvalAttr<AnimSpec>, string],
+    [attr, change]: [T, T | undefined],
+    renderFn: (s: D3SelTrans, v: T) => D3SelTrans
 ): D3SelTrans => {
-    if (animAttr.highlight === true) {
-        return renderHighlightAttr(selection, name, animAttr, [renderFn, renderFn]);
-    } else return renderFn(animate(selection, name, animAttr));
-};
+    if (change === undefined) return selection;
 
-export const renderDict = <T extends AttrSpec>(
-    attrs: FullEvalAttr<DictSpec<T>>,
-    changes: PartialEvalAttr<DictSpec<T>> | undefined,
-    renderFn: (
-        k: string,
-        childAttrs: FullEvalAttr<T> | undefined,
-        childChanges: PartialEvalAttr<T>
-    ) => void
-): void => {
-    if (changes === undefined) return;
-    Object.entries(changes).forEach(([k, childChanges]) => {
-        renderFn(k, attrs?.[k], childChanges);
-    });
+    if (anim.highlight === true) {
+        const renderIn = (s: D3SelTrans) => renderFn(s, change);
+        const renderOut = (s: D3SelTrans) => renderFn(s, attr);
+        return renderHighlightAttr(selection, [anim, animName], [renderIn, renderOut]);
+    } else return renderFn(animate(selection, animName, anim), change);
 };
 
 export const renderSvgAttr = <T extends PartialEvalAttr<AnimAttrSpec>>(
     selection: D3Selection,
     name: string | [string, string], // attrName | [attrName, animName]
-    change: T | undefined,
-    valueFn: (v: NonNullable<T['value']>) => FullEvalAttr<PrimitiveSpec> | null = (v) =>
-        v as FullEvalAttr<PrimitiveSpec>
+    [attr, change]: [T, T | undefined],
+    valueFn?: (a: NonNullable<T['value']>) => FullEvalAttr<PrimitiveSpec> | null
 ): D3SelTrans => {
     if (change?.value === undefined) return selection;
-    const value = valueFn(change.value as NonNullable<T['value']>);
-
     const attrName = Array.isArray(name) ? name[0] : name;
     const animName = Array.isArray(name) ? name[1] : name;
-    return renderAnimAttr(selection, animName, change, (s) => {
-        return value == null ? s.attr(attrName, null) : s.attr(attrName, String(value));
+    return renderAnimAttr(selection, [change, attrName], [attr, change], (s, a) => {
+        const v = valueFn ? valueFn(a.value as NonNullable<T['value']>) : a.value;
+        return v == null ? s.attr(attrName, null) : s.attr(attrName, String(v));
     });
 };
 
 export const renderSvgDict = (
     selection: D3Selection,
+    attrs: FullEvalAttr<DictSpec<WithAnimSpec<StringSpec>>>,
     changes: PartialEvalAttr<DictSpec<WithAnimSpec<StringSpec>>>
 ) => {
     const select = (sel: D3Selection, k: string): [D3Selection, string] =>
@@ -114,9 +108,9 @@ export const renderSvgDict = (
 
     Object.entries(changes).forEach(([baseKey, v]) => {
         const [s, k] = select(selection, baseKey);
-        if (v.value === '') renderSvgAttr(s, k, v, (v) => null);
+        if (v.value === '') renderSvgAttr(selection, k, [attrs[k], v], (v) => null);
         // remove
-        else renderSvgAttr(s, k, v);
+        else renderSvgAttr(selection, k, [attrs[k], v]);
     });
     return selection;
 };
@@ -155,38 +149,37 @@ const animateRemove = <T extends AnimAttrSpec>(
     }
 };
 
-export const renderVisible = (
+const renderVisible = (
     selection: D3Selection,
-    visible: PartialEvalAttr<ElementSpec['entries']['visible']>
+    visibleChange: PartialEvalAttr<ElementSpec['entries']['visible']>
 ) => {
-    if (!isAnimationImmediate(visible)) {
-        if (visible.value === true) animateAdd(selection, visible);
-        else animateRemove(selection, visible);
+    if (!isAnimationImmediate(visibleChange)) {
+        if (visibleChange.value === true) animateAdd(selection, visibleChange);
+        else animateRemove(selection, visibleChange);
     }
 };
 
-export const renderElement = <T extends ElementSpec>(
+export const renderVisRemove = (
     selection: D3Selection,
-    attrs: FullEvalAttr<T> | undefined,
-    initChanges: PartialEvalAttr<T>,
-    renderFn: RenderElementFn<T>
+    visibleChange: PartialEvalAttr<ElementSpec['entries']['visible']> | undefined,
+    removeChange: PartialEvalAttr<ElementSpec['entries']['remove']> | undefined
 ) => {
-    const changes =
-        initChanges.visible?.value === true ? (attrs as PartialEvalAttr<T>) : initChanges;
+    if (removeChange === true || visibleChange?.value === false) {
+        renderVisible(selection, { ...visibleChange, value: false });
 
-    if (attrs && attrs.visible.value === true) {
-        renderFn(selection, attrs, changes);
-    }
-
-    if (changes.remove === true || changes.visible?.value === false) {
-        renderVisible(selection, { ...changes.visible, value: false });
-
-        if (changes.visible === undefined || isAnimationImmediate(changes.visible))
-            selection.remove();
+        if (visibleChange === undefined || isAnimationImmediate(visibleChange)) selection.remove();
         else {
             transition(selection, 'remove', (t) =>
-                t.delay((changes.visible!.duration ?? 0) * 1000)
+                t.delay((visibleChange!.duration ?? 0) * 1000)
             ).remove();
         }
-    } else if (changes.visible?.value === true) renderVisible(selection, changes.visible);
+    } else if (visibleChange?.value === true) renderVisible(selection, visibleChange);
+};
+
+export const getAllElementChanges = <T extends ElementSpec>(
+    spec: T,
+    attrs: FullEvalAttr<T> | undefined,
+    initChanges: PartialEvalAttr<T>
+): PartialEvalAttr<T> => {
+    return initChanges.visible?.value === true ? (attrs as PartialEvalAttr<T>) : initChanges;
 };

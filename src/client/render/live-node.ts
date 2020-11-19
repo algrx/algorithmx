@@ -1,6 +1,5 @@
 import * as d3 from './d3.modules';
 import { Node as NodeLayout } from 'webcola';
-import { renderDict, renderSvgDict, renderSvgAttr, renderElement } from './common';
 import { selectNodeGroup, selectNode } from './selectors';
 import { D3Selection, selectOrAdd, createRenderId, isSafari, parseColor } from './utils';
 import { NodeSpec, radiusAtAngle } from '../attributes/components/node';

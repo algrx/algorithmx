@@ -1,18 +1,19 @@
 import * as d3 from './d3.modules';
-import { EdgeSpec } from '../attributes/components/edge';
-import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import {
     RenderElementFn,
     renderAnimAttr,
-    renderDict,
     renderSvgDict,
     renderSvgAttr,
-    renderElement,
+    getAllElementChanges,
+    renderVisRemove,
 } from './common';
 import { D3Selection, selectOrAdd, createRenderId, parseColor } from './utils';
 import { renderEdgeMarker, getEdgeMarkerId } from './edge-marker';
 import { renderEdgeColor } from './edge-color';
 import { selectInnerCanvas, selectEdge, selectEdgeGroup } from './selectors';
+import { renderLabel } from './label';
+import { EdgeSpec, edgeSpec } from '../attributes/components/edge';
+import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 
 export const selectEdgeLabelGroup = (edgeSel: D3Selection): D3Selection => {
     return selectOrAdd(edgeSel, '.edge-labels', (s) => s.append('g').classed('edge-labels', true));
@@ -40,24 +41,25 @@ const renderEdgeAttrs: RenderElementFn<EdgeSpec> = (edgeSel, attrs, changes) => 
         pathSel.attr('marker-end', `url(#${getEdgeMarkerId(edgeSel, 'target')})`);
     if (changes.directed === false) pathSel.attr('marker-end', null);
 
-    renderSvgAttr(pathSel, 'stroke-width', changes.thickness);
+    renderSvgAttr(pathSel, 'stroke-width', [attrs.thickness, changes.thickness]);
     renderEdgeColor([edgeSel, pathSel], attrs, changes);
 
-    if (changes.svgattrs) renderSvgDict(pathSel, changes.svgattrs);
+    if (changes.svgattrs) renderSvgDict(pathSel, attrs.svgattrs, changes.svgattrs);
 };
 
 export const renderEdge = (
     edgeSel: D3Selection,
     attrs: FullEvalAttr<EdgeSpec> | undefined,
-    changes: PartialEvalAttr<EdgeSpec>
+    initChanges: PartialEvalAttr<EdgeSpec>
 ) => {
-    renderElement(edgeSel, attrs, changes, renderEdgeAttrs);
+    const changes = getAllElementChanges(edgeSpec, attrs, initChanges);
 
-    if (!attrs || attrs.visible.value === false) return;
+    renderVisRemove(edgeSel, changes.visible, changes.remove);
+    if (attrs?.visible.value === true) renderEdgeAttrs(edgeSel, attrs, changes);
+    else return;
 
     Object.entries(changes.labels ?? {}).forEach(([k, labelChanges]) => {
         const labelSel = selectLabel(edgeSel, k);
-
-        //renderElement(labelSel, attrs.labels[k], changes, renderLabelAttrs);
+        renderLabel(labelSel, attrs.labels[k], labelChanges);
     });
 };

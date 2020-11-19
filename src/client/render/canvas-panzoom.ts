@@ -53,18 +53,17 @@ export const renderPanZoom = (
 ) => {
     const panZoomAnim = changes.pan ?? changes.zoom ?? changes.size;
     if (panZoomAnim !== undefined) {
-        const size = changes.size?.value ?? attrs.size.value;
-        const pan = changes.pan?.value ?? attrs.pan.value;
-        const zoom = changes.zoom?.value ?? attrs.zoom.value;
-
-        renderAnimAttr(canvasSel, 'pan-zoom', panZoomAnim, (sel) => {
+        renderAnimAttr(canvasSel, [panZoomAnim, 'pan-zoom'], [attrs, changes], (s, a) => {
+            const size = a.size?.value ?? attrs.size.value;
+            const pan = a.pan?.value ?? attrs.pan.value;
+            const zoom = a.zoom?.value ?? attrs.zoom.value;
             const panCenter: [number, number] = [
                 size[0] / 2 - pan[0] * zoom,
                 size[1] / 2 + pan[1] * zoom,
             ];
             const transform = d3.zoomIdentity.translate(panCenter[0], panCenter[1]).scale(zoom);
 
-            return sel.call(zoomBehaviour.transform, transform);
+            return s.call(zoomBehaviour.transform, transform);
         });
     }
 };

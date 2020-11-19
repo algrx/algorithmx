@@ -3,7 +3,6 @@ import * as webcola from 'webcola';
 
 import { NodeSpec } from '../attributes/components/node';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
-import { renderElement } from './common';
 import { D3Selection } from './utils';
 import { RenderState, RenderContext } from './canvas';
 import { selectInnerCanvas, selectNode, selectNodeGroup } from './selectors';

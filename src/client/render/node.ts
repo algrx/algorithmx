@@ -4,10 +4,10 @@ import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import {
     RenderElementFn,
     renderAnimAttr,
-    renderDict,
     renderSvgDict,
     renderSvgAttr,
-    renderElement,
+    getAllElementChanges,
+    renderVisRemove,
 } from './common';
 import {
     D3Selection,
@@ -18,10 +18,10 @@ import {
     transition,
 } from './utils';
 import { RenderState, RenderContext } from './canvas';
+import { renderLabel } from './label';
 import { selectInnerCanvas, selectNode, selectNodeGroup } from './selectors';
 import { assignKeys, dictKeys } from '../utils';
-import { updateNodeListeners } from './node-events';
-import { renderLabel } from './label';
+import { registerNodeListeners } from './node-listeners';
 
 const selectLabel = (nodeSel: D3Selection, id: string): D3Selection => {
     const labelGroup = selectOrAdd(nodeSel, '.node-labels', (s) =>
@@ -41,21 +41,23 @@ const renderShape = (selection: D3Selection, shape: NodeShape) => {
 };
 
 const renderSize = (
-    selection: D3Selection,
-    shape: NodeShape,
-    size: PartialEvalAttr<NodeSpec['entries']['size']>
+    nodeSel: D3Selection,
+    attrs: FullEvalAttr<NodeSpec>,
+    changes: PartialEvalAttr<NodeSpec>
 ): void => {
-    if (shape === 'circle') {
-        renderSvgAttr(selection, 'r', size, (v) => v[0]);
-    } else if (shape === 'rect') {
-        renderSvgAttr(selection, 'width', size, (v) => v[0] * 2);
-        renderSvgAttr(selection, 'height', size, (v) => v[1] * 2);
+    if (!changes.size?.value) return;
 
-        renderSvgAttr(selection, ['x', 'width-pos'], size, (v) => -v[0]);
-        renderSvgAttr(selection, ['y', 'height-pos'], size, (v) => -v[1]);
-    } else if (shape === 'ellipse') {
-        renderSvgAttr(selection, 'rx', size, (v) => v[0]);
-        renderSvgAttr(selection, 'ry', size, (v) => v[1]);
+    if (attrs.shape === 'circle') {
+        renderSvgAttr(nodeSel, 'r', [attrs.size, changes.size], (v) => v[0]);
+    } else if (attrs.shape === 'rect') {
+        renderSvgAttr(nodeSel, 'width', [attrs.size, changes.size], (v) => v[0] * 2);
+        renderSvgAttr(nodeSel, 'height', [attrs.size, changes.size], (v) => v[1] * 2);
+
+        renderSvgAttr(nodeSel, ['x', 'width-pos'], [attrs.size, changes.size], (v) => -v[0]);
+        renderSvgAttr(nodeSel, ['y', 'height-pos'], [attrs.size, changes.size], (v) => -v[1]);
+    } else if (attrs.shape === 'ellipse') {
+        renderSvgAttr(nodeSel, 'rx', [attrs.size, changes.size], (v) => v[0]);
+        renderSvgAttr(nodeSel, 'ry', [attrs.size, changes.size], (v) => v[1]);
     }
 };
 
@@ -79,9 +81,9 @@ const renderNodeAttrs: RenderElementFn<NodeSpec> = (nodeSel, attrs, initChanges)
     if (changes.shape) renderShape(nodeSel, changes.shape);
     const shapeSel = nodeSel.select('.shape');
 
-    renderSvgAttr(shapeSel, 'fill', changes.color, (v) => parseColor(v));
-    if (changes.size) renderSize(shapeSel, attrs.shape, changes.size);
-    if (changes.svgattrs) renderSvgDict(shapeSel, changes.svgattrs);
+    renderSvgAttr(shapeSel, 'fill', [attrs.color, changes.color], (v) => parseColor(v));
+    if (changes.size) renderSize(shapeSel, attrs, changes);
+    if (changes.svgattrs) renderSvgDict(shapeSel, attrs.svgattrs, changes.svgattrs);
 };
 
 const renderWithTick = (
@@ -93,18 +95,23 @@ const renderWithTick = (
     // changing node size requires the live layout function to be called continuously,
     // so that connected edges are animated as well
     if (changes.size?.value !== undefined) {
-        renderAnimAttr(nodeSel, 'live-size', changes.size, (sel) => {
-            if (isTransition(sel)) {
-                const selWithSize = sel
-                    .attr('_width', changes.size!.value![0])
-                    .attr('_height', changes.size!.value![1]);
+        renderAnimAttr(
+            nodeSel,
+            [changes.size, 'live-size'],
+            [attrs.size, changes.size],
+            (sel, v) => {
+                if (isTransition(sel)) {
+                    const selWithSize = sel
+                        .attr('_width', v.value![0])
+                        .attr('_height', v.value![1]);
 
-                return selWithSize.tween(name, () => () => {
-                    tick();
-                });
+                    return selWithSize.tween(name, () => () => {
+                        tick();
+                    });
+                }
+                return sel;
             }
-            return sel;
-        });
+        );
 
         transition(nodeSel, 'live-size-remove', (t) =>
             t.delay((changes.size!.duration ?? 0) * 1000)
@@ -117,20 +124,21 @@ const renderWithTick = (
 export const renderNode = (
     [canvasSel, nodeId]: [D3Selection, string],
     attrs: FullEvalAttr<NodeSpec> | undefined,
-    changes: PartialEvalAttr<NodeSpec>,
+    initChanges: PartialEvalAttr<NodeSpec>,
     context: RenderContext
 ) => {
     const nodeSel = selectNode(selectNodeGroup(selectInnerCanvas(canvasSel)), nodeId);
-    renderElement(nodeSel, attrs, changes, renderNodeAttrs);
+    const changes = getAllElementChanges(nodeSpec, attrs, initChanges);
 
-    if (!attrs || attrs.visible.value === false) return;
-
-    renderWithTick(nodeSel, attrs, changes, context.tick);
+    renderVisRemove(nodeSel, changes.visible, changes.remove);
+    if (attrs?.visible.value === true) renderNodeAttrs(nodeSel, attrs, changes);
+    else return;
 
     Object.entries(changes.labels ?? {}).forEach(([k, labelChanges]) => {
         const labelSel = selectLabel(nodeSel, k);
         renderLabel(labelSel, attrs.labels[k], labelChanges);
     });
 
-    updateNodeListeners([canvasSel, nodeSel, nodeId], changes, context);
+    renderWithTick(nodeSel, attrs, changes, context.tick);
+    registerNodeListeners([canvasSel, nodeSel, nodeId], changes, context);
 };
