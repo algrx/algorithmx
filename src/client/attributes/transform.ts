@@ -26,15 +26,6 @@ import { ElementSpec } from './components/element';
 import { isExpr } from './expression';
 import { mapDict, mapDictKeys, filterDict, isObjEmpty } from '../utils';
 
-// remove all animations
-export const withoutAnim = <T extends AttrSpec>(spec: T, attrs: PartialAttr<T>): PartialAttr<T> => {
-    if (spec.type === AttrType.Record && 'duration' in (spec as AnyRecordSpec).entries) {
-        const noAnim: PartialAttr<AnimSpec> = { duration: 0 };
-        return { ...(attrs as PartialAttr<AnyRecordSpec>), ...noAnim } as PartialAttr<T>;
-    }
-    return attrs;
-};
-
 export const withAnim = <T extends AttrSpec>(
     spec: T,
     attrs: PartialAttr<T>,
@@ -71,15 +62,8 @@ export const applyDefaults = <T extends AttrSpec>(
                 }
                 if (k === '*') return undefined; // don't include "*" as an actual attribute
 
-                // if an element is new, the only attribute that should be animated is visibility
-                const newChildDefaults = isEndpointSpec(childSpec)
-                    ? k === 'visible'
-                        ? withAnim(childSpec, childDefaults, animDefaults)
-                        : withoutAnim(childSpec, childDefaults)
-                    : childDefaults;
-
                 return applyDefaults(childSpec, undefined, childChanges, [
-                    newChildDefaults as FullAttr<EntrySpec<T>>,
+                    childDefaults as FullAttr<EntrySpec<T>>,
                     animDefaults,
                 ]);
             }
@@ -131,6 +115,18 @@ export const addVisible = <T extends AttrSpec>(
 
     return mapAttr(spec, changesWithVisible, (childChanges, k, childSpec) =>
         addVisible(childSpec, prevAttrs ? getAttrEntry(prevAttrs, k) : undefined, childChanges)
+    );
+};
+
+// remove all animations
+export const disableAnim = <T extends AttrSpec>(spec: T, attrs: PartialAttr<T>): PartialAttr<T> => {
+    if (spec.type === AttrType.Record && 'duration' in (spec as AnyRecordSpec).entries) {
+        const noAnim: PartialAttr<AnimSpec> = { duration: 0 };
+        return { ...(attrs as PartialAttr<AnyRecordSpec>), ...noAnim } as PartialAttr<T>;
+    }
+
+    return mapAttr(spec, attrs, (childChanges, k, childSpec) =>
+        disableAnim(childSpec, childChanges)
     );
 };
 
@@ -257,38 +253,20 @@ export const removeEdgesWithNodes = (
     prevAttrs: FullAttr<CanvasSpec> | undefined,
     changes: PartialAttr<CanvasSpec>
 ): PartialAttr<CanvasSpec> => {
-    const invalidEdges = mapDict(changes.edges ?? {}, (e, k) => {
-        if (
-            e.source !== undefined &&
-            !(e.source in (changes.nodes ?? {})) &&
-            !(e.source in (prevAttrs?.nodes ?? {}))
-        ) {
-            console.error(`edge '${k}' has invalid source node '${e.source}'`);
-            return { remove: true };
-        }
-        if (
-            e.target !== undefined &&
-            !(e.target in (changes.nodes ?? {})) &&
-            !(e.target in (prevAttrs?.nodes ?? {}))
-        ) {
-            console.error(`edge '${k}' has invalid target node '${e.source}'`);
-            return { remove: true };
-        }
-        return undefined;
-    });
-
-    const removedEdges = mapDict(prevAttrs?.edges ?? {}, (e, k) => {
-        // check if the source/target will be removed
-        if (changes.nodes?.[e.source]?.remove === true) return { remove: true };
-        if (changes.nodes?.[e.target]?.remove === true) return { remove: true };
+    const removedEdges = mapDict(prevAttrs?.edges ?? {}, (e, k):
+        | PartialAttr<EdgeSpec>
+        | undefined => {
+        // remove edges together with their source/target, and with the same visible animation
+        if (changes.nodes?.[e.source]?.remove === true)
+            return { remove: true, visible: { ...changes.nodes?.[e.source].visible } };
+        if (changes.nodes?.[e.target]?.remove === true)
+            return { remove: true, visible: { ...changes.nodes?.[e.target].visible } };
         return undefined;
     });
 
     return {
         ...changes,
-        ...(isObjEmpty(invalidEdges) && isObjEmpty(removedEdges)
-            ? {}
-            : { edges: { ...changes.edges, ...removedEdges, ...invalidEdges } }),
+        ...(isObjEmpty(removedEdges) ? {} : { edges: { ...changes.edges, ...removedEdges } }),
     };
 };
 

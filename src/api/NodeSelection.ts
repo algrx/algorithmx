@@ -1,6 +1,5 @@
 import { InputAttr } from '../client/attributes/derived';
 import { NodeSpec, NodeShape } from '../client/attributes/components/node';
-import { VisibleAnimType } from '../client/attributes/components/element';
 
 import { LabelSelection } from './LabelSelection';
 import { ElementSelection } from './ElementSelection';
@@ -16,8 +15,8 @@ export class NodeSelection<D> extends ElementSelection<NodeAttrs, D> {
     /**
      * Removes all selected nodes nodes, and any edges connected to the nodes.
      */
-    remove(animtype?: ElementArg<VisibleAnimType, D>) {
-        return super.remove(animtype);
+    remove() {
+        return super.remove();
     }
 
     /**

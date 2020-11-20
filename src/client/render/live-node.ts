@@ -60,6 +60,13 @@ export const renderLiveNodes = (
     Object.entries(liveNodes).forEach(([k, liveNode]) => {
         if (!canvasAttrs.nodes[k].visible) return;
         const nodeSel = selectNode(canvasSel, k);
-        nodeSel.attr('transform', `translate(${liveNode.pos[0]},${-liveNode.pos[1]})`);
+
+        const curTransform = nodeSel.attr('transform') ?? '';
+        const splitIndex = curTransform.indexOf(')');
+        const translate = `translate(${liveNode.pos[0]},${-liveNode.pos[1]})`;
+
+        if (splitIndex >= 0)
+            nodeSel.attr('transform', translate + curTransform.substring(splitIndex + 1));
+        else nodeSel.attr('transform', translate);
     });
 };

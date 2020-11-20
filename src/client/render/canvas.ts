@@ -20,7 +20,6 @@ import {
     selectCanvas,
     selectEdge,
 } from './selectors';
-import { AnimAttrSpec } from '../attributes/components/animation';
 import { renderPanZoom, updatePanZoomBehaviour } from './canvas-panzoom';
 import { NodeSpec } from '../attributes/components/node';
 import { FullEvalAttr, PartialEvalAttr, FullAttr } from '../attributes/derived';
@@ -74,12 +73,11 @@ const selectLabel = (canvasSel: D3Selection, id: string): D3Selection => {
 };
 
 const renderCanvasAttrs: RenderAttrFn<CanvasSpec> = (canvasSel, attrs, changes) => {
-    console.log(changes);
     if (!('width' in attrs.svgattrs))
         renderSvgAttr(canvasSel, 'width', [attrs.size, changes.size], (v) => v[0]);
 
     if (!('height' in attrs.svgattrs))
-        renderSvgAttr(canvasSel, 'height', [attrs.size, changes.size], (v) => v[0]);
+        renderSvgAttr(canvasSel, 'height', [attrs.size, changes.size], (v) => v[1]);
 
     // add an invisible rectangle to fix zooming in Safari
     if (isSafari()) {
@@ -120,7 +118,8 @@ export const renderCanvas = (
     const canvasSel = selectCanvas(canvasEl);
     const changes = getAllElementChanges(canvasSpec, attrs, initChanges);
 
-    renderVisRemove(canvasSel, changes.visible, changes.remove);
+    console.log(changes);
+    renderVisRemove(selectInnerCanvas(canvasSel), changes.visible, changes.remove);
     if (attrs?.visible.value === true) renderCanvasAttrs(canvasSel, attrs, changes);
     else return initRenderState;
 

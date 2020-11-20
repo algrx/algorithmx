@@ -1,7 +1,7 @@
-import { AttrSpec, AttrType, AnyRecordSpec, NumSpec } from './spec';
+import { AttrSpec, AttrType, AnyRecordSpec, NumSpec, EndpointValueSpec } from './spec';
 import { PartialAttr, FullAttr } from './derived';
 import { isPrimitive, combineAttrs, nonEmpty, isEndpointSpec } from './utils';
-import { AnimSpec, WithAnimSpec, AnimAttrSpec } from './components/animation';
+import { AnimSpec, WithAnimSpec } from './components/animation';
 import { isNumericalStr, Dict, mapDict, dictValues } from '../utils';
 
 export interface NumExpr<T extends string> {
@@ -143,7 +143,7 @@ interface VarInfo {
 }
 export type VarDict<V extends string> = Dict<V, VarInfo>;
 
-export const evalAnimAttr = <T extends PartialAttr<AnimAttrSpec>>(
+export const evalAnimAttr = <T extends PartialAttr<WithAnimSpec<EndpointValueSpec>>>(
     vars: VarDict<string>,
     // at least one of prevAttr, change should be defined
     prevAttr: T | undefined,

@@ -1,9 +1,9 @@
 import * as d3 from './d3.modules';
 import { BaseType, Selection, Transition, ZoomBehavior, CurveFactory } from 'd3';
 
-import { AttrSpec, DictSpec, StringSpec } from '../attributes/spec';
+import { AttrSpec, DictSpec, StringSpec, EndpointValueSpec } from '../attributes/spec';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
-import { AnimEase, AnimAttrSpec, WithAnimSpec, AnimSpec } from '../attributes/components/animation';
+import { AnimEase, AnimSpec, WithAnimSpec } from '../attributes/components/animation';
 import { COLORS } from '../attributes/components/color';
 import { dashToUpperCamel } from '../utils';
 
@@ -138,7 +138,7 @@ export const renderWithAnim = <T>(
     } else return renderFn(animate(selection, animName, anim), change);
 };
 
-export const renderSvgAttr = <T extends PartialEvalAttr<AnimAttrSpec>>(
+export const renderSvgAttr = <T extends PartialEvalAttr<WithAnimSpec<EndpointValueSpec>>>(
     selection: D3Selection,
     name: string | [string, string], // attrName | [attrName, animName]
     [attr, change]: [T, T | undefined],

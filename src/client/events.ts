@@ -30,7 +30,7 @@ import { renderCanvas } from './render/canvas';
 
 export interface EventContext {
     readonly state: ClientState;
-    readonly canvasElement: CanvasElement;
+    readonly canvasEl: CanvasElement;
     readonly receive: (event: ReceiveEvent) => void;
     readonly tick: () => void;
 }
@@ -136,7 +136,7 @@ const updateAttrs = (
 
     // render the canvas
     const newRenderState = renderCanvas(
-        context.canvasElement,
+        context.canvasEl,
         {
             state: state.render,
             layout: newLayout,

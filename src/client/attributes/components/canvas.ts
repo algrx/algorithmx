@@ -84,7 +84,6 @@ export const canvasDefaults: FullAttr<CanvasSpec> = {
     zoomlimit: [0.1, 10],
     zoomtoggle: false,
     ...elementDefaults,
-    visible: { ...elementDefaults.visible, duration: 0 },
 };
 
 export const createCanvasDefaults = (

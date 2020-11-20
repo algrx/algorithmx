@@ -19,6 +19,7 @@ import { renderLabel } from './label';
 import { selectNode } from './selectors';
 import { assignKeys, dictKeys } from '../utils';
 import { registerNodeListeners } from './node-listeners';
+import { combineAttrs } from '../attributes/utils';
 
 const selectLabel = (nodeSel: D3Selection, id: string): D3Selection => {
     const labelGroup = selectOrAdd(nodeSel, '.node-labels', (s) =>
@@ -55,21 +56,10 @@ const renderSize: RenderAttrFn<NodeSpec> = (nodeSel, attrs, changes) => {
 };
 
 const renderNodeAttrs: RenderAttrFn<NodeSpec> = (nodeSel, attrs, initChanges) => {
-    /*
-    const posAttrs = combineAttrs(labelSpec, attrs, initChanges, (a, c, k) => {
-        return k === 'pos' || k === 'radius' || k === 'rotate' || k === 'angle' ? c ?? a : undefined;
-    }) as PartialEvalAttr<NodeSpec>
-    */
-
-    const changes = initChanges.shape
-        ? assignKeys(
-              initChanges,
-              attrs,
-              dictKeys(nodeSpec.entries).filter(
-                  (k) => k !== 'pos' && k !== 'visible' && k !== 'labels'
-              )
-          )
-        : initChanges;
+    // if the node shape changes, re-render everything except visible/labels/pos
+    const changes = combineAttrs(nodeSpec, attrs, initChanges, (a, c, k) => {
+        return k !== 'visible' && k !== 'labels' && k !== 'pos' ? c ?? a : c;
+    }) as PartialEvalAttr<NodeSpec>;
 
     if (changes.shape) renderShape(nodeSel, changes.shape);
     const shapeSel = nodeSel.select('.shape');

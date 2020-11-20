@@ -1,5 +1,5 @@
 import { InputAttr } from '../client/attributes/derived';
-import { ElementSpec, VisibleAnimType } from '../client/attributes/components/element';
+import { ElementSpec } from '../client/attributes/components/element';
 import { AnimEase } from '../client/attributes/components/animation';
 
 import { ElementArg, ElementFn } from './types';
@@ -75,14 +75,10 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * @return A new instance of the current selection with animations disabled, to allow for
      * further attribute initialisation.
      */
-    add(attrs?: ElementObjArg<T, D>, animtype?: ElementArg<VisibleAnimType, D>) {
-        return this.attrs(
-            (d, i) =>
-                ({
-                    ...(animtype ? { visible: { animtype: evalElementArg(animtype, d, i) } } : {}),
-                    ...(attrs ? evalElementObjArg(attrs, d, i) : {}),
-                } as T)
-        ).duration(0);
+    add(attrs?: ElementObjArg<T, D>) {
+        return this.attrs((d, i) => (attrs ? evalElementObjArg(attrs, d, i) : ({} as T))).duration(
+            0
+        );
     }
 
     /**
@@ -90,13 +86,8 @@ export class ElementSelection<T extends ElementAttrs, D> {
      *
      * @param animtype - "fade" (animate transparency) or "scale" (animate size).
      */
-    remove(animtype?: ElementArg<VisibleAnimType, D>) {
-        return this.attrs(
-            (d, i) =>
-                ({
-                    ...(animtype ? { visible: { animtype: evalElementArg(animtype, d, i) } } : {}),
-                } as T)
-        );
+    remove() {
+        return this.attrs({ remove: true } as T);
     }
 
     /**
@@ -106,13 +97,12 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * @param value - Whether or not the selected elements should be visible.
      * @param animtype - "fade" (animate transparency) or "scale" (animate size).
      */
-    visible(visible: ElementArg<boolean, D>, animtype?: ElementArg<VisibleAnimType, D>) {
+    visible(visible: ElementArg<boolean, D>) {
         return this.attrs(
             (d, i) =>
                 ({
                     visible: {
                         value: evalElementArg(visible, d, i),
-                        ...(animtype ? { animtype: evalElementArg(animtype, d, i) } : {}),
                     },
                 } as T)
         );

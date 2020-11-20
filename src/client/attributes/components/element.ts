@@ -10,30 +10,13 @@ import {
 import { WithAnimSpec, withAnimSpec, animDefaults, animSpec } from './animation';
 import { FullAttr } from '../derived';
 
-export const visibleAnimTypes = <const>['fade', 'scale'];
-export type VisibleAnimType = typeof visibleAnimTypes[number];
-
 export type ElementSpec = RecordSpec<{
-    readonly visible: RecordSpec<
-        RecordEntries<WithAnimSpec<BoolSpec>> & {
-            readonly animtype: ExactStringSpec<VisibleAnimType>;
-        }
-    >;
+    readonly visible: WithAnimSpec<BoolSpec>;
     readonly svgattrs: DictSpec<WithAnimSpec<StringSpec>>;
     readonly remove: BoolSpec;
 }>;
 export const elementSpecEntries: RecordEntries<ElementSpec> = {
-    visible: {
-        type: AttrType.Record,
-        entries: {
-            ...animSpec.entries,
-            value: { type: AttrType.Boolean },
-            animtype: {
-                type: AttrType.String,
-                validValues: visibleAnimTypes,
-            },
-        },
-    },
+    visible: withAnimSpec({ type: AttrType.Boolean }),
     svgattrs: {
         type: AttrType.Dict,
         entry: withAnimSpec({ type: AttrType.String }),
@@ -42,11 +25,7 @@ export const elementSpecEntries: RecordEntries<ElementSpec> = {
 };
 
 export const elementDefaults: FullAttr<ElementSpec> = {
-    visible: {
-        ...animDefaults,
-        value: true,
-        animtype: 'fade',
-    },
+    visible: { ...animDefaults, value: true },
     remove: false,
     svgattrs: {
         '*': { value: '', ...animDefaults },

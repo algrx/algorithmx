@@ -33,7 +33,7 @@ export const animEases = <const>[
     'exp-out',
     'exp-in-out',
     'circle',
-    'Circle-out',
+    'circle-out',
     'circle-out',
     'circle-in-out',
     'elastic',

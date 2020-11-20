@@ -1,3 +1,4 @@
+import * as d3 from './d3.modules';
 import {
     D3Selection,
     D3SelTrans,
@@ -9,41 +10,26 @@ import {
     isAnimImmediate,
 } from './utils';
 import { ElementSpec } from '../attributes/components/element';
-import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
-import { AnimAttrSpec, WithAnimSpec, AnimSpec } from '../attributes/components/animation';
+import { PartialEvalAttr, FullEvalAttr, PartialAttr } from '../attributes/derived';
+import { AttrSpec, AttrType, AnyRecordSpec } from '../attributes/spec';
+import { mapAttr } from '../attributes/utils';
+import { disableAnim } from '../attributes/transform';
 
-const animateAdd = <T extends AnimAttrSpec>(
-    selection: D3Selection,
+const animateAdd = (
+    elementSel: D3Selection,
     visible: PartialEvalAttr<ElementSpec['entries']['visible']>
 ): void => {
-    if (visible.animtype === 'fade') {
-        selection.attr('opacity', '0');
-        const transition = animate(selection, 'visible-fade', visible).attr('opacity', '1');
-        newTransition(transition, (t) => t).attr('opacity', null);
-    } else if (visible.animtype === 'scale') {
-        selection.attr('transform', 'scale(0,0)');
-        const transition = animate(selection, 'visible-fade', visible).attr(
-            'transform',
-            'scale(1,1)'
-        );
-        newTransition(transition, (t) => t).attr('transform', null);
-    }
+    elementSel.attr('opacity', '0');
+    const transition = animate(elementSel, 'visible-fade', visible).attr('opacity', '1');
+    newTransition(transition, (t) => t).attr('opacity', null);
 };
 
-const animateRemove = <T extends AnimAttrSpec>(
-    selection: D3Selection,
+const animateRemove = (
+    elementSel: D3Selection,
     visible: PartialEvalAttr<ElementSpec['entries']['visible']>
 ): void => {
-    if (visible.animtype === 'fade') {
-        selection.attr('opacity', '1');
-        const transition = animate(selection, 'visible-fade', visible).attr('opacity', '0');
-    } else if (visible.animtype === 'scale') {
-        selection.attr('transform', 'scale(1,1)');
-        const transition = animate(selection, 'visible-fade', visible).attr(
-            'transform',
-            'scale(0,0)'
-        );
-    }
+    elementSel.attr('opacity', '1');
+    const transition = animate(elementSel, 'visible-fade', visible).attr('opacity', '0');
 };
 
 const renderVisible = (
@@ -76,7 +62,14 @@ export const renderVisRemove = (
 export const getAllElementChanges = <T extends ElementSpec>(
     spec: T,
     attrs: FullEvalAttr<T> | undefined,
-    initChanges: PartialEvalAttr<T>
+    changes: PartialEvalAttr<T>
 ): PartialEvalAttr<T> => {
-    return initChanges.visible?.value === true ? (attrs as PartialEvalAttr<T>) : initChanges;
+    if (changes.visible?.value === true) {
+        // if the element is new, render everything but only animate visibility
+        return {
+            ...((disableAnim(spec, attrs as PartialAttr<T>) as unknown) as PartialEvalAttr<T>),
+            visible: changes.visible,
+        };
+    }
+    return changes;
 };

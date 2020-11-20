@@ -3,7 +3,6 @@ import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
 import { D3Selection, D3ZoomBehaviour, renderWithAnim } from './utils';
 import { selectInnerCanvas } from './selectors';
-import { AnimAttrSpec } from '../attributes/components/animation';
 
 export const updatePanZoomBehaviour = (
     canvasSel: D3Selection,

@@ -39,7 +39,7 @@ const processEvent = (client: Client, event: SchedulerEvent, queue: string | nul
     const state = executeEvent(
         {
             state: client.state,
-            canvasElement: client.canvas,
+            canvasEl: client.canvas,
             receive: client.eventCallback,
             tick: client.tick.bind(client),
         },
@@ -83,7 +83,7 @@ export class Client {
     }
 
     tick() {
-        if (this.state.attributes)
+        if (this.state.attributes?.visible.value === true)
             renderLive(this.canvas, this.state.attributes, this.state.layout);
     }
 }
