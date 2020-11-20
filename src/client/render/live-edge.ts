@@ -1,19 +1,6 @@
 import * as d3 from './d3.modules';
-import {
-    selectNodeGroup,
-    selectNode,
-    selectEdge,
-    selectEdgeGroup,
-    selectInnerCanvas,
-} from './selectors';
-import {
-    D3Selection,
-    selectOrAdd,
-    createRenderId,
-    isSafari,
-    parseColor,
-    getCurveFn,
-} from './utils';
+import { selectEdge } from './selectors';
+import { D3Selection, selectOrAdd, createRenderId, isSafari, getColor, getCurveFn } from './utils';
 import { LiveNodeAttrs, getLiveNodeAttrs, getPointAtNodeBoundary } from './live-node';
 import { MARKER_SIZE } from './edge-marker';
 import { EdgeSpec } from '../attributes/components/edge';
@@ -162,14 +149,14 @@ export const renderEdgePath = (
 
 export const renderLiveEdges = (
     canvasSel: D3Selection,
-    liveNodes: Dict<string, LiveNodeAttrs>,
     canvasAttrs: FullEvalAttr<CanvasSpec>,
+    liveNodes: Dict<string, LiveNodeAttrs>,
     layout: LayoutState
-): void => {
+) => {
     Object.entries(canvasAttrs.edges).forEach(([k, attrs]) => {
         if (!attrs.visible) return;
 
-        const edgeSel = selectEdge(selectEdgeGroup(selectInnerCanvas(canvasSel)), k);
+        const edgeSel = selectEdge(canvasSel, k);
 
         const source = canvasAttrs.nodes[attrs.source];
         const target = canvasAttrs.nodes[attrs.target];

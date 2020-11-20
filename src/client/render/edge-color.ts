@@ -4,14 +4,17 @@ import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import {
     D3Selection,
     selectOrAdd,
-    parseColor,
+    getColor,
     D3SelTrans,
     isTransition,
     newTransition,
     transition,
+    renderWithHighlight,
+    renderWithAnim,
+    renderSvgAttr,
+    animate,
 } from './utils';
 import { getEdgeMarkerId, selectEdgeMarker } from './edge-marker';
-import { renderHighlightAttr, renderAnimAttr, renderSvgAttr, animate } from './common';
 
 const getPathLength = (pathSel: D3Selection) => (pathSel.node() as SVGPathElement).getTotalLength();
 
@@ -55,7 +58,7 @@ export const renderTraverse = (
     overlaySel
         .attr('stroke-dasharray', pathLengthInit)
         .attr('stroke-dashoffset', pathLengthInit)
-        .attr('stroke', parseColor(changes.color.value))
+        .attr('stroke', getColor(changes.color.value))
         .attr('stroke-width', attrs.thickness.value + 2);
 
     const renderIn = (s: D3SelTrans): D3SelTrans => {
@@ -72,7 +75,7 @@ export const renderTraverse = (
             const trans = tweenOverlay(sel, () => getPathLength(pathSel), isReverse, false);
             return newTransition(trans, (t) => t.duration(0)).remove();
         };
-        renderHighlightAttr(overlaySel, [changes.color, 'color-traverse'], [renderIn, renderOut]);
+        renderWithHighlight(overlaySel, [changes.color, 'color-traverse'], [renderIn, renderOut]);
     } else {
         renderIn(animate(overlaySel, 'color-traverse', changes.color));
 
@@ -81,7 +84,7 @@ export const renderTraverse = (
 
         transition(pathSel, 'color-traverse', (t) =>
             t.delay(animDuration).duration(endDuration)
-        ).attr('stroke', parseColor(changes.color.value));
+        ).attr('stroke', getColor(changes.color.value));
 
         const removeTrans = newTransition(overlaySel.attr('opacity', 1), (t) =>
             t.delay(animDuration + endDuration).duration(endDuration)
@@ -99,13 +102,13 @@ export const renderEdgeColor = (
     if (changes.color?.value === undefined) return;
 
     if (changes.color.animtype === 'traverse') renderTraverse([edgeSel, pathSel], attrs, changes);
-    else renderSvgAttr(pathSel, 'stroke', [attrs.color, changes.color], (v) => parseColor(v));
+    else renderSvgAttr(pathSel, 'stroke', [attrs.color, changes.color], (v) => getColor(v));
 
     if (attrs.directed)
         renderSvgAttr(
             selectEdgeMarker(edgeSel, 'target'),
             'fill',
             [attrs.color, changes.color],
-            (v) => parseColor(v)
+            (v) => getColor(v)
         );
 };

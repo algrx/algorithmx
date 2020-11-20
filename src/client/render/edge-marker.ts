@@ -1,7 +1,7 @@
 import * as d3 from './d3.modules';
 import { EdgeSpec } from '../attributes/components/edge';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
-import { D3Selection, selectOrAdd, parseColor } from './utils';
+import { D3Selection, RenderAttrFn, selectOrAdd, getColor } from './utils';
 
 export const MARKER_SIZE = 10;
 
@@ -34,11 +34,7 @@ export const selectEdgeMarker = (edgeSel: D3Selection, markerId: string): D3Sele
     });
 };
 
-export const renderEdgeMarker = (
-    edgeSel: D3Selection,
-    attrs: FullEvalAttr<EdgeSpec>,
-    changes: PartialEvalAttr<EdgeSpec>
-) => {
+export const renderEdgeMarker: RenderAttrFn<EdgeSpec> = (edgeSel, attrs, changes) => {
     if (changes.directed === true) {
         const marketTarget = selectEdgeMarker(edgeSel, 'target');
         const markerShape = ARROW_MARKER;
@@ -53,7 +49,7 @@ export const renderEdgeMarker = (
         marketTarget
             .select('path')
             .attr('d', markerShape.path)
-            .attr('fill', parseColor(attrs.color.value));
+            .attr('fill', getColor(attrs.color.value));
     } else if (changes.directed === false) {
         edgeSel.select('defs').remove();
     }

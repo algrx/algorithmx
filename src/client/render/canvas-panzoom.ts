@@ -1,16 +1,8 @@
 import * as d3 from './d3.modules';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
-import { renderAnimAttr } from './common';
-import { D3Selection, D3ZoomBehaviour } from './utils';
-import {
-    selectCanvasContainer,
-    selectInnerCanvas,
-    selectEdgeGroup,
-    selectNodeGroup,
-    selectNode,
-    selectCanvas,
-} from './selectors';
+import { D3Selection, D3ZoomBehaviour, renderWithAnim } from './utils';
+import { selectInnerCanvas } from './selectors';
 import { AnimAttrSpec } from '../attributes/components/animation';
 
 export const updatePanZoomBehaviour = (
@@ -53,7 +45,7 @@ export const renderPanZoom = (
 ) => {
     const panZoomAnim = changes.pan ?? changes.zoom ?? changes.size;
     if (panZoomAnim !== undefined) {
-        renderAnimAttr(canvasSel, [panZoomAnim, 'pan-zoom'], [attrs, changes], (s, a) => {
+        renderWithAnim(canvasSel, [panZoomAnim, 'pan-zoom'], [attrs, changes], (s, a) => {
             const size = a.size?.value ?? attrs.size.value;
             const pan = a.pan?.value ?? attrs.pan.value;
             const zoom = a.zoom?.value ?? attrs.zoom.value;

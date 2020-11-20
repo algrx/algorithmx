@@ -1,25 +1,22 @@
 import * as d3 from './d3.modules';
 import { NodeSpec, nodeSpec, NodeShape } from '../attributes/components/node';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
+import { getAllElementChanges, renderVisRemove } from './element';
 import {
-    RenderElementFn,
-    renderAnimAttr,
+    RenderAttrFn,
+    renderWithAnim,
     renderSvgDict,
     renderSvgAttr,
-    getAllElementChanges,
-    renderVisRemove,
-} from './common';
-import {
     D3Selection,
     selectOrAdd,
     createRenderId,
-    parseColor,
+    getColor,
     isTransition,
     transition,
 } from './utils';
 import { RenderState, RenderContext } from './canvas';
 import { renderLabel } from './label';
-import { selectInnerCanvas, selectNode, selectNodeGroup } from './selectors';
+import { selectNode } from './selectors';
 import { assignKeys, dictKeys } from '../utils';
 import { registerNodeListeners } from './node-listeners';
 
@@ -40,11 +37,7 @@ const renderShape = (selection: D3Selection, shape: NodeShape) => {
     return shapeSel;
 };
 
-const renderSize = (
-    nodeSel: D3Selection,
-    attrs: FullEvalAttr<NodeSpec>,
-    changes: PartialEvalAttr<NodeSpec>
-): void => {
+const renderSize: RenderAttrFn<NodeSpec> = (nodeSel, attrs, changes) => {
     if (!changes.size?.value) return;
 
     if (attrs.shape === 'circle') {
@@ -61,7 +54,7 @@ const renderSize = (
     }
 };
 
-const renderNodeAttrs: RenderElementFn<NodeSpec> = (nodeSel, attrs, initChanges) => {
+const renderNodeAttrs: RenderAttrFn<NodeSpec> = (nodeSel, attrs, initChanges) => {
     /*
     const posAttrs = combineAttrs(labelSpec, attrs, initChanges, (a, c, k) => {
         return k === 'pos' || k === 'radius' || k === 'rotate' || k === 'angle' ? c ?? a : undefined;
@@ -81,7 +74,7 @@ const renderNodeAttrs: RenderElementFn<NodeSpec> = (nodeSel, attrs, initChanges)
     if (changes.shape) renderShape(nodeSel, changes.shape);
     const shapeSel = nodeSel.select('.shape');
 
-    renderSvgAttr(shapeSel, 'fill', [attrs.color, changes.color], (v) => parseColor(v));
+    renderSvgAttr(shapeSel, 'fill', [attrs.color, changes.color], (v) => getColor(v));
     if (changes.size) renderSize(shapeSel, attrs, changes);
     if (changes.svgattrs) renderSvgDict(shapeSel, attrs.svgattrs, changes.svgattrs);
 };
@@ -92,10 +85,10 @@ const renderWithTick = (
     changes: PartialEvalAttr<NodeSpec>,
     tick: () => void
 ) => {
-    // changing node size requires the live layout function to be called continuously,
+    // changing node size requires the tick function to be called continuously,
     // so that connected edges are animated as well
     if (changes.size?.value !== undefined) {
-        renderAnimAttr(
+        renderWithAnim(
             nodeSel,
             [changes.size, 'live-size'],
             [attrs.size, changes.size],
@@ -127,7 +120,7 @@ export const renderNode = (
     initChanges: PartialEvalAttr<NodeSpec>,
     context: RenderContext
 ) => {
-    const nodeSel = selectNode(selectNodeGroup(selectInnerCanvas(canvasSel)), nodeId);
+    const nodeSel = selectNode(canvasSel, nodeId);
     const changes = getAllElementChanges(nodeSpec, attrs, initChanges);
 
     renderVisRemove(nodeSel, changes.visible, changes.remove);

@@ -7,14 +7,17 @@ import {
     alignFromAngle,
 } from '../attributes/components/label';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
+import { getAllElementChanges, renderVisRemove } from './element';
 import {
-    RenderElementFn,
-    renderAnimAttr,
+    D3Selection,
+    selectOrAdd,
+    createRenderId,
+    getColor,
+    RenderAttrFn,
+    renderWithAnim,
     renderSvgDict,
     renderSvgAttr,
-    renderVisRemove,
-} from './common';
-import { D3Selection, D3SelTrans, selectOrAdd, createRenderId, parseColor } from './utils';
+} from './utils';
 import { selectInnerCanvas, selectEdge, selectEdgeGroup } from './selectors';
 import { angleToRad, restrictAngle, angleToDeg } from '../math';
 import { AnimSpec } from '../attributes/components/animation';
@@ -42,7 +45,7 @@ const renderPos = (
         return;
 
     const anim = changes.pos ?? changes.radius ?? changes.angle ?? {};
-    renderAnimAttr(textSel, [anim, 'pos'], [attrs, changes], (s, a) => {
+    renderWithAnim(textSel, [anim, 'pos'], [attrs, changes], (s, a) => {
         const angle = a.angle?.value ?? attrs.angle.value;
         const radius = a.radius?.value ?? attrs.radius.value;
         const pos = a.pos?.value ?? attrs.pos.value;
@@ -81,7 +84,7 @@ const renderAlign = (
 
     const anim = attrs.align === 'radial' ? changes.radius ?? changes.angle ?? {} : {};
 
-    renderAnimAttr(textSel, [anim, 'align'], [attrs, changes], (s, a) => {
+    renderWithAnim(textSel, [anim, 'align'], [attrs, changes], (s, a) => {
         const align = getExactAlign(a.angle?.value ?? attrs.angle.value, attrs.rotate, attrs.align);
 
         return s
@@ -96,7 +99,7 @@ const renderAlign = (
             );
     });
 
-    renderAnimAttr(textSel.select('tspan'), [anim, 'align-text'], [attrs, changes], (s, a) => {
+    renderWithAnim(textSel.select('tspan'), [anim, 'align-text'], [attrs, changes], (s, a) => {
         const align = getExactAlign(a.angle?.value ?? attrs.angle.value, attrs.rotate, attrs.align);
         const numTextLines = attrs.text.split('\n').length;
         const textOffset = isAlignTop(align)
@@ -122,7 +125,7 @@ const renderText = (textSel: D3Selection, text: string) => {
     });
 };
 
-const renderLabelAttrs: RenderElementFn<LabelSpec> = (labelSel, attrs, changes) => {
+const renderLabelAttrs: RenderAttrFn<LabelSpec> = (labelSel, attrs, changes) => {
     const textSel = selectOrAdd(labelSel, 'text', (s) =>
         s.append('text').attr('pointer-events', 'none')
     );
@@ -131,7 +134,7 @@ const renderLabelAttrs: RenderElementFn<LabelSpec> = (labelSel, attrs, changes) 
     renderPos(textSel, attrs, changes);
     renderAlign(textSel, attrs, changes);
 
-    renderSvgAttr(textSel, 'fill', [attrs.color, changes.color], (v) => parseColor(v));
+    renderSvgAttr(textSel, 'fill', [attrs.color, changes.color], (v) => getColor(v));
     if (changes.font) textSel.attr('font-family', changes.font);
     renderSvgAttr(textSel, 'font-size', [attrs.size, changes.size]);
 

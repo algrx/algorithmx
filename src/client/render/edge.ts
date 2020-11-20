@@ -1,13 +1,15 @@
 import * as d3 from './d3.modules';
+import { getAllElementChanges, renderVisRemove } from './element';
 import {
-    RenderElementFn,
-    renderAnimAttr,
+    D3Selection,
+    selectOrAdd,
+    createRenderId,
+    getColor,
+    RenderAttrFn,
+    renderWithAnim,
     renderSvgDict,
     renderSvgAttr,
-    getAllElementChanges,
-    renderVisRemove,
-} from './common';
-import { D3Selection, selectOrAdd, createRenderId, parseColor } from './utils';
+} from './utils';
 import { renderEdgeMarker, getEdgeMarkerId } from './edge-marker';
 import { renderEdgeColor } from './edge-color';
 import { selectInnerCanvas, selectEdge, selectEdgeGroup } from './selectors';
@@ -27,7 +29,7 @@ const selectLabel = (edgeSel: D3Selection, id: string): D3Selection => {
     );
 };
 
-const renderEdgeAttrs: RenderElementFn<EdgeSpec> = (edgeSel, attrs, changes) => {
+const renderEdgeAttrs: RenderAttrFn<EdgeSpec> = (edgeSel, attrs, changes) => {
     const pathSel = selectOrAdd(edgeSel, '.edge-path', (s) =>
         s
             .append('path')

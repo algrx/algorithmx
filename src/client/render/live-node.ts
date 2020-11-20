@@ -1,11 +1,12 @@
 import * as d3 from './d3.modules';
 import { Node as NodeLayout } from 'webcola';
 import { selectNodeGroup, selectNode } from './selectors';
-import { D3Selection, selectOrAdd, createRenderId, isSafari, parseColor } from './utils';
+import { D3Selection, selectOrAdd, createRenderId, isSafari, getColor } from './utils';
 import { NodeSpec, radiusAtAngle } from '../attributes/components/node';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import { CanvasSpec } from '../attributes/components/canvas';
 import { LayoutState } from '../layout/canvas';
+import { Dict } from '../utils';
 
 export interface LiveNodeAttrs {
     readonly pos: [number, number];
@@ -49,4 +50,16 @@ export const getPointAtNodeBoundary = (
         liveAttrs.pos[0] + fullOffset * Math.cos(angle),
         liveAttrs.pos[1] + fullOffset * Math.sin(angle),
     ];
+};
+
+export const renderLiveNodes = (
+    canvasSel: D3Selection,
+    canvasAttrs: FullEvalAttr<CanvasSpec>,
+    liveNodes: Dict<string, LiveNodeAttrs>
+) => {
+    Object.entries(liveNodes).forEach(([k, liveNode]) => {
+        if (!canvasAttrs.nodes[k].visible) return;
+        const nodeSel = selectNode(canvasSel, k);
+        nodeSel.attr('transform', `translate(${liveNode.pos[0]},${-liveNode.pos[1]})`);
+    });
 };

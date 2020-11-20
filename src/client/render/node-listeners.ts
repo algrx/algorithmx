@@ -5,7 +5,6 @@ import { NodeSpec } from '../attributes/components/node';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import { D3Selection } from './utils';
 import { RenderState, RenderContext } from './canvas';
-import { selectInnerCanvas, selectNode, selectNodeGroup } from './selectors';
 import { ReceiveEvent } from '../types';
 
 const updateDrag = (
