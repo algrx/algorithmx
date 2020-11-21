@@ -1,10 +1,5 @@
 import { CanvasSpec } from './attributes/components/canvas';
-import {
-    initSchedulerState,
-    scheduleEvent,
-    processSchedulerEvent,
-    SchedulerEvent,
-} from './scheduler';
+import { initSchedulerState, scheduleEvent, SchedulerEvent } from './scheduler';
 import { DispatchEvent, ReceiveEvent, CanvasElement, ClientState } from './types';
 import { executeEvent, EventContext } from './events';
 import { LayoutState, initLayout } from './layout/canvas';
@@ -34,29 +29,6 @@ const initState = (tick: () => void): ClientState => {
     };
 };
 
-const processEvent = (client: Client, event: SchedulerEvent, queue: string | null) => {
-    // execute the event
-    const state = executeEvent(
-        {
-            state: client.state,
-            canvasEl: client.canvas,
-            receive: client.eventCallback,
-            tick: client.tick.bind(client),
-        },
-        event as DispatchEvent
-    );
-
-    client.setState(state);
-    client.tick();
-
-    // update the scheduler and execute the next event
-    const task = processSchedulerEvent(client.state.scheduler, queue, event, (e, q) =>
-        processEvent(client, e, q)
-    );
-    client.setState({ ...client.state, scheduler: task.state });
-    task.execute();
-};
-
 export class Client {
     constructor(canvas: CanvasElement) {
         this.canvas = canvas;
@@ -72,14 +44,31 @@ export class Client {
         this.eventCallback = fn;
     }
 
-    dispatch(event: DispatchEvent) {
-        // the default queue is named 'default'
-        const withQ = event.withQ === null ? null : String(event.withQ ?? 0);
-        const task = scheduleEvent(this.state.scheduler, withQ, event, (e, q) =>
-            processEvent(this, e, q)
+    execute(event: DispatchEvent) {
+        const state = executeEvent(
+            {
+                state: this.state,
+                canvasEl: this.canvas,
+                receive: this.eventCallback,
+                tick: this.tick.bind(this),
+            },
+            event
         );
-        this.setState({ ...this.state, scheduler: task.state });
-        task.execute();
+
+        this.setState(state);
+        this.tick();
+    }
+
+    dispatch(event: DispatchEvent) {
+        const schedulerState = scheduleEvent(
+            this.state.scheduler,
+            {
+                dispatch: this.dispatch.bind(this),
+                execute: this.execute.bind(this),
+            },
+            event
+        );
+        this.setState({ ...this.state, scheduler: schedulerState });
     }
 
     tick() {
