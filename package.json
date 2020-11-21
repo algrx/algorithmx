@@ -67,7 +67,6 @@
         "@types/d3": "6.1.0",
         "@types/mocha": "8.0.3",
         "chai": "4.2.0",
-        "codecov": "3.7.2",
         "husky": "4.3.0",
         "karma": "5.2.2",
         "karma-chai": "0.1.0",
