@@ -7,7 +7,8 @@ import { NodeSelection, NodeAttrs } from './api/NodeSelection';
 import { LabelSelection, LabelAttrs } from './api/LabelSelection';
 
 /**
- * Creates a new [[Canvas]]. The canvas can be rendered in any HTML element on the page (preferably a `div`), or in an `Element` object.
+ * Creates a new [[Canvas]]. The canvas can be rendered in any HTML element on the page (preferably
+ * a `div`), or in an `Element` object.
  *
  * @param output - The HTML `id` attribute of an existing element on the page, or an `Element` object.
  *

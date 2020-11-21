@@ -70,7 +70,6 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * Adds all selected elements to the canvas with the given initial attributes.
      *
      * @param attrs - An attribute dictionary, see [[ElementSelection.attrs]].
-     * @param animtype - "fade" (animate transparency) or "scale" (animate size).
      *
      * @return A new instance of the current selection with animations disabled, to allow for
      * further attribute initialisation.
@@ -83,8 +82,6 @@ export class ElementSelection<T extends ElementAttrs, D> {
 
     /**
      * Removes all selected elements, resetting their attributes and layout state.
-     *
-     * @param animtype - "fade" (animate transparency) or "scale" (animate size).
      */
     remove() {
         return this.attrs({ remove: true } as T);
@@ -95,7 +92,6 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * visibility will not reset attributes or layout state.
      *
      * @param value - Whether or not the selected elements should be visible.
-     * @param animtype - "fade" (animate transparency) or "scale" (animate size).
      */
     visible(visible: ElementArg<boolean, D>) {
         return this.attrs(
@@ -129,14 +125,14 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * to run simultaneously.
      *
      * The `null` queue is special; all events added to it will execute immediately. The default
-     * queue ID is 0.
+     * queue has ID 0.
      *
      * @param queue - The name of the queue. This can be any string or number, or `null` for the
-     * immediate queue.
+     * immediate queue. Defaults to 0.
      *
      * @return A new instance of the current selection using the given queue.
      */
-    withQ(queue: string | number | null): this {
+    withQ(queue: string | number | null = 0): this {
         return new this.constructor({
             ...this._selection,
             withQ: typeof queue === 'number' ? String(queue) : queue,
@@ -208,8 +204,8 @@ export class ElementSelection<T extends ElementAttrs, D> {
     }
 
     /**
-     * Pauses the current event queue for the given number of seconds. This is a convenience
-     * shortcut for [[QueueSelection.pause]].
+     * Adds a pause to the current event queue. The pause will only start once all previous pauses
+     * have finished. This is a shortcut for [[QueueSelection.pause]].
      *
      * @param seconds - The duration of the pause, in seconds.
      */
@@ -217,6 +213,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
         if (this._selection.withQ !== null && this._selection.callbacks.dispatch) {
             this._selection.callbacks.dispatch({
                 queues: { [String(this._selection.withQ ?? 0)]: { pause: seconds } },
+                withQ: this._selection.withQ ?? 0,
             });
         }
         return this;

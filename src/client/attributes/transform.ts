@@ -49,15 +49,26 @@ export const applyDefaults = <T extends AttrSpec>(
     // always fall back on the defaults
     if (isPrimitive(spec)) return changes ?? (defaults as PartialAttr<T>);
 
+    // merge defaults with animation defaults
+    const defaultsWithAnim = isEndpointSpec(spec)
+        ? (withAnim(spec, defaults as PartialAttr<T>, animDefaults) as FullAttr<T>)
+        : defaults;
+
+    // the "*" entry in a dict contains defaults for all of the children
+    const getChildDefaults = (k: AttrKey<T>) =>
+        getAttrEntry(defaultsWithAnim, k) ?? getAttrEntry(defaults, '*' as AttrKey<T>);
+
     if (prevAttrs === undefined || changes === undefined) {
-        // if the attributes are new, apply all defaults
+        // if the attributes are new, include all defaults
         return combineAttrs(
             spec,
-            defaults as PartialAttr<T>,
+            defaultsWithAnim as PartialAttr<T>,
             changes,
-            (childDefaults, childChanges, k, childSpec) => {
+            (_, childChanges, k, childSpec) => {
+                const childDefaults = getChildDefaults(k);
                 if (childDefaults === undefined) {
                     console.error('unexpected error: missing defaults');
+                    console.log(changes);
                     return undefined;
                 }
                 if (k === '*') return undefined; // don't include "*" as an actual attribute
@@ -70,26 +81,20 @@ export const applyDefaults = <T extends AttrSpec>(
         );
     }
 
-    // always include animations on endpoints
+    // always include defaults on endpoints
     const changesWithAnim = isEndpointSpec(spec)
         ? ({
-              ...(withAnim(spec, defaults as PartialAttr<T>, animDefaults) as PartialAttr<
-                  AnimSpec
-              >),
+              ...(defaultsWithAnim as PartialAttr<AnyRecordSpec>),
               ...(changes as PartialAttr<AnyRecordSpec>),
           } as PartialAttr<T>)
         : changes;
 
     return mapAttr(spec, changesWithAnim, (childChanges, k, childSpec) => {
-        // the "*" entry in a dict contains defaults for all of the children
-        const childDefaults =
-            getAttrEntry(defaults, k) ?? getAttrEntry(defaults, '*' as AttrKey<T>);
-
         return applyDefaults(
             childSpec,
             prevAttrs ? getAttrEntry(prevAttrs, k) : undefined,
             childChanges,
-            [childDefaults as FullAttr<EntrySpec<T>>, animDefaults]
+            [getChildDefaults(k) as FullAttr<EntrySpec<T>>, animDefaults]
         );
     });
 };
@@ -180,7 +185,8 @@ export const mergeExprs = <T extends AttrSpec>(
 
     if (isPrimitive(spec)) {
         if (isExpr(spec, changes)) return changes;
-        else if (prevExprs !== undefined && isExpr(spec, prevExprs)) return prevExprs;
+        else if (prevExprs !== undefined && changes === undefined && isExpr(spec, prevExprs))
+            return prevExprs;
         else return undefined;
     }
 
@@ -227,8 +233,9 @@ export const adjustEdgeIds = (
     if (!changes.edges || !prevAttrs) return changes;
 
     const edgeChanges = mapDictKeys(changes.edges, (edge, k) => {
-        if (k in changes.edges!) return k; // leave the ID as-is if it already exists
+        if (k in prevAttrs.edges!) return k; // leave the ID as-is if it already exists
         if (edge.directed === true) return k; // leave the ID as-is if the edge is directed
+
         const parsedId = parseEdgeId(k);
         if (parsedId === undefined) return k; // leave the ID as-is if it's not in standard form
 
@@ -236,9 +243,8 @@ export const adjustEdgeIds = (
         const newId = [parsedId[1], parsedId[0]]
             .concat(parsedId.length === 3 ? [parsedId[2]] : [])
             .join('-');
-        if (newId in changes.edges!) {
-            if (prevAttrs.edges![newId].directed === false) return newId;
-        }
+
+        if (newId in prevAttrs.edges! && prevAttrs.edges![newId].directed === false) return newId;
         return k;
     });
 

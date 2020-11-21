@@ -61,7 +61,6 @@ export const renderEdge = (
     else return;
 
     Object.entries(changes.labels ?? {}).forEach(([k, labelChanges]) => {
-        const labelSel = selectLabel(edgeSel, k);
-        renderLabel(labelSel, attrs.labels[k], labelChanges);
+        renderLabel(selectLabel(edgeSel, k), attrs.labels[k], labelChanges);
     });
 };

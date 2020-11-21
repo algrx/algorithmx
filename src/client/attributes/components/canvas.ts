@@ -18,7 +18,7 @@ import {
 import { FullAttr, PartialAttr } from '../derived';
 import { nonEmpty, combineAttrs } from '../utils';
 import { VarDict, evalAnimAttr, usesVars, evalDeep, EvalChangesFn } from '../expression';
-import { mergeDiff, mapDict, isObjEmpty } from '../../utils';
+import { mergeDiff, mapDict, isObjEmpty, isObj } from '../../utils';
 
 export const edgeLengthType = <const>['individual', 'symmetric', 'jaccard'];
 export type EdgeLayout = typeof edgeLengthType[number];
@@ -103,6 +103,11 @@ export const createCanvasDefaults = (
                 size: { value: 20 },
             })
         ),
+        // don't animate visibility if the canvas is new
+        visible:
+            prevAttrs === undefined
+                ? { ...canvasDefaults.visible, duration: 0 }
+                : canvasDefaults.visible,
     };
 };
 
@@ -114,8 +119,18 @@ export const evalCanvasChanges: EvalChangesFn<CanvasSpec, string> = ({
 }) => {
     // get node variables from attributes
     const canvasVars: VarDict<CanvasVar> = {
-        cx: evalAnimAttr({}, prevExprs.size ?? prevAttrs?.size, changes.size, (v) => v[0]),
-        cy: evalAnimAttr({}, prevExprs.size ?? prevAttrs?.size, changes.size, (v) => v[0]),
+        cx: evalAnimAttr(
+            {},
+            changes.size,
+            [prevExprs.size?.value?.[0] ?? prevAttrs?.size.value[0], changes.size?.value?.[0]],
+            (v) => v / 2
+        ),
+        cy: evalAnimAttr(
+            {},
+            changes.size,
+            [prevExprs.size?.value?.[1] ?? prevAttrs?.size.value[1], changes.size?.value?.[1]],
+            (v) => v / 2
+        ),
     };
 
     // evaluate child attributes

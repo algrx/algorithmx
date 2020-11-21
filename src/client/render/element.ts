@@ -64,7 +64,7 @@ export const getAllElementChanges = <T extends ElementSpec>(
     attrs: FullEvalAttr<T> | undefined,
     changes: PartialEvalAttr<T>
 ): PartialEvalAttr<T> => {
-    if (changes.visible?.value === true) {
+    if (attrs !== undefined && changes.visible?.value === true) {
         // if the element is new, render everything but only animate visibility
         return {
             ...((disableAnim(spec, attrs as PartialAttr<T>) as unknown) as PartialEvalAttr<T>),

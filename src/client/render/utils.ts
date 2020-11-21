@@ -1,17 +1,18 @@
 import * as d3 from './d3.modules';
-import { BaseType, Selection, Transition, ZoomBehavior, CurveFactory } from 'd3';
-
 import { AttrSpec, DictSpec, StringSpec, EndpointValueSpec } from '../attributes/spec';
 import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
 import { AnimEase, AnimSpec, WithAnimSpec } from '../attributes/components/animation';
 import { COLORS } from '../attributes/components/color';
 import { dashToUpperCamel } from '../utils';
 
-export type D3Selection = Selection<any, unknown, any, unknown>;
-export type D3Transition = Transition<any, unknown, any, unknown>;
+type CurveFactory = import('d3-shape').CurveFactory;
+type BaseType = import('d3-selection').BaseType;
+
+export type D3Selection = import('d3-selection').Selection<any, unknown, any, unknown>;
+export type D3Transition = import('d3-transition').Transition<any, unknown, any, unknown>;
 
 export type D3SelTrans = D3Selection | D3Transition;
-export type D3ZoomBehaviour = ZoomBehavior<Element, unknown>;
+export type D3ZoomBehaviour = import('d3-zoom').ZoomBehavior<Element, unknown>;
 
 export const isTransition = (sel: D3SelTrans): sel is D3Transition =>
     (sel as D3Transition).duration !== undefined;
@@ -147,9 +148,9 @@ export const renderSvgAttr = <T extends PartialEvalAttr<WithAnimSpec<EndpointVal
     if (change?.value === undefined) return selection;
     const attrName = Array.isArray(name) ? name[0] : name;
     const animName = Array.isArray(name) ? name[1] : name;
-    return renderWithAnim(selection, [change, attrName], [attr, change], (s, a) => {
+    return renderWithAnim(selection, [change, animName], [attr, change], (s, a) => {
         const v = valueFn ? valueFn(a.value as NonNullable<T['value']>) : a.value;
-        return v == null ? s.attr(attrName, null) : s.attr(attrName, String(v));
+        return v === '' ? s.attr(attrName, null) : s.attr(attrName, String(v));
     });
 };
 
@@ -163,8 +164,7 @@ export const renderSvgDict = (
 
     Object.entries(changes).forEach(([baseKey, v]) => {
         const [s, k] = select(selection, baseKey);
-        if (v.value === '') renderSvgAttr(selection, k, [attrs[k], v], (v) => null);
-        else renderSvgAttr(selection, k, [attrs[k], v]);
+        renderSvgAttr(selection, k, [attrs[k], v]);
     });
     return selection;
 };

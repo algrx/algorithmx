@@ -1,15 +1,15 @@
 import { expect } from 'chai';
-import { Canvas } from '../../src/client/types/events';
-import * as algorithmx from '../../src/index';
-import * as utils from '../utils';
+import { CanvasElement } from '../../src/client/types';
+import { createCanvas } from '../../src/index';
+import { createDiv, getTranslation, selectNode } from '../utils';
 
-const getPos = (div: Canvas, id: string | number): [number, number] => {
-    return utils.getTranslation(utils.selectNode(div, id).attr('transform'));
+const getPos = (div: CanvasElement, id: string | number): [number, number] => {
+    return getTranslation(selectNode(div, id).attr('transform'));
 };
 
 it('Node | Position', () => {
-    const div = utils.createDiv();
-    const canvas = algorithmx.canvas(div);
+    const div = createDiv();
+    const canvas = createCanvas(div);
 
     canvas.node(1).add().pos([-20, -20]);
     expect(getPos(div, 1)).to.eql([-20, -20]);
@@ -19,8 +19,8 @@ it('Node | Position', () => {
 });
 
 it('Node | Position relative to canvas size', () => {
-    const div = utils.createDiv();
-    const canvas = algorithmx.canvas(div);
+    const div = createDiv();
+    const canvas = createCanvas(div);
 
     canvas.duration(0).size([100, 100]);
 

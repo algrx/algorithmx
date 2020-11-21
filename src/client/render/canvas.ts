@@ -118,8 +118,7 @@ export const renderCanvas = (
     const canvasSel = selectCanvas(canvasEl);
     const changes = getAllElementChanges(canvasSpec, attrs, initChanges);
 
-    console.log(changes);
-    renderVisRemove(selectInnerCanvas(canvasSel), changes.visible, changes.remove);
+    renderVisRemove(canvasSel, changes.visible, changes.remove);
     if (attrs?.visible.value === true) renderCanvasAttrs(canvasSel, attrs, changes);
     else return initRenderState;
 

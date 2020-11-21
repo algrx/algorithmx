@@ -22,7 +22,7 @@ export interface DispatchEvent {
     };
 }
 
-// recieved by the API, from the client
+// received by the API, from the client
 export interface ReceiveEvent {
     readonly error?: {
         readonly type: 'attribute' | 'validation';

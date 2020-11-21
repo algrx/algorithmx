@@ -17,7 +17,6 @@ import {
 import { RenderState, RenderContext } from './canvas';
 import { renderLabel } from './label';
 import { selectNode } from './selectors';
-import { assignKeys, dictKeys } from '../utils';
 import { registerNodeListeners } from './node-listeners';
 import { combineAttrs } from '../attributes/utils';
 
@@ -39,8 +38,6 @@ const renderShape = (selection: D3Selection, shape: NodeShape) => {
 };
 
 const renderSize: RenderAttrFn<NodeSpec> = (nodeSel, attrs, changes) => {
-    if (!changes.size?.value) return;
-
     if (attrs.shape === 'circle') {
         renderSvgAttr(nodeSel, 'r', [attrs.size, changes.size], (v) => v[0]);
     } else if (attrs.shape === 'rect') {
@@ -57,15 +54,19 @@ const renderSize: RenderAttrFn<NodeSpec> = (nodeSel, attrs, changes) => {
 
 const renderNodeAttrs: RenderAttrFn<NodeSpec> = (nodeSel, attrs, initChanges) => {
     // if the node shape changes, re-render everything except visible/labels/pos
-    const changes = combineAttrs(nodeSpec, attrs, initChanges, (a, c, k) => {
-        return k !== 'visible' && k !== 'labels' && k !== 'pos' ? c ?? a : c;
-    }) as PartialEvalAttr<NodeSpec>;
+    const changes =
+        initChanges.shape !== undefined
+            ? (combineAttrs(nodeSpec, attrs, initChanges, (a, c, k) => {
+                  return k !== 'visible' && k !== 'labels' && k !== 'pos' ? c ?? a : c;
+              }) as PartialEvalAttr<NodeSpec>)
+            : initChanges;
 
     if (changes.shape) renderShape(nodeSel, changes.shape);
     const shapeSel = nodeSel.select('.shape');
 
     renderSvgAttr(shapeSel, 'fill', [attrs.color, changes.color], (v) => getColor(v));
-    if (changes.size) renderSize(shapeSel, attrs, changes);
+    renderSize(shapeSel, attrs, changes);
+
     if (changes.svgattrs) renderSvgDict(shapeSel, attrs.svgattrs, changes.svgattrs);
 };
 
@@ -118,8 +119,7 @@ export const renderNode = (
     else return;
 
     Object.entries(changes.labels ?? {}).forEach(([k, labelChanges]) => {
-        const labelSel = selectLabel(nodeSel, k);
-        renderLabel(labelSel, attrs.labels[k], labelChanges);
+        renderLabel(selectLabel(nodeSel, k), attrs.labels[k], labelChanges);
     });
 
     renderWithTick(nodeSel, attrs, changes, context.tick);

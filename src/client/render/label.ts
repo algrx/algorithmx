@@ -29,7 +29,7 @@ const getExactAlign = (angle: number, rotate: boolean, align: LabelAlign): Label
 };
 
 const renderPos = (
-    textSel: D3Selection,
+    labelSel: D3Selection,
     attrs: FullEvalAttr<LabelSpec>,
     changes: PartialEvalAttr<LabelSpec>
 ) => {
@@ -45,7 +45,7 @@ const renderPos = (
         return;
 
     const anim = changes.pos ?? changes.radius ?? changes.angle ?? {};
-    renderWithAnim(textSel, [anim, 'pos'], [attrs, changes], (s, a) => {
+    renderWithAnim(labelSel, [anim, 'pos'], [attrs, changes], (s, a) => {
         const angle = a.angle?.value ?? attrs.angle.value;
         const radius = a.radius?.value ?? attrs.radius.value;
         const pos = a.pos?.value ?? attrs.pos.value;
@@ -131,7 +131,7 @@ const renderLabelAttrs: RenderAttrFn<LabelSpec> = (labelSel, attrs, changes) => 
     );
 
     if (changes.text !== undefined) renderText(textSel, changes.text);
-    renderPos(textSel, attrs, changes);
+    renderPos(labelSel, attrs, changes);
     renderAlign(textSel, attrs, changes);
 
     renderSvgAttr(textSel, 'fill', [attrs.color, changes.color], (v) => getColor(v));
@@ -144,8 +144,10 @@ const renderLabelAttrs: RenderAttrFn<LabelSpec> = (labelSel, attrs, changes) => 
 export const renderLabel = (
     labelSel: D3Selection,
     attrs: FullEvalAttr<LabelSpec> | undefined,
-    changes: PartialEvalAttr<LabelSpec>
+    initChanges: PartialEvalAttr<LabelSpec>
 ) => {
+    const changes = getAllElementChanges(labelSpec, attrs, initChanges);
+
     renderVisRemove(labelSel, changes.visible, changes.remove);
     if (attrs?.visible.value === true) renderLabelAttrs(labelSel, attrs, changes);
 };

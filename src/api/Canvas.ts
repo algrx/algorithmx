@@ -238,6 +238,10 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      * Selects a single event queue by its ID. The default queue has ID 0. Use "*" to select all
      * existing queues.
      *
+     * By default, any changes made to the queue (e.g. start/stop) will take place immediately.
+     * However, if [[ElementSelection.withQ]] was previously called, the changes themselves will be
+     * added as events onto the current event queue.
+     *
      * @param id - A queue ID. Defaults to 0.
      *
      * @return A new selection corresponding to the given queue.
@@ -247,8 +251,9 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
     }
 
     /**
-     * Selects multiple event queues using an list of ID values. If no list is provided, all
-     * existing queues will be selected.
+     * Selects multiple event queues using an list of ID values, see [[Canvas.queue]].
+     *
+     * If no list is provided, all existing queues will be selected.
      *
      * @param ids - A list of queue IDs.
      *
@@ -258,13 +263,8 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
         return new QueueSelection({
             ids: ids.map((id) => String(id)),
             callbacks: this._selection.callbacks,
-            ...(this._selection.withQ !== undefined ? { withQ: this._selection.withQ } : {}),
+            withQ: this._selection.withQ ?? null,
         });
-    }
-
-    pause(duration: number) {
-        this.queue().pause(duration);
-        return this;
     }
 
     /**
@@ -274,7 +274,10 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      * @param message - A message string.
      */
     message(message: string) {
-        return this.dispatch({ message: message });
+        return this.dispatch({
+            message: message,
+            ...(this._selection.withQ !== undefined ? { withQ: this._selection.withQ } : {}),
+        });
     }
 
     onmessage(message: '*', fn: (message: string) => void): this;

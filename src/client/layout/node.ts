@@ -41,7 +41,7 @@ export const updateNodeLayout = (
     const layoutNodes = mapDict(layoutNodesDiff, (nodeDiff, k) =>
         !(k in layoutState.nodes)
             ? (nodeDiff as webcola.Node)
-            : { ...layoutState.nodes[k], ...nodeDiff }
+            : Object.assign(layoutState.nodes[k], nodeDiff)
     );
 
     // cola doesn't work when you call .nodes() with a new array

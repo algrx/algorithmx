@@ -189,11 +189,10 @@ export const evalNodeLabelChanges: EvalChangesFn<NodeSpec, NodeVar> = ({
         changes.labels!,
         (prevLabelExprs, labelChanges, k, labelSpec) => {
             // calculate the 'r' variable based on the angle of the label and the size of the node
-            const angleVar = evalAnimAttr(
-                parentVars,
-                prevLabelExprs?.angle ?? prevAttrs?.labels[k]?.angle,
-                labelChanges?.angle
-            );
+            const angleVar = evalAnimAttr(parentVars, labelChanges?.angle, [
+                prevLabelExprs?.angle?.value ?? prevAttrs?.labels[k]?.angle.value,
+                labelChanges?.angle?.value,
+            ]);
 
             const nodeLabelVars: VarDict<NodeLabelVar> = {
                 ...parentVars,
@@ -233,8 +232,14 @@ export const evalNodeChanges: EvalChangesFn<NodeSpec, CanvasVar> = ({
     // get node variables from attributes
     const nodeVars: VarDict<NodeVar> = {
         ...parentVars,
-        x: evalAnimAttr(parentVars, prevExprs.size ?? prevAttrs?.size, changes.size, (v) => v[0]),
-        y: evalAnimAttr(parentVars, prevExprs.size ?? prevAttrs?.size, changes.size, (v) => v[1]),
+        x: evalAnimAttr(parentVars, changes.size, [
+            prevExprs.size?.value?.[0] ?? prevAttrs?.size.value[0],
+            changes.size?.value?.[0],
+        ]),
+        y: evalAnimAttr(parentVars, changes.size, [
+            prevExprs.size?.value?.[1] ?? prevAttrs?.size.value[1],
+            changes.size?.value?.[1],
+        ]),
     };
 
     // evaluate child attributes

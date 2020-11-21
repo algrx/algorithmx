@@ -143,43 +143,38 @@ interface VarInfo {
 }
 export type VarDict<V extends string> = Dict<V, VarInfo>;
 
-export const evalAnimAttr = <T extends PartialAttr<WithAnimSpec<EndpointValueSpec>>>(
+export const evalAnimAttr = <T>(
     vars: VarDict<string>,
-    // at least one of prevAttr, change should be defined
-    prevAttr: T | undefined,
-    change: T | undefined,
-    valueFn: (v: NonNullable<T['value']>) => NumExpr<string> | number = (v) =>
-        v as NumExpr<string> | number
+    anim: PartialAttr<AnimSpec> | undefined,
+    // at least one of prevAttr, change must be defined
+    [prevAttr, change]: [
+        NumExpr<string> | number | undefined,
+        NumExpr<string> | number | undefined
+    ],
+    valueFn: (v: number) => number = (v) => v
 ): VarInfo => {
     const varValues = mapDict(vars, (v) => v.attr.value);
 
-    if (change?.value !== undefined) {
-        const value = valueFn(change.value as NonNullable<T['value']>);
-
+    if (change !== undefined) {
         // note that if the change is self-referential (e.g. node.size = 2x), the variable won't exist yet
-        if (!isNumExpr(value) || value.x in vars) {
+        if (!isNumExpr(change) || change.x in vars) {
             return {
                 attr: {
-                    ...change,
-                    value: evalNum(value, varValues),
+                    ...anim,
+                    value: valueFn(evalNum(change, varValues)),
                 },
                 changed: true,
             };
         }
     }
 
-    if (prevAttr?.value !== undefined && isNumExpr(prevAttr)) {
-        const value = valueFn(prevAttr.value as NonNullable<T['value']>);
-        return {
-            attr: {
-                ...vars[prevAttr.x]?.attr,
-                value: evalNum(value, varValues),
-            },
-            changed: false,
-        };
-    }
-
-    return { attr: { value: 0 }, changed: false };
+    return {
+        attr: {
+            ...(prevAttr !== undefined && isNumExpr(prevAttr) ? vars[prevAttr.x]?.attr : {}),
+            value: valueFn(evalNum(prevAttr ?? 0, varValues)),
+        },
+        changed: false,
+    };
 };
 
 const evalDeepAux = <T extends AttrSpec, V extends string>(

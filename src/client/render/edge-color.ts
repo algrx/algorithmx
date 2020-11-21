@@ -106,7 +106,7 @@ export const renderEdgeColor = (
 
     if (attrs.directed)
         renderSvgAttr(
-            selectEdgeMarker(edgeSel, 'target'),
+            selectEdgeMarker(edgeSel, 'target').select('path'),
             'fill',
             [attrs.color, changes.color],
             (v) => getColor(v)
