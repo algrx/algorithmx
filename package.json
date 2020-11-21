@@ -22,7 +22,7 @@
         "typecheck": "npx tsc --noEmit",
         "docs": "npx typedoc",
         "karma": "npx karma start karma.config.js",
-        "test": "npm run karma",
+        "test": "npm run typecheck && npm run karma",
         "prepare": "npm run build",
         "prepublishOnly": "npm run test && npm run build",
         "format": "npx prettier --write --ignore-path .gitignore ."

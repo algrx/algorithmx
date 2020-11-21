@@ -1,0 +1,15 @@
+version: '3.7'
+services:
+    build:
+        build:
+            context: .
+            target: setup
+        image: algorithmx-build
+        volumes:
+            - './dist:/app/dist'
+            - './public:/app/public'
+            - './coverage:/app/coverage'
+        command: bash -c "
+            npm run test
+            && npm run build
+            && npm run docs"
