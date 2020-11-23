@@ -39,11 +39,10 @@ it('Edge | Highlight color with traverse animation', () => {
     const canvas = createCanvas(div);
 
     canvas.nodes(['A', 'B']).add();
-    canvas.edge(['A', 'B']).add().directed(true).color(GREEN);
-
+    canvas.edge(['A', 'B']).add({ directed: true, color: GREEN });
     expect(getEdgeColor(div, ['A', 'B'])).to.eq(GREEN);
 
-    canvas.edge(['A', 'B']).duration(0).highlight(0.04).color(RED);
+    canvas.edge(['A', 'B']).duration(0).highlight(0.03).color(RED);
     expect(getEdgeColor(div, ['A', 'B'])).to.eq(RED);
 
     return new Promise((resolve) => {

@@ -12,14 +12,8 @@ interface BaseEvent {
 
 export type SchedulerEvent = BaseEvent;
 
-interface SchedulerCbs {
-    readonly dispatch: (event: SchedulerEvent) => void;
-    readonly execute: (event: SchedulerEvent) => void;
-}
-
 interface QueueState {
     readonly events: ReadonlyArray<SchedulerEvent>;
-    readonly busy: boolean;
     readonly stopped: boolean;
     readonly paused: boolean;
     readonly timeoutId?: number;
@@ -31,7 +25,6 @@ export interface SchedulerState {
 const initQueue = (state: SchedulerState): QueueState => {
     return {
         events: [],
-        busy: false,
         stopped: false,
         paused: false,
     };
@@ -54,11 +47,11 @@ const updateQueueState = (
     };
 };
 
-const updateQueue = (
+const executeQueueEvent = (
     state: SchedulerState,
-    [queue, withQ]: [string, string | null],
-    event: QueueEvent,
-    callbacks: SchedulerCbs
+    unpauseQueue: () => void,
+    queue: string,
+    event: QueueEvent
 ): SchedulerState => {
     if (event.pause !== undefined || event.clear === true || event.stopped === true) {
         // clear the previous pause
@@ -66,99 +59,105 @@ const updateQueue = (
         if (prevTimeout !== undefined) clearTimeout(prevTimeout);
     }
 
-    const unpause = event.pause !== undefined && event.pause <= 0;
-    const stateWithPause = unpause
-        ? updateQueueState(state, queue, { paused: false })
-        : event.pause !== undefined
-        ? updateQueueState(state, queue, {
-              paused: true,
-              timeoutId: setTimeout(() => {
-                  callbacks.dispatch({
-                      queues: { [queue]: { pause: 0 } },
-                      withQ: null,
-                  });
-              }, (event.pause as number) * 1000),
-          })
-        : state;
+    const stateWithPause =
+        event.pause !== undefined && event.pause <= 0
+            ? updateQueueState(state, queue, { paused: false })
+            : event.pause !== undefined
+            ? updateQueueState(state, queue, {
+                  paused: true,
+                  timeoutId: setTimeout(unpauseQueue, (event.pause as number) * 1000),
+              })
+            : state;
 
     const stateWithStop =
         event.stopped === true
             ? updateQueueState(stateWithPause, queue, { stopped: true, paused: false })
             : event.stopped === false
-            ? updateQueueState(stateWithPause, queue, { stopped: false })
+            ? updateQueueState(stateWithPause, queue, { stopped: false, paused: false })
             : stateWithPause;
 
     const newState =
         event.clear === true
-            ? updateQueueState(stateWithStop, queue, { events: [], busy: false, paused: false })
+            ? updateQueueState(stateWithStop, queue, { events: [], paused: false })
             : stateWithStop;
 
-    if ((unpause || event.stopped === false) && withQ !== queue) {
-        // execute another queue after if becomes unpaused/started
-        return executeQueue(newState, callbacks, queue);
-    }
     return newState;
 };
 
-const executeEvent = (
-    state: SchedulerState,
-    callbacks: SchedulerCbs,
-    withQ: string | null,
-    event: SchedulerEvent
-): SchedulerState => {
-    const stateWithoutEvent =
-        withQ === null
-            ? state
-            : updateQueueState(state, withQ, {
-                  events: getQueueState(state, withQ).events.slice(1),
-              });
+const getNextEvent = (state: SchedulerState): [SchedulerState, SchedulerEvent | undefined] => {
+    return Object.entries(state.queues).reduce(
+        ([accState, accElement], [k, queueState]) => {
+            if (
+                accElement !== undefined ||
+                queueState.stopped ||
+                queueState.paused ||
+                queueState.events.length === 0
+            )
+                return [accState, accElement];
+            else {
+                const event = queueState.events[0];
+                const newState = updateQueueState(state, k, { events: queueState.events.slice(1) });
+                return [newState, event];
+            }
+        },
+        [state, undefined] as [SchedulerState, SchedulerEvent | undefined]
+    );
+};
+
+interface SchedulerCbs {
+    readonly setState: (s: SchedulerState) => void;
+    readonly getState: () => SchedulerState;
+    readonly execute: (event: SchedulerEvent) => void;
+}
+
+const getQueueFromEvent = (event: SchedulerEvent): string | null =>
+    event.withQ === null ? null : String(event.withQ ?? 0);
+
+const executeEvent = (callbacks: SchedulerCbs, event: SchedulerEvent) => {
+    const state = callbacks.getState();
+
+    const unpauseQueueFn = (q: string) => () =>
+        scheduleEvent(callbacks, {
+            queues: { [q]: { pause: 0 } },
+            withQ: null,
+        });
 
     // update queues with start/stop/clear/pause actions
     const queueEvents = Object.entries(event.queues ?? {}).reduce(
         (acc, [k, q]) => ({
             ...acc,
-            ...(k === '*' ? mapDict(stateWithoutEvent.queues, (_) => q) : { [k]: q }),
+            ...(k === '*' ? mapDict(state.queues, (_) => q) : { [k]: q }),
         }),
         {} as Dict<string, QueueEvent>
     );
     const newState = Object.keys(queueEvents).reduce(
-        (acc, k) => updateQueue(acc, [k, withQ], queueEvents[k], callbacks),
-        stateWithoutEvent
+        (acc, k) => executeQueueEvent(acc, unpauseQueueFn(k), k, queueEvents[k]),
+        state
     );
 
+    callbacks.setState(newState);
     callbacks.execute(event);
-    return newState;
 };
 
-const executeQueue = (
-    state: SchedulerState,
-    callbacks: SchedulerCbs,
-    queue: string
-): SchedulerState => {
-    const initQueueState = getQueueState(state, queue);
-    if (initQueueState.stopped || initQueueState.paused) return state;
-
-    return getQueueState(state, queue).events.reduce((stateAcc, event) => {
-        const queueState = getQueueState(stateAcc, queue);
-        if (queueState.stopped || queueState.paused) return stateAcc;
-
-        return executeEvent(stateAcc, callbacks, queue, event);
-    }, state);
-};
-
-export const scheduleEvent = (
-    state: SchedulerState,
-    callbacks: SchedulerCbs,
-    event: SchedulerEvent
-): SchedulerState => {
-    const withQ = event.withQ === null ? null : String(event.withQ ?? 0);
+export const scheduleEvent = (callbacks: SchedulerCbs, event: SchedulerEvent) => {
+    const withQ = getQueueFromEvent(event);
     if (withQ === null) {
         // execute the event immediately if no queue is specified
-        return executeEvent(state, callbacks, withQ, event);
+        executeEvent(callbacks, event);
     } else {
+        // add the event to the queue
+        const state = callbacks.getState();
         const stateWithEvent = updateQueueState(state, withQ, {
             events: getQueueState(state, withQ).events.concat([event]),
         });
-        return executeQueue(stateWithEvent, callbacks, withQ);
+        callbacks.setState(stateWithEvent);
+    }
+
+    // execute all remaining events
+    while (true) {
+        const [state, nextEvent] = getNextEvent(callbacks.getState());
+        if (nextEvent === undefined) break;
+        callbacks.setState(state);
+        executeEvent(callbacks, nextEvent);
     }
 };

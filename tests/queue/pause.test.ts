@@ -5,6 +5,24 @@ import { createDiv, getNodeAttr, getNodeColor, RED, GREEN } from '../utils';
 const DELAY = 50;
 const DELTA = 10;
 
+it('Queue | Late pause', () => {
+    const canvas = createCanvas(createDiv());
+    return new Promise((resolve, reject) => {
+        canvas.onmessage('m', resolve);
+        canvas.pause(0.05).message('m');
+        setTimeout(() => reject(new Error('message was too late')), 60);
+    });
+});
+
+it('Queue | Early pause', () => {
+    const canvas = createCanvas(createDiv());
+    return new Promise((resolve, reject) => {
+        canvas.onmessage('e', () => reject(new Error('message was too early')));
+        canvas.pause(0.02).message('e');
+        setTimeout(resolve, 10);
+    });
+});
+
 it('Queue | Pause in series', () => {
     const div = createDiv();
     const canvas = createCanvas(div);

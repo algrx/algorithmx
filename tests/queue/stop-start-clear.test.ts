@@ -118,6 +118,25 @@ it('Queue | Stop then clear then start', () => {
     });
 });
 
+it('Queue | Stop/start/clear with message callbacks', () => {
+    const canvas = createCanvas(createDiv());
+    return new Promise((resolve, reject) => {
+        canvas.onmessage('e', () => reject(new Error("queue didn't stop")));
+        canvas.onmessage('m', resolve);
+
+        canvas.onmessage('stop', () => canvas.queue().stop());
+        canvas.onmessage('start', () => canvas.queue().start());
+        canvas.onmessage('clear', () => canvas.queue().clear());
+
+        canvas.message('stop').message('e');
+
+        canvas.withQ(2).message('clear').message('start');
+        canvas.message('m');
+
+        setTimeout(() => reject(new Error("queue didn't start")), 20);
+    });
+});
+
 it('Queue | Interrupt pause', () => {
     const canvas = createCanvas(createDiv());
     return new Promise((resolve, reject) => {
