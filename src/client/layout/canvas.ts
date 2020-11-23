@@ -26,7 +26,7 @@ export const initLayout = (tick: () => void): LayoutState => {
 
     return {
         cola: cola,
-        tick: () => null,
+        tick: tick,
         nodes: {},
         adjList: {},
     };

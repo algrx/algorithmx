@@ -20,7 +20,7 @@ import { mapDict, Dict, dictFromArray } from '../utils';
 
 export const isPrimitive = (spec: AttrSpec): spec is PrimitiveSpec => {
     return (
-        spec.type == AttrType.Boolean ||
+        spec.type === AttrType.Boolean ||
         spec.type === AttrType.Number ||
         spec.type === AttrType.String
     );

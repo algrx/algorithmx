@@ -76,40 +76,52 @@ const renderAlign = (
     attrs: FullEvalAttr<LabelSpec>,
     changes: PartialEvalAttr<LabelSpec>
 ) => {
-    if (
-        changes.align === undefined &&
-        (attrs.align !== 'radial' || !(changes.radius || changes.angle))
-    )
-        return;
-
+    const didChangeAlign =
+        changes.align !== undefined ||
+        (attrs.align === 'radial' && changes.radius) ||
+        changes.angle;
     const anim = attrs.align === 'radial' ? changes.radius ?? changes.angle ?? {} : {};
 
-    renderWithAnim(textSel, [anim, 'align'], [attrs, changes], (s, a) => {
-        const align = getExactAlign(a.angle?.value ?? attrs.angle.value, attrs.rotate, attrs.align);
-
-        return s
-            .attr('y', isAlignTop(align) ? '0.75em' : isAlignBottom(align) ? '0em' : '0.25em')
-            .attr(
-                'text-anchor',
-                align === 'top-left' || align === 'middle-left' || align === 'bottom-left'
-                    ? 'start'
-                    : align === 'top-right' || align === 'middle-right' || align === 'bottom-right'
-                    ? 'end'
-                    : 'middle'
+    if (didChangeAlign) {
+        renderWithAnim(textSel, [anim, 'align'], [attrs, changes], (s, a) => {
+            const align = getExactAlign(
+                a.angle?.value ?? attrs.angle.value,
+                attrs.rotate,
+                attrs.align
             );
-    });
 
-    renderWithAnim(textSel.select('tspan'), [anim, 'align-text'], [attrs, changes], (s, a) => {
-        const align = getExactAlign(a.angle?.value ?? attrs.angle.value, attrs.rotate, attrs.align);
-        const numTextLines = attrs.text.split('\n').length;
-        const textOffset = isAlignTop(align)
-            ? 0
-            : isAlignBottom(align)
-            ? (numTextLines - 1) * LINE_HEIGHT
-            : ((numTextLines - 1) / 2) * LINE_HEIGHT;
+            return s
+                .attr('y', isAlignTop(align) ? '0.75em' : isAlignBottom(align) ? '0em' : '0.25em')
+                .attr(
+                    'text-anchor',
+                    align === 'top-left' || align === 'middle-left' || align === 'bottom-left'
+                        ? 'start'
+                        : align === 'top-right' ||
+                          align === 'middle-right' ||
+                          align === 'bottom-right'
+                        ? 'end'
+                        : 'middle'
+                );
+        });
+    }
 
-        return s.attr('dy', `-${textOffset}em`);
-    });
+    if (didChangeAlign || changes.text !== undefined) {
+        renderWithAnim(textSel.select('tspan'), [anim, 'align-text'], [attrs, changes], (s, a) => {
+            const align = getExactAlign(
+                a.angle?.value ?? attrs.angle.value,
+                attrs.rotate,
+                attrs.align
+            );
+            const numTextLines = attrs.text.split('\n').length;
+            const textOffset = isAlignTop(align)
+                ? 0
+                : isAlignBottom(align)
+                ? (numTextLines - 1) * LINE_HEIGHT
+                : ((numTextLines - 1) / 2) * LINE_HEIGHT;
+
+            return s.attr('dy', `-${textOffset}em`);
+        });
+    }
 };
 
 const renderText = (textSel: D3Selection, text: string) => {

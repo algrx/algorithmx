@@ -18,45 +18,46 @@ import { disableAnim } from '../attributes/transform';
 const animateAdd = (
     elementSel: D3Selection,
     visible: PartialEvalAttr<ElementSpec['entries']['visible']>
-): void => {
+): D3SelTrans => {
     elementSel.attr('opacity', '0');
     const transition = animate(elementSel, 'visible-fade', visible).attr('opacity', '1');
-    newTransition(transition, (t) => t).attr('opacity', null);
+    return newTransition(transition, (t) => t).attr('opacity', null);
 };
 
 const animateRemove = (
     elementSel: D3Selection,
     visible: PartialEvalAttr<ElementSpec['entries']['visible']>
-): void => {
+): D3SelTrans => {
     elementSel.attr('opacity', '1');
-    const transition = animate(elementSel, 'visible-fade', visible).attr('opacity', '0');
+    return animate(elementSel, 'visible-fade', visible).attr('opacity', '0');
 };
 
 const renderVisible = (
-    selection: D3Selection,
+    elementSel: D3Selection,
     visibleChange: PartialEvalAttr<ElementSpec['entries']['visible']>
-) => {
+): D3SelTrans => {
     if (!isAnimImmediate(visibleChange)) {
-        if (visibleChange.value === true) animateAdd(selection, visibleChange);
-        else animateRemove(selection, visibleChange);
+        if (visibleChange.value === true) return animateAdd(elementSel, visibleChange);
+        else return animateRemove(elementSel, visibleChange);
     }
+    return elementSel;
 };
 
 export const renderVisRemove = (
-    selection: D3Selection,
+    elementSel: D3Selection,
     visibleChange: PartialEvalAttr<ElementSpec['entries']['visible']> | undefined,
     removeChange: PartialEvalAttr<ElementSpec['entries']['remove']> | undefined
 ) => {
     if (removeChange === true || visibleChange?.value === false) {
-        renderVisible(selection, { ...visibleChange, value: false });
+        renderVisible(elementSel, { ...visibleChange, value: false });
 
-        if (visibleChange === undefined || isAnimImmediate(visibleChange)) selection.remove();
+        if (visibleChange === undefined || isAnimImmediate(visibleChange)) elementSel.remove();
         else {
-            transition(selection, 'remove', (t) =>
+            transition(elementSel, 'remove', (t) =>
                 t.delay((visibleChange!.duration ?? 0) * 1000)
             ).remove();
         }
-    } else if (visibleChange?.value === true) renderVisible(selection, visibleChange);
+    } else if (visibleChange?.value === true) renderVisible(elementSel, visibleChange);
 };
 
 export const getAllElementChanges = <T extends ElementSpec>(

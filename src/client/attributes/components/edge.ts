@@ -106,13 +106,6 @@ export const edgeDefaults: FullAttr<EdgeSpec> = {
     ...elementDefaults,
 };
 
-const edgeLabelDefaults: FullAttr<LabelSpec> = mergeDiff(labelDefaults, {
-    align: 'radial',
-    rotate: true,
-    size: { value: 11 },
-    radius: { value: 3 },
-});
-
 export const createEdgeDefaults = (
     prevAttrs: FullAttr<EdgeSpec> | undefined,
     changes: PartialAttr<EdgeSpec>
@@ -136,6 +129,10 @@ export const createEdgeDefaults = (
             return mergeDiff(labelDictDefaults[k], {
                 pos: { value: [0, pathMidYNum] },
                 angle: { value: angleToDeg(angle) },
+                align: 'radial',
+                rotate: true,
+                size: { value: 11 },
+                radius: { value: 3 },
             });
         }
     );
@@ -193,7 +190,6 @@ export const createEdgeDictDefaults = (
     prevAttrs: FullAttr<DictSpec<EdgeSpec>> | undefined,
     changes: PartialAttr<DictSpec<EdgeSpec>>
 ): FullAttr<DictSpec<EdgeSpec>> => {
-    const numPrevEdges = Object.keys(prevAttrs ?? {}).length;
     const newEdges = Object.entries(changes)
         .filter(([k]) => !prevAttrs || !(k in prevAttrs))
         .reduce(

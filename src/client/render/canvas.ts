@@ -62,12 +62,15 @@ export const getCanvasSize = (canvas: CanvasElement): [number, number] => {
     else return [100, 100];
 };
 
-const selectLabel = (canvasSel: D3Selection, id: string): D3Selection => {
-    const labelGroup = selectOrAdd(selectInnerCanvas(canvasSel), '.labels', (s) =>
+const selectLabelGroup = (canvasSel: D3Selection): D3Selection => {
+    return selectOrAdd(selectInnerCanvas(canvasSel), '.labels', (s) =>
         s.append('g').classed('labels', true)
     );
+};
+
+const selectLabel = (canvasSel: D3Selection, id: string): D3Selection => {
     const renderId = createRenderId(id);
-    return selectOrAdd(labelGroup, `#label-${renderId}`, (s) =>
+    return selectOrAdd(selectLabelGroup(canvasSel), `#label-${renderId}`, (s) =>
         s.append('g').attr('id', `label-${renderId}`)
     );
 };
@@ -122,7 +125,8 @@ export const renderCanvas = (
     if (attrs?.visible.value === true) renderCanvasAttrs(canvasSel, attrs, changes);
     else return initRenderState;
 
-    // create node and edge groups, so that nodes are rendered on top of edges
+    // ensure correct render order
+    selectLabelGroup(canvasSel);
     selectEdgeGroup(canvasSel);
     selectNodeGroup(canvasSel);
 

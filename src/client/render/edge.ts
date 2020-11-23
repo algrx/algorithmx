@@ -24,7 +24,7 @@ export const selectEdgeLabelGroup = (edgeSel: D3Selection): D3Selection => {
 const selectLabel = (edgeSel: D3Selection, id: string): D3Selection => {
     const labelGroup = selectEdgeLabelGroup(edgeSel);
     const renderId = createRenderId(id);
-    return selectOrAdd(edgeSel, `#label-${renderId}`, (s) =>
+    return selectOrAdd(labelGroup, `#label-${renderId}`, (s) =>
         s.append('g').attr('id', `label-${renderId}`)
     );
 };

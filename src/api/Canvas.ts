@@ -292,7 +292,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      * argument.
      */
     onmessage(message: string | '*', fn: (message: string) => void) {
-        if (message == '*') {
+        if (message === '*') {
             this._selection.callbacks.message = fn;
         } else {
             this._selection.callbacks.messages = {

@@ -70,7 +70,7 @@ const getLiveEdgeAttrs = (
 const shouldFlip = (attrs: FullEvalAttr<EdgeSpec>, liveAttrs: LiveEdgeAttrs): boolean => {
     return (
         attrs.flip &&
-        attrs.source !== attrs.source &&
+        attrs.source !== attrs.target &&
         liveAttrs.angle > Math.PI / 2 &&
         liveAttrs.angle <= (Math.PI * 3) / 2
     );

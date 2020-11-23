@@ -20,7 +20,7 @@ interface PreprocessInfo {
 }
 
 const formatPath = (path: PreprocessInfo['path']): string => {
-    return path.reduce((result: string, [name, type], i) => {
+    return path.reduce((result: string, [name], i) => {
         if (i > 0) {
             const prevType = path[i - 1][1];
             return (

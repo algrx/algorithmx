@@ -84,24 +84,15 @@ const renderWithTick = (
             [changes.size, 'live-size'],
             [attrs.size, changes.size],
             (sel, v) => {
-                if (isTransition(sel)) {
-                    const selWithSize = sel
-                        .attr('_width', v.value![0])
-                        .attr('_height', v.value![1]);
-
-                    return selWithSize.tween(name, () => () => {
+                const selWithSize = sel.attr('_width', v.value![0]).attr('_height', v.value![1]);
+                if (isTransition(selWithSize)) {
+                    return selWithSize.tween('live-size-tick', () => () => {
                         tick();
                     });
                 }
                 return sel;
             }
         );
-
-        transition(nodeSel, 'live-size-remove', (t) =>
-            t.delay((changes.size!.duration ?? 0) * 1000)
-        )
-            .attr('_width', null)
-            .attr('_height', null);
     }
 };
 
@@ -114,6 +105,7 @@ export const renderNode = (
     const nodeSel = selectNode(canvasSel, nodeId);
     const changes = getAllElementChanges(nodeSpec, attrs, initChanges);
 
+    //console.log(attrs);
     renderVisRemove(nodeSel, changes.visible, changes.remove);
     if (attrs?.visible.value === true) renderNodeAttrs(nodeSel, attrs, changes);
     else return;
