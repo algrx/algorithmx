@@ -39,7 +39,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
     /**
      * Selects a node by its ID. Use "*" to select all existing nodes.
      *
-     * @param id - A node ID.
+     * @param id - A node ID, which must not include the "-" character.
      *
      * @return A new selection corresponding to the given node.
      */
@@ -51,7 +51,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      * Selects multiple nodes using an list of ID values. If no list is provided, all existing nodes
      * will be selected.
      *
-     * @param ids - A list of node IDs.
+     * @param ids - A list of node IDs, which must not include the "-" character.
      *
      * @return A new selection corresponding to the given nodes.
      */

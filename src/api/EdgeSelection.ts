@@ -24,6 +24,7 @@ export class EdgeSelection<D> extends ElementSelection<EdgeAttrs, D> {
         super(context);
         this._selection = context;
     }
+
     /**
      * Selects a single edge label by its ID. Use "*" to select all existing labels.
      *
