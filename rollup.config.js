@@ -75,7 +75,7 @@ const mainConfig = {
 };
 
 const examplesConfig = {
-    input: ['examples/basic.ts'],
+    input: ['examples/example.ts'],
     output: {
         dir: 'examples/dist',
         name: 'examples',
