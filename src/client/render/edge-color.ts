@@ -80,17 +80,17 @@ export const renderTraverse = (
         renderIn(animate(overlaySel, 'color-traverse', changes.color));
 
         const animDuration = (changes.color.duration ?? 0) * 1000;
-        const endDuration = animDuration / 3;
+        const endDuration = Math.min(330, animDuration / 3);
 
-        transition(pathSel, 'color-traverse', (t) =>
-            t.delay(animDuration).duration(endDuration)
+        newTransition(pathSel, (t) =>
+            t.delay(animDuration - endDuration).duration(endDuration)
         ).attr('stroke', getColor(changes.color.value));
 
-        const removeTrans = newTransition(overlaySel.attr('opacity', 1), (t) =>
-            t.delay(animDuration + endDuration).duration(endDuration)
+        newTransition(overlaySel.attr('opacity', 1), (t) =>
+            t.delay(animDuration - endDuration).duration(endDuration)
         ).attr('opacity', 0);
 
-        newTransition(removeTrans, (t) => t.duration(0)).remove();
+        newTransition(overlaySel, (t) => t.delay(animDuration).duration(0)).remove();
     }
 };
 
