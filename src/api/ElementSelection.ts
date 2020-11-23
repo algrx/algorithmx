@@ -212,7 +212,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
     pause(seconds: number) {
         if (this._selection.withQ !== null && this._selection.callbacks.dispatch) {
             this._selection.callbacks.dispatch({
-                queues: { [String(this._selection.withQ ?? 0)]: { pause: seconds } },
+                queues: { [this._selection.withQ ?? 0]: { pause: seconds } },
                 withQ: this._selection.withQ ?? 0,
             });
         }

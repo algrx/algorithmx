@@ -240,7 +240,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      *
      * By default, any changes made to the queue (e.g. start/stop) will take place immediately.
      * However, if [[ElementSelection.withQ]] was previously called, the changes themselves will be
-     * added as events onto the current event queue.
+     * added as events onto the current queue.
      *
      * @param id - A queue ID. Defaults to 0.
      *

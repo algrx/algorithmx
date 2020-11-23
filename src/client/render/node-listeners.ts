@@ -66,7 +66,7 @@ export const registerNodeListeners = (
             if (!context.state.isDragging) {
                 canvasSel.style('cursor', null);
                 if (changes.listenhover)
-                    context.receive({ nodes: { [nodeId]: { hoverin: false } } });
+                    context.receive({ nodes: { [nodeId]: { hoverout: true } } });
             }
         });
     }
