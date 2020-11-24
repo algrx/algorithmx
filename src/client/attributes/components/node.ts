@@ -113,7 +113,10 @@ export const createNodeDefaults = (
     const prevLabelKeys = Object.keys(prevAttrs?.labels ?? {});
     const numPrevRadialLabels = prevLabelKeys.filter((k) => k !== VALUE_LABEL_ID).length;
     const newRadialLabels = mapDict(
-        filterDict(changes.labels ?? {}, (_, k) => k !== VALUE_LABEL_ID && !(k in prevLabelKeys)),
+        filterDict(
+            changes.labels ?? {},
+            (_, k) => k !== VALUE_LABEL_ID && !prevLabelKeys.includes(k)
+        ),
         (labelChanges, k, i) => {
             // calculate an angle around the node
             const radialIndex = numPrevRadialLabels + i;
@@ -123,7 +126,7 @@ export const createNodeDefaults = (
                 Math.floor(radialIndex / 4) * (Math.PI / 4);
 
             // apply label defaults
-            return mergeDiff(labelDictDefaults[k], {
+            return mergeDiff(labelDictDefaults[k] ?? labelDictDefaults['*'], {
                 text: k,
                 radius: { value: { m: 1, x: 'r', c: 3 } },
                 angle: { value: angleToDeg(labelAngle) },

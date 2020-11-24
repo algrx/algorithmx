@@ -56,7 +56,7 @@ export const applyDefaults = <T extends AttrSpec>(
 
     // the "*" entry in a dict contains defaults for all of the children
     const getChildDefaults = (k: AttrKey<T>) =>
-        getAttrEntry(defaultsWithAnim, k) ?? getAttrEntry(defaults, '*' as AttrKey<T>);
+        getAttrEntry(defaultsWithAnim, k) ?? getAttrEntry(defaultsWithAnim, '*' as AttrKey<T>);
 
     if (prevAttrs === undefined || changes === undefined) {
         // if the attributes are new, include all defaults
@@ -65,12 +65,16 @@ export const applyDefaults = <T extends AttrSpec>(
             defaultsWithAnim as PartialAttr<T>,
             changes,
             (_, childChanges, k, childSpec) => {
-                const childDefaults = getChildDefaults(k);
+                const childDefaults =
+                    spec.type === AttrType.Array
+                        ? getChildDefaults(0 as AttrKey<T>)
+                        : getChildDefaults(k);
+
                 if (childDefaults === undefined) {
                     console.error('unexpected error: missing defaults');
-                    console.log(changes);
                     return undefined;
                 }
+
                 if (k === '*') return undefined; // don't include "*" as an actual attribute
 
                 return applyDefaults(childSpec, undefined, childChanges, [

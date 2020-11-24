@@ -126,7 +126,7 @@ export const createEdgeDefaults = (
             const index = prevLabelKeys.length + i;
             const angle = index % 2 === 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
 
-            return mergeDiff(labelDictDefaults[k], {
+            return mergeDiff(labelDictDefaults[k] ?? labelDictDefaults['*'], {
                 pos: { value: [0, pathMidYNum] },
                 angle: { value: angleToDeg(angle) },
                 align: 'radial',
