@@ -7,7 +7,7 @@ import { NodeSelection } from './NodeSelection';
 import { EdgeSelection, EdgeId } from './EdgeSelection';
 import { LabelSelection } from './LabelSelection';
 import { QueueSelection } from './QueueSelection';
-import { ElementContext, ElementObjArg, ElementCallbacks, evalElementObjArg } from './utils';
+import { ElementContext, ElementObjArg, ElementCallbacks, evalElementDict } from './utils';
 import { ElementId, NumAttr } from './types';
 
 export type CanvasAttrs = InputAttr<CanvasSpec>;
@@ -39,7 +39,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
     /**
      * Selects a node by its ID. Use "*" to select all existing nodes.
      *
-     * @param id - A node ID, which must not include the "-" character.
+     * @param id - A node ID. Avoid using the "-" character.
      *
      * @return A new selection corresponding to the given node.
      */
@@ -51,7 +51,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      * Selects multiple nodes using an list of ID values. If no list is provided, all existing nodes
      * will be selected.
      *
-     * @param ids - A list of node IDs, which must not include the "-" character.
+     * @param ids - A list of node IDs. Avoid using the "-" character.
      *
      * @return A new selection corresponding to the given nodes.
      */
@@ -107,7 +107,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
                           return id[0] + '-' + id[1] + (id.length > 2 ? '-' + id[2] : '');
                       }),
             data: ids ?? [['*', '*'] as ID],
-            tuples: ids,
+            edges: ids,
             parentkey: 'edges',
             parent: this._selection,
         });

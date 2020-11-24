@@ -7,8 +7,8 @@ import {
     ElementContext,
     ElementObjArg,
     applyAttrs,
-    evalElementObjArg,
-    evalElementArg,
+    evalElementValue,
+    evalElementDict,
 } from './utils';
 import { Canvas } from './Canvas';
 
@@ -62,7 +62,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * @param attrs - An attribute dictionary.
      */
     attrs(attrs: ElementObjArg<T, D>): this {
-        applyAttrs(this._selection, (d, i) => evalElementObjArg(attrs, d, i));
+        applyAttrs(this._selection, (d, i) => evalElementDict(attrs, d, i));
         return this;
     }
 
@@ -75,9 +75,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * further attribute initialisation.
      */
     add(attrs?: ElementObjArg<T, D>) {
-        return this.attrs((d, i) => (attrs ? evalElementObjArg(attrs, d, i) : ({} as T))).duration(
-            0
-        );
+        return this.attrs((d, i) => (attrs ? evalElementDict(attrs, d, i) : ({} as T))).duration(0);
     }
 
     /**
@@ -94,14 +92,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * @param value - Whether or not the selected elements should be visible.
      */
     visible(visible: ElementArg<boolean, D>) {
-        return this.attrs(
-            (d, i) =>
-                ({
-                    visible: {
-                        value: evalElementArg(visible, d, i),
-                    },
-                } as T)
-        );
+        return this.attrs({ visible } as T);
     }
 
     /**
@@ -116,7 +107,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
      * @param value - The value of the SVG attribute.
      */
     svgattr(key: string, value: ElementArg<string | number, D>) {
-        return this.attrs((d, i) => ({ svgattrs: { [key]: evalElementArg(value, d, i) } } as T));
+        return this.attrs((d, i) => ({ svgattrs: { [key]: evalElementValue(value, d, i) } } as T));
     }
 
     /**
@@ -237,7 +228,7 @@ export class ElementSelection<T extends ElementAttrs, D> {
                 ? data
                 : this._selection.data &&
                   this._selection.data.map((d, i) =>
-                      evalElementArg(data as ElementFn<ND, D>, d, i)
+                      evalElementValue(data as ElementFn<ND, D>, d, i)
                   ),
         });
     }

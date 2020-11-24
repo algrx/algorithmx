@@ -4,14 +4,20 @@ import { EdgeSpec, EdgeCurve } from '../client/attributes/components/edge';
 import { ElementSelection } from './ElementSelection';
 import { LabelSelection } from './LabelSelection';
 import { ElementId, ElementArg, NumAttr, ElementFn } from './types';
-import { ElementContext, evalElementArg, applyAttrs } from './utils';
+import {
+    ElementContext,
+    evalElementValue,
+    applyAttrs,
+    ElementObjArg,
+    evalElementDict,
+} from './utils';
 
 export type EdgeId = [ElementId, ElementId, ElementId?];
 
 export type EdgeAttrs = InputAttr<EdgeSpec>;
 
 type EdgeContext<D> = ElementContext<D> & {
-    readonly tuples?: ReadonlyArray<EdgeId>;
+    readonly edges?: ReadonlyArray<EdgeId>;
 };
 
 /**
@@ -23,6 +29,20 @@ export class EdgeSelection<D> extends ElementSelection<EdgeAttrs, D> {
     constructor(context: EdgeContext<D>) {
         super(context);
         this._selection = context;
+    }
+
+    add(attrs?: ElementObjArg<EdgeAttrs, D>) {
+        applyAttrs(this._selection, (data, dataIndex, elementIndex) => {
+            const attrObj = attrs ? evalElementDict(attrs, data, dataIndex) : {};
+            return this._selection.edges
+                ? {
+                      source: this._selection.edges[elementIndex][0],
+                      target: this._selection.edges[elementIndex][1],
+                      ...attrObj,
+                  }
+                : attrObj;
+        });
+        return this.duration(0);
     }
 
     /**
@@ -104,16 +124,16 @@ export class EdgeSelection<D> extends ElementSelection<EdgeAttrs, D> {
     traverse(color: ElementArg<string, D>, source?: ElementArg<ElementId, D>) {
         applyAttrs<EdgeAttrs, D>(this._selection, (data, dataIndex, i) => {
             const animsource = source
-                ? evalElementArg(source, data, dataIndex)
-                : this._selection.tuples
-                ? this._selection.tuples[i][0]
+                ? evalElementValue(source, data, dataIndex)
+                : this._selection.edges
+                ? this._selection.edges[i][0]
                 : undefined;
 
             return {
                 color: {
                     animtype: 'traverse',
-                    value: evalElementArg(color, data, dataIndex),
-                    ...(animsource ? { animsource } : {}),
+                    value: evalElementValue(color, data, dataIndex),
+                    ...(animsource !== undefined ? { animsource } : {}),
                 },
             };
         });

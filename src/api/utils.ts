@@ -40,30 +40,30 @@ export type ElementObjArg<T, D> =
 export const isElementFn = <V, D>(v: ElementArg<V, D>): v is ElementFn<V, D> =>
     typeof v === 'function';
 
-export const evalElementArg = <T, D>(arg: ElementArg<T, D>, data: D, index: number): T => {
-    if (isElementFn(arg)) return arg(data, index);
-    else return arg;
+export const evalElementValue = <T, D>(value: ElementArg<T, D>, data: D, index: number): T => {
+    if (isElementFn(value)) return value(data, index);
+    else return value;
 };
 
-export const evalElementObjArg = <T, D>(arg: ElementObjArg<T, D>, data: D, index: number): T => {
+export const evalElementDict = <T, D>(dict: ElementObjArg<T, D>, data: D, index: number): T => {
     // evaluate the entire object as a function
-    if (isElementFn(arg)) return arg(data, index);
+    if (isElementFn(dict)) return dict(data, index);
     else {
-        if (Object.keys(arg).every((k) => !isElementFn(arg[k as keyof T]))) {
+        if (Object.keys(dict).every((k) => !isElementFn(dict[k as keyof T]))) {
             // simply return the object if it has no function keys
-            return arg as T;
+            return dict as T;
         }
 
         // evaluate each key which has a function
-        let argObj = {} as T;
-        Object.keys(arg).forEach((k) => {
-            argObj[k as keyof T] = evalElementArg(
-                arg[k as keyof T] as ElementArg<T[keyof T], D>,
+        let newDict = {} as T;
+        Object.keys(dict).forEach((k) => {
+            newDict[k as keyof T] = evalElementValue(
+                dict[k as keyof T] as ElementArg<T[keyof T], D>,
                 data,
                 index
             );
         });
-        return argObj;
+        return newDict;
     }
 };
 
@@ -118,7 +118,7 @@ export const addElementCallback = <D>(
     context.ids.forEach((k, i) => {
         elementCbDict[k] = {
             ...elementCbDict[k],
-            [eventType]: () => evalElementArg(fn, context.data![i], i),
+            [eventType]: () => evalElementValue(fn, context.data![i], i),
         };
     });
 
