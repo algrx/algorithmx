@@ -36,11 +36,8 @@ const renderVisible = (
     elementSel: D3Selection,
     visibleChange: PartialEvalAttr<ElementSpec['entries']['visible']>
 ): D3SelTrans => {
-    if (!isAnimImmediate(visibleChange)) {
-        if (visibleChange.value === true) return animateAdd(elementSel, visibleChange);
-        else return animateRemove(elementSel, visibleChange);
-    }
-    return elementSel;
+    if (visibleChange.value === true) return animateAdd(elementSel, visibleChange);
+    else return animateRemove(elementSel, visibleChange);
 };
 
 export const renderVisRemove = (
@@ -57,7 +54,10 @@ export const renderVisRemove = (
                 t.delay((visibleChange!.duration ?? 0) * 1000)
             ).remove();
         }
-    } else if (visibleChange?.value === true) renderVisible(elementSel, visibleChange);
+    } else if (visibleChange?.value === true) {
+        elementSel.interrupt('remove'); // cancel remove
+        renderVisible(elementSel, visibleChange);
+    }
 };
 
 export const getAllElementChanges = <T extends ElementSpec>(

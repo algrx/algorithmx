@@ -11,16 +11,22 @@ export const updatePanZoomBehaviour = (
     zoomBehaviour: D3ZoomBehaviour | undefined
 ): D3ZoomBehaviour => {
     if (
+        changes.size ||
         changes.panlimit ||
         changes.zoomlimit ||
         changes.zoomtoggle ||
         zoomBehaviour === undefined
     ) {
+        const size = changes.size?.value ?? attrs.size.value;
         const panlimit = changes.panlimit ?? attrs.panlimit;
         const zoomlimit = changes.zoomlimit ?? attrs.zoomlimit;
         const zoomtoggle = changes.zoomtoggle ?? attrs.zoomtoggle;
         const newZoomBehaviour = d3
             .zoom()
+            .extent([
+                [0, 0],
+                [size[0], size[1]],
+            ])
             .translateExtent([
                 [-panlimit[0], -panlimit[1]],
                 [panlimit[0], panlimit[1]],

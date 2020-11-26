@@ -30,10 +30,10 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
             ...context,
         });
 
-        if (context.client) {
-            this._selection.callbacks.dispatch = context.client.dispatch.bind(context.client);
-            context.client.onreceive(this.receive.bind(this));
-        }
+        this._selection.callbacks.dispatch = (event) => {
+            if (context.client) context.client.dispatch(event);
+        };
+        if (context.client) context.client.onreceive(this.receive.bind(this));
     }
 
     /**

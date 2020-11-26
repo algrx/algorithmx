@@ -108,7 +108,8 @@ export const edgeDefaults: FullAttr<EdgeSpec> = {
 
 export const createEdgeDefaults = (
     prevAttrs: FullAttr<EdgeSpec> | undefined,
-    changes: PartialAttr<EdgeSpec>
+    changes: PartialAttr<EdgeSpec>,
+    path: PartialAttr<EdgeSpec['entries']['path']>
 ): FullAttr<EdgeSpec> => {
     if (!changes.labels) return edgeDefaults;
 
@@ -119,7 +120,6 @@ export const createEdgeDefaults = (
     const newLabels = mapDict(
         filterDict(changes.labels!, (_, k) => !(k in prevLabelKeys)),
         (labelChanges, k, i) => {
-            const path = changes.path ?? prevAttrs?.path ?? edgeDefaults.path;
             const pathMidY = path.length === 0 ? 0 : path[Math.floor((path.length - 1) / 2)][1];
             const pathMidYNum = typeof pathMidY === 'number' ? pathMidY : 0;
 
@@ -153,25 +153,26 @@ export const createEdgeDefaults = (
 interface EdgeAdjMatrix {
     readonly [k: string]: { readonly [k: string]: number };
 }
-const incrementMatrix = (matrix: EdgeAdjMatrix, source: string, target: string): EdgeAdjMatrix => {
+const incrementMatrix = (
+    matrix: EdgeAdjMatrix,
+    [source, target]: [string, string]
+): EdgeAdjMatrix => {
     const sourceAdj = matrix[source] ?? {};
-    const targetAdj = matrix[target] ?? {};
-
-    const sourceLookup = {
+    const newSourceAdj = {
         ...sourceAdj,
         [target]: sourceAdj[target] ? sourceAdj[target] + 1 : 1,
     };
-    const targetLookup = {
+    const targetAdj = matrix[target] ?? {};
+    const newTargetAdj = {
         ...targetAdj,
         [source]: targetAdj[source] ? targetAdj[source] + 1 : 1,
     };
-
-    return { ...matrix, [source]: sourceLookup, [target]: targetLookup };
+    return { ...matrix, [source]: newSourceAdj, [target]: newTargetAdj };
 };
 
 const createAdjMatrix = (edges: FullAttr<DictSpec<EdgeSpec>>): EdgeAdjMatrix => {
     return Object.values(edges).reduce((matrix, e) => {
-        return incrementMatrix(matrix, e.source, e.target);
+        return incrementMatrix(matrix, [e.source, e.target]);
     }, {} as EdgeAdjMatrix);
 };
 
@@ -201,7 +202,7 @@ export const createEdgeDictDefaults = (
                 const source = edgeChanges.source ?? parsedId?.[0] ?? '';
                 const target = edgeChanges.target ?? parsedId?.[1] ?? '';
 
-                const newMatrix = incrementMatrix(acc.matrix, source, target);
+                const newMatrix = incrementMatrix(acc.matrix, [source, target]);
                 const index = newMatrix[source][target] - 1;
 
                 const loopingPath = (i: number): ReadonlyArray<[number, number]> => [
@@ -212,14 +213,18 @@ export const createEdgeDictDefaults = (
                     [(i + 1) * 8, 8],
                 ];
 
-                const newEdgeDefaults = mergeDiff(createEdgeDefaults(undefined, changes[k]!), {
-                    source,
-                    target,
-                    path:
-                        source === target
-                            ? loopingPath(index)
-                            : [[0, Math.pow(-1, index + 1) * Math.ceil(index / 2) * 16]],
-                });
+                const defaultPath: ReadonlyArray<[number, number]> =
+                    source === target
+                        ? loopingPath(index)
+                        : [[0, Math.pow(-1, index + 1) * Math.ceil(index / 2) * 16]];
+                const newEdgeDefaults = mergeDiff(
+                    createEdgeDefaults(undefined, edgeChanges, edgeChanges.path ?? defaultPath),
+                    {
+                        source,
+                        target,
+                        path: defaultPath,
+                    }
+                );
                 return { matrix: newMatrix, edges: { ...acc.edges, [k]: newEdgeDefaults } };
             },
             { matrix: createAdjMatrix(prevAttrs ?? {}), edges: {} as FullAttr<DictSpec<EdgeSpec>> }
@@ -227,7 +232,8 @@ export const createEdgeDictDefaults = (
 
     return {
         ...mapDict(changes, (edgeChanges, k) => {
-            return newEdges[k] ?? createEdgeDefaults(prevAttrs?.[k], edgeChanges);
+            const path = edgeChanges.path ?? prevAttrs?.[k]?.path;
+            return newEdges[k] ?? createEdgeDefaults(prevAttrs?.[k], edgeChanges, path!);
         }),
     };
 };

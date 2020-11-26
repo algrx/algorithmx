@@ -105,7 +105,6 @@ export const renderNode = (
     const nodeSel = selectNode(canvasSel, nodeId);
     const changes = getAllElementChanges(nodeSpec, attrs, initChanges);
 
-    //console.log(attrs);
     renderVisRemove(nodeSel, changes.visible, changes.remove);
     if (attrs?.visible.value === true) renderNodeAttrs(nodeSel, attrs, changes);
     else return;
