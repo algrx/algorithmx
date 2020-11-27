@@ -1,6 +1,6 @@
 # clone and merge
 git clone "https://${DEPLOY_GITHUB_TOKEN}@github.com/algrx/algrx.github.io.git" website
-rm -rf website/docs/js
+mkdir -p website/docs && rm -rf website/docs/js
 cp -r docs website/docs/js
 cd website
 

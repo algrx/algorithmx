@@ -7,7 +7,7 @@ services:
         image: algorithmx-build
         volumes:
             - './dist:/app/dist'
-            - './public:/app/public'
+            - './docs:/app/docs'
             - './coverage:/app/coverage'
         command: bash -c "
             npm run test
