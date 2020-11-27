@@ -12,9 +12,10 @@ export interface ElementCallbacks {
 export interface EventCallbacks {
     dispatch?: (event: DispatchEvent) => void;
     receive?: (event: ReceiveEvent) => void;
-    message?: (message: string) => void;
     messages?: {
         readonly [k: string]: () => void;
+    } & {
+        readonly '*': (message: string) => void;
     };
     nodes?: {
         readonly [k: string]: ElementCallbacks;

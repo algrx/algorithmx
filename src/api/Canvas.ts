@@ -7,7 +7,13 @@ import { NodeSelection } from './NodeSelection';
 import { EdgeSelection, EdgeId } from './EdgeSelection';
 import { LabelSelection } from './LabelSelection';
 import { QueueSelection } from './QueueSelection';
-import { ElementContext, ElementObjArg, ElementCallbacks, evalElementDict } from './utils';
+import {
+    ElementContext,
+    ElementObjArg,
+    ElementCallbacks,
+    EventCallbacks,
+    evalElementDict,
+} from './utils';
 import { ElementId, NumAttr } from './types';
 
 export type CanvasAttrs = InputAttr<CanvasSpec>;
@@ -292,14 +298,10 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      * argument.
      */
     onmessage(message: string | '*', fn: (message: string) => void) {
-        if (message === '*') {
-            this._selection.callbacks.message = fn;
-        } else {
-            this._selection.callbacks.messages = {
-                ...this._selection.callbacks.messages,
-                [message]: fn as () => void,
-            };
-        }
+        this._selection.callbacks.messages = {
+            ...this._selection.callbacks.messages,
+            [message]: fn,
+        } as EventCallbacks['messages'];
         return this;
     }
 
@@ -357,7 +359,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
 
         // message callbacks
         if (event.message !== undefined && cbs.messages) {
-            if (cbs.message) cbs.message(event.message);
+            if ('*' in cbs.messages) cbs.messages['*'](event.message);
             if (event.message in cbs.messages) cbs.messages[event.message]();
         }
 
