@@ -1,6 +1,6 @@
 # AlgorithmX
 
-[![travis](https://travis-ci.com/algrx/algorithmx.svg)](https://travis-ci.com/algrx/algorithmx)
+![build](https://github.com/algrx/algorithmx/workflows/build/badge.svg)
 [![npm](https://img.shields.io/npm/v/algorithmx.svg)](https://www.npmjs.com/package/algorithmx)
 [![codecov](https://codecov.io/gh/algrx/algorithmx/branch/master/graph/badge.svg)](https://codecov.io/gh/algrx/algorithmx)
 
