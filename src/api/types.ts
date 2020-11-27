@@ -3,9 +3,9 @@ import { InputAttr } from '../client/attributes/derived';
 import { ElementSpec } from '../client/attributes/components/element';
 
 /**
- * All element IDs can be provided as a string or a number (which will be converted to a string).
+ * An ID value, which will be converted to a string.
  */
-export type ElementId = string | number;
+export type AnyId = unknown;
 
 /**
  * A function taking a selected element's data as and index input.

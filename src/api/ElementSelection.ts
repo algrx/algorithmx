@@ -2,7 +2,7 @@ import { InputAttr } from '../client/attributes/derived';
 import { ElementSpec } from '../client/attributes/components/element';
 import { AnimEase } from '../client/attributes/components/animation';
 
-import { ElementArg, ElementFn } from './types';
+import { ElementArg, ElementFn, AnyId } from './types';
 import {
     ElementContext,
     ElementObjArg,
@@ -123,10 +123,10 @@ export class ElementSelection<T extends ElementAttrs, D> {
      *
      * @return A new instance of the current selection using the given queue.
      */
-    withQ(queue: string | number | null = 0): this {
+    withQ(queue: AnyId | null = 0): this {
         return new this.constructor({
             ...this._selection,
-            withQ: typeof queue === 'number' ? String(queue) : queue,
+            withQ: queue === null ? null : String(queue),
         }) as this;
     }
 

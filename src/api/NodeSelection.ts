@@ -4,7 +4,7 @@ import { NodeSpec, NodeShape } from '../client/attributes/components/node';
 import { LabelSelection } from './LabelSelection';
 import { ElementSelection } from './ElementSelection';
 import { addElementCallback } from './utils';
-import { ElementArg, ElementId, ElementFn, NumAttr } from './types';
+import { ElementArg, AnyId, ElementFn, NumAttr } from './types';
 
 export type NodeAttrs = InputAttr<NodeSpec>;
 
@@ -28,7 +28,7 @@ export class NodeSelection<D> extends ElementSelection<NodeAttrs, D> {
      * @return A new selection corresponding to the given label, with the same data as the current
      * selection.
      */
-    label(id: ElementId = 0): LabelSelection<D> {
+    label(id: AnyId = 0): LabelSelection<D> {
         return this.labels([id]);
     }
 
@@ -41,7 +41,7 @@ export class NodeSelection<D> extends ElementSelection<NodeAttrs, D> {
      * @return A new selection corresponding to the given labels, with the same data as the current
      * selection.
      */
-    labels(ids: ReadonlyArray<ElementId> = ['*']): LabelSelection<D> {
+    labels(ids: ReadonlyArray<AnyId> = ['*']): LabelSelection<D> {
         return new LabelSelection({
             ...this._selection,
             ids: ids.map((id) => String(id)),

@@ -3,7 +3,7 @@ import { EdgeSpec, EdgeCurve } from '../client/attributes/components/edge';
 
 import { ElementSelection } from './ElementSelection';
 import { LabelSelection } from './LabelSelection';
-import { ElementId, ElementArg, NumAttr, ElementFn } from './types';
+import { AnyId, ElementArg, NumAttr, ElementFn } from './types';
 import {
     ElementContext,
     evalElementValue,
@@ -12,7 +12,7 @@ import {
     evalElementDict,
 } from './utils';
 
-export type EdgeId = [ElementId, ElementId, ElementId?];
+export type EdgeId = [AnyId, AnyId, AnyId?];
 
 export type EdgeAttrs = InputAttr<EdgeSpec>;
 
@@ -36,8 +36,8 @@ export class EdgeSelection<D> extends ElementSelection<EdgeAttrs, D> {
             const attrObj = attrs ? evalElementDict(attrs, data, dataIndex) : {};
             return this._selection.edges
                 ? {
-                      source: this._selection.edges[elementIndex][0],
-                      target: this._selection.edges[elementIndex][1],
+                      source: String(this._selection.edges[elementIndex][0]),
+                      target: String(this._selection.edges[elementIndex][1]),
                       ...attrObj,
                   }
                 : attrObj;
@@ -53,7 +53,7 @@ export class EdgeSelection<D> extends ElementSelection<EdgeAttrs, D> {
      * @return A new selection corresponding to the given label, with the same data as the current
      * selection.
      */
-    label(id: ElementId = 0): LabelSelection<D> {
+    label(id: AnyId = 0): LabelSelection<D> {
         return this.labels([id]);
     }
 
@@ -66,7 +66,7 @@ export class EdgeSelection<D> extends ElementSelection<EdgeAttrs, D> {
      * @return A new selection corresponding to the given labels, with the same data as the current
      * selection.
      */
-    labels(ids: ReadonlyArray<ElementId> = ['*']): LabelSelection<D> {
+    labels(ids: ReadonlyArray<AnyId> = ['*']): LabelSelection<D> {
         return new LabelSelection({
             ...this._selection,
             ids: ids.map((id) => String(id)),
@@ -121,12 +121,12 @@ export class EdgeSelection<D> extends ElementSelection<EdgeAttrs, D> {
      * @param color - A CSS color string.
      * @param source - The ID of the node from which the traversal animation should originate.
      */
-    traverse(color: ElementArg<string, D>, source?: ElementArg<ElementId, D>) {
+    traverse(color: ElementArg<string, D>, source?: ElementArg<AnyId, D>) {
         applyAttrs<EdgeAttrs, D>(this._selection, (data, dataIndex, i) => {
             const animsource = source
-                ? evalElementValue(source, data, dataIndex)
+                ? String(evalElementValue(source, data, dataIndex))
                 : this._selection.edges
-                ? this._selection.edges[i][0]
+                ? String(this._selection.edges[i][0])
                 : undefined;
 
             return {

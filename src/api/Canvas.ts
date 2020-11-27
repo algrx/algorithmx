@@ -14,7 +14,7 @@ import {
     EventCallbacks,
     evalElementDict,
 } from './utils';
-import { ElementId, NumAttr } from './types';
+import { AnyId, NumAttr } from './types';
 
 export type CanvasAttrs = InputAttr<CanvasSpec>;
 
@@ -49,7 +49,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      *
      * @return A new selection corresponding to the given node.
      */
-    node<ID extends ElementId>(id: ID): NodeSelection<ID> {
+    node<ID extends AnyId>(id: ID): NodeSelection<ID> {
         return this.nodes([id]);
     }
 
@@ -61,7 +61,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      *
      * @return A new selection corresponding to the given nodes.
      */
-    nodes<ID extends ElementId = '*'>(ids: ReadonlyArray<ID> = ['*' as ID]): NodeSelection<ID> {
+    nodes<ID extends AnyId = '*'>(ids: ReadonlyArray<ID> = ['*' as ID]): NodeSelection<ID> {
         return new NodeSelection({
             ...this._selection,
             ids: ids.map((id) => String(id)),
@@ -110,7 +110,12 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
                 ids === undefined
                     ? ['*']
                     : ids.map((id) => {
-                          return id[0] + '-' + id[1] + (id.length > 2 ? '-' + id[2] : '');
+                          return (
+                              String(id[0]) +
+                              '-' +
+                              String(id[1]) +
+                              (id.length > 2 ? '-' + String(id[2]) : '')
+                          );
                       }),
             data: ids ?? [['*', '*'] as ID],
             edges: ids,
@@ -126,7 +131,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      *
      * @return A new selection corresponding to the given label.
      */
-    label<ID extends ElementId>(id: ID): LabelSelection<ID> {
+    label<ID extends AnyId>(id: ID): LabelSelection<ID> {
         return this.labels([id]);
     }
 
@@ -138,7 +143,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      *
      * @return A new selection corresponding to the given labels.
      */
-    labels<ID extends ElementId = '*'>(ids: ReadonlyArray<ID> = ['*' as ID]): LabelSelection<ID> {
+    labels<ID extends AnyId = '*'>(ids: ReadonlyArray<ID> = ['*' as ID]): LabelSelection<ID> {
         return new LabelSelection({
             ...this._selection,
             ids: ids.map((id) => String(id)),
@@ -252,7 +257,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      *
      * @return A new selection corresponding to the given queue.
      */
-    queue(id: string | number = 0): QueueSelection {
+    queue(id: AnyId = 0): QueueSelection {
         return this.queues([id]);
     }
 
@@ -265,7 +270,7 @@ export class Canvas extends ElementSelection<CanvasAttrs, null> {
      *
      * @return A new selection corresponding to the given queues.
      */
-    queues(ids: ReadonlyArray<string | number> = ['*']): QueueSelection {
+    queues(ids: ReadonlyArray<AnyId> = ['*']): QueueSelection {
         return new QueueSelection({
             ids: ids.map((id) => String(id)),
             callbacks: this._selection.callbacks,

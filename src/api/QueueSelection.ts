@@ -4,7 +4,7 @@ import { EventCallbacks } from './utils';
 
 interface QueueContext {
     readonly ids: ReadonlyArray<string>;
-    readonly withQ?: string | number | null;
+    readonly withQ?: string | null;
     readonly callbacks: EventCallbacks;
 }
 
