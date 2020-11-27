@@ -6,7 +6,10 @@
 
 <img src="https://raw.githubusercontent.com/algrx/algorithmx/master/img/logo.svg?sanitize=true" align="left" hspace="10" width="80px">
 
-**AlgorithmX** is an event-driven network visualization library, built on top of <a href="https://github.com/d3/d3">D3</a> and <a href="https://github.com/tgdwyer/WebCola">WebCola</a>. It can be used to create highly customizable interactive networks, as well as animated algorithm simulations.
+**AlgorithmX** is an event-driven network visualization library, built on top of <a
+href="https://github.com/d3/d3">D3</a> and <a href="https://github.com/tgdwyer/WebCola">WebCola</a>.
+It can be used to create interactive networks and animated algorithm simulations.
+
 <br><br>
 
 <img src="https://raw.githubusercontent.com/algrx/algorithmx/master/img/example.svg?sanitize=true" align="center" width="600px">
@@ -14,12 +17,12 @@
 ## Resources
 
 -   <a href="https://algrx.github.io/">Website</a>
--   <a href='https://algrx.github.io/algorithmx/docs/js'>Documentation</a>
+-   <a href='https://algrx.github.io/docs/js'>Documentation</a>
 -   <a href="https://github.com/algrx/algorithmx-python">Python version</a>
 
-## Installing
+## Install
 
-**Browser:**
+**Browser**
 
 ```html
 <script src="https://d3js.org/d3.v5.min.js"></script>
@@ -29,19 +32,22 @@
 
 This will expose a global `algorithmx` variable.
 
-**Module:**
+**Module**
 
-Run `npm install algorithmx`. AlgorithmX is written in <a href="https://www.typescriptlang.org/">TypeScript</a>, and comes with complete type definitions. To use in a TypeScript or ES6 JavaScript project:
+Run `npm install algorithmx`. AlgorithmX is written in <a
+href="https://www.typescriptlang.org/">TypeScript</a>, and comes with complete type definitions.
 
-```javascript
-import * as algorithmx from 'algorithmx';
+To import the library in in a TypeScript or ES6 JavaScript project:
+
+```js
+import { createCanvas } from 'algorithmx';
 ```
 
 ## Example Usage
 
 ```js
 // select a div with id 'output' for rendering the network
-const canvas = algorithmx.canvas('output');
+const canvas = createCanvas('output');
 
 // add three blue nodes
 canvas.nodes(['A', 'B', 'C']).add().color('blue');
