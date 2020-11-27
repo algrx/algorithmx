@@ -8,7 +8,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
-            - name: Build container
+            - name: Build library and docs
               run: docker-compose up --build build
 
             - name: Codecov
