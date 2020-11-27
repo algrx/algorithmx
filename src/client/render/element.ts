@@ -1,105 +1,76 @@
-import { RenderEndpoint, RenderAttr } from './process'
-import { D3Selection, D3SelTrans } from './utils'
-import { IElementAttr, ISvgMixinAttr } from '../attributes/definitions/element'
-import { IAnimation } from '../attributes/definitions/animation'
-import { getEntry } from './process'
-import { Attr, AttrEval, PartialAttr, AttrLookup } from '../attributes/types'
-import { Primitive } from '../utils'
-import * as renderProcess from './process'
-import * as renderFns from './render'
+import * as d3 from './d3.modules';
+import {
+    D3Selection,
+    D3SelTrans,
+    D3Transition,
+    getEaseFn,
+    transition,
+    newTransition,
+    animate,
+    isAnimImmediate,
+} from './utils';
+import { ElementSpec } from '../attributes/components/element';
+import { PartialEvalAttr, FullEvalAttr, PartialAttr } from '../attributes/derived';
+import { AttrSpec, AttrType, AnyRecordSpec } from '../attributes/spec';
+import { mapAttr } from '../attributes/utils';
+import { disableAnim } from '../attributes/transform';
 
-export const renderVisibleLookup = <T extends IElementAttr>(renderData: RenderAttr<AttrLookup<T>>,
-                                                            renderFn: renderFns.RenderLookupFn<T>): void => {
-  return renderFns.renderLookup(renderData, (k, data) => {
-    if (data.attr.visible) renderFn(k, data)
-  })
-}
+const animateAdd = (
+    elementSel: D3Selection,
+    visible: PartialEvalAttr<ElementSpec['entries']['visible']>
+): D3SelTrans => {
+    elementSel.attr('opacity', '0');
+    const transition = animate(elementSel, 'visible-fade', visible).attr('opacity', '1');
+    return newTransition(transition, (t) => t).attr('opacity', null);
+};
 
-export const renderSvgAttr = <T extends Attr>(selection: D3Selection, key: string,
-                                              valueFn: ((v: AttrEval<T>) => Primitive),
-                                              attr: RenderEndpoint<T>): D3SelTrans => {
-  return renderFns.render(selection, attr, (s, a) => {
-    return s.attr(key, valueFn(a))
-  })
-}
+const animateRemove = (
+    elementSel: D3Selection,
+    visible: PartialEvalAttr<ElementSpec['entries']['visible']>
+): D3SelTrans => {
+    elementSel.attr('opacity', '1');
+    return animate(elementSel, 'visible-fade', visible).attr('opacity', '0');
+};
 
-export const renderSvgAttrMixin: renderFns.RenderAttrFn<ISvgMixinAttr> = (selection, renderData) => {
-  const precessKey = (sel, key) => [
-    key.includes('@') ? sel.selectAll(key.split('@')[1]) : sel,
-    key.includes('@') ? key.split('@')[0] : key
-  ]
-  renderFns.renderLookup(getEntry(renderData, 'svgattr'), (_, d) => {
-    const [s, k] = precessKey(selection, d.name)
-    renderSvgAttr(s, k, v => v, d)
-  })
-  renderFns.renderLookupRemovals(getEntry(renderData, 'svgattr'), (_, d) => {
-    const [s, k] = precessKey(selection, d.name)
-    renderSvgAttr(s, k, v => null, d)
-  })
-}
+const renderVisible = (
+    elementSel: D3Selection,
+    visibleChange: PartialEvalAttr<ElementSpec['entries']['visible']>
+): D3SelTrans => {
+    if (visibleChange.value === true) return animateAdd(elementSel, visibleChange);
+    else return animateRemove(elementSel, visibleChange);
+};
 
-const animateAdd = (selection: D3Selection, animation: IAnimation): void => {
-  selection.attr('opacity', '0')
-  const transition = renderFns.animate(selection, 'visible-fade', animation).attr('opacity', '1')
-  renderFns.newTransition(transition, t => t).attr('opacity', null)
-}
+export const renderVisRemove = (
+    elementSel: D3Selection,
+    visibleChange: PartialEvalAttr<ElementSpec['entries']['visible']> | undefined,
+    removeChange: PartialEvalAttr<ElementSpec['entries']['remove']> | undefined
+) => {
+    if (removeChange === true || visibleChange?.value === false) {
+        renderVisible(elementSel, { ...visibleChange, value: false });
 
-const animateRemove = (selection: D3Selection, animation: IAnimation): void => {
-  selection.attr('opacity', '1')
-  renderFns.animate(selection, 'visible-fade', animation).attr('opacity', '0')
-}
-
-export const renderVisible: renderFns.RenderAttrFn<IElementAttr['visible']> = (selection, renderData) => {
-  renderFns.onChanged(selection, renderData, (sel, visible) => {
-    if (!renderFns.isAnimationImmediate(visible.animation)) {
-      if (visible.attr === true) animateAdd(sel, visible.animation)
-      else animateRemove(sel, visible.animation)
+        if (visibleChange === undefined || isAnimImmediate(visibleChange)) elementSel.remove();
+        else {
+            transition(elementSel, 'remove', (t) =>
+                t.delay((visibleChange!.duration ?? 0) * 1000)
+            ).remove();
+        }
+    } else if (visibleChange?.value === true) {
+        elementSel.interrupt('remove'); // cancel remove
+        renderVisible(elementSel, visibleChange);
     }
-  })
-}
+};
 
-export const renderRemove: renderFns.RenderAttrFn<IElementAttr['visible']> = (selection, renderData) => {
-  renderFns.onChanged(selection, renderData, (sel, visible) => {
-    if (visible.attr === false) {
-      if (renderFns.isAnimationImmediate(visible.animation)) sel.remove()
-      else renderFns.transition(sel, 'remove', t => t.delay(renderFns.parseTime(visible.animation.duration))).remove()
+export const getAllElementChanges = <T extends ElementSpec>(
+    spec: T,
+    attrs: FullEvalAttr<T> | undefined,
+    changes: PartialEvalAttr<T>
+): PartialEvalAttr<T> => {
+    if (attrs !== undefined && changes.visible?.value === true) {
+        // if the element is new, render everything but only animate visibility
+        return {
+            ...((disableAnim(spec, attrs as PartialAttr<T>) as unknown) as PartialEvalAttr<T>),
+            visible: changes.visible,
+        };
     }
-  })
-}
-
-export const preprocess = <T extends IElementAttr>(renderData: RenderAttr<T>): RenderAttr<T> => {
-  const visibleData = getEntry(renderData, 'visible')
-  return renderProcess.hasChanged(visibleData) && visibleData.attr === true
-    ? renderProcess.markForUpdate(renderData) : renderData
-}
-
-export const renderElementRemove = <T extends IElementAttr>(selection: D3Selection, renderData: RenderAttr<T>) => {
-  const newVisible = { attr: { visible: false }, changes: { visible: false } } as RenderAttr<PartialAttr<IElementAttr>>
-  const visibleData = getEntry({...renderData, ...newVisible }, 'visible')
-
-  renderVisible(selection, visibleData)
-  renderRemove(selection, visibleData)
-}
-
-export const renderElement = <T extends IElementAttr>(selector: () => D3Selection, renderData: RenderAttr<T>,
-                                                      renderFn: renderFns.RenderAttrFn<T>) => {
-  const renderDataFull = preprocess(renderData)
-  const visibleData = getEntry(renderData, 'visible')
-
-  if (renderProcess.hasChanged(visibleData) && visibleData.attr === true) selector().remove()
-  const selection = selector()
-
-  renderFn(selection, renderDataFull)
-  renderVisible(selection, visibleData)
-  renderRemove(selection, visibleData)
-}
-
-export const renderElementLookup = <T extends IElementAttr>(selector: (k: string) => D3Selection,
-                                                            renderData: RenderAttr<AttrLookup<T>>,
-                                                            renderFn: renderFns.RenderAttrFn<T>) => {
-  renderFns.renderLookup(renderData, (k, data) =>
-    renderElement(() => selector(k), data, renderFn))
-
-  renderFns.renderLookupRemovals(renderData, (k, data) =>
-    renderElementRemove(selector(k), data))
-}
+    return changes;
+};

@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "lib": ["es2017", "dom"],
+        "rootDir": "..",
+        "strict": true,
+        "noImplicitAny": true,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "skipLibCheck": true,
+        "moduleResolution": "node"
+    },
+    "include": ["./**/*.ts"]
+}

@@ -1,99 +1,79 @@
-import { ICanvasAttr } from './attributes/definitions/canvas'
-import { PartialAttr, AttrEval } from './attributes/types'
-import { RenderBehavior } from './render/canvas/behavior'
-import { ISchedulerState, ISchedulerTask } from './scheduler'
-import { Canvas, ReceiveEvent, DispatchEvent, EnumDispatchType } from './types/events'
-import * as scheduler from './scheduler'
-import * as renderCanvasLive from './render/canvas/live'
-import * as layout from './layout/layout'
-import * as clientEvents from './events'
-
-export interface IClientState {
-  readonly canvas: Canvas
-  readonly scheduler: ISchedulerState
-  readonly expressions?: PartialAttr<ICanvasAttr>
-  readonly attributes?: AttrEval<ICanvasAttr>
-  readonly layout: layout.ILayoutState
-  readonly renderBehavior?: RenderBehavior
-}
-
-export type ClientListener = (event: ReceiveEvent) => void
+import { CanvasSpec } from './attributes/components/canvas';
+import { initSchedulerState, scheduleEvent, SchedulerEvent, SchedulerState } from './scheduler';
+import { DispatchEvent, ReceiveEvent, CanvasElement, ClientState } from './types';
+import { executeEvent, EventContext } from './events';
+import { LayoutState, initLayout } from './layout/canvas';
+import { renderLive, initRenderState } from './render/canvas';
 
 export interface Client {
-  onReceive (listener: ClientListener): void
-  dispatch (event: DispatchEvent): void
+    canvas: CanvasElement;
+    state: ClientState;
+    layout: LayoutState;
 
-  /* tslint:disable */
-  state: IClientState
-  listener: ClientListener
-  /* tslint:enable */
+    onreceive(fn: (event: ReceiveEvent) => void): void;
+    dispatch(event: DispatchEvent): void;
 
-  setState (state: IClientState): void
-
-  tick (): void
-
-  receiveEvent (event: DispatchEvent, queue: DispatchEvent['queue']): void
-  executeEvent (event: DispatchEvent): void
+    receive: (event: ReceiveEvent) => void;
+    setState(state: ClientState): void;
+    tick(): void;
+    onSchedulerEvent(event: SchedulerEvent, queue: string | null): void;
 }
 
-const init = (canvas: Canvas, receiveEvent: Client['receiveEvent'], tick: Client['tick']): IClientState => {
-  return {
-    canvas: canvas,
-    scheduler: scheduler.init(receiveEvent),
-    expressions: undefined,
-    attributes: undefined,
-    layout: layout.init(tick),
-    renderBehavior: undefined
-  }
-}
+const initState = (tick: () => void): ClientState => {
+    return {
+        scheduler: initSchedulerState,
+        attributes: undefined,
+        expressions: {},
+        layout: initLayout(tick),
+        render: initRenderState,
+    };
+};
+let scheduler: SchedulerState = initSchedulerState;
 
-export const client = (canvas: Canvas): Client => {
-  const buildClient = (self: () => Client): Client => ({
-    state: undefined,
-    listener: undefined,
-
-    setState: state => {
-      /* tslint:disable */
-      self().state = state
-      /* tslint:enable */
-    },
-    onReceive: fn => {
-      /* tslint:disable */
-      self().listener = fn
-      /* tslint:enable */
-    },
-
-    dispatch: event => {
-      const task = scheduler.schedule(self().state.scheduler, event.queue, event)
-      self().setState({...self().state, scheduler: task.state })
-      task.execute()
-    },
-
-    receiveEvent: (event, queue) => {
-      const schedulerState = self().state.scheduler
-      const task = scheduler.execute(schedulerState, queue, event, self().executeEvent)
-      self().setState({...self().state, scheduler: task.state })
-      task.execute()
-    },
-    executeEvent: event => {
-      const executeContext: clientEvents.ExecuteContext = {
-        state: self().state,
-        listener: self().listener,
-        tick: self().tick
-      }
-      const state = clientEvents.executeEvent(executeContext, event)
-      self().setState(state)
-      self().tick()
-    },
-
-    tick: () => {
-      const state = self().state
-      if (state !== undefined && state.attributes !== undefined)
-        renderCanvasLive.updateCanvas(canvas, state.attributes, state.layout)
+export class Client {
+    constructor(canvas: CanvasElement) {
+        this.canvas = canvas;
+        this.state = initState(this.tick.bind(this));
+        this.receive = () => null;
     }
-  })
 
-  const newClient = buildClient(() => newClient)
-  newClient.setState(init(canvas, newClient.receiveEvent, newClient.tick))
-  return newClient
+    setState(state: ClientState) {
+        this.state = state;
+    }
+
+    onreceive(fn: (event: ReceiveEvent) => void) {
+        this.receive = fn;
+    }
+
+    execute(event: DispatchEvent) {
+        const newState = executeEvent(
+            {
+                state: this.state,
+                canvasEl: this.canvas,
+                receive: this.receive,
+                tick: this.tick.bind(this),
+            },
+            event
+        );
+
+        // note that the scheduler state may have changed after executing the event
+        this.setState({ ...newState, scheduler: this.state.scheduler });
+        this.tick();
+    }
+
+    dispatch(event: DispatchEvent) {
+        scheduleEvent(
+            {
+                setState: (s) => this.setState({ ...this.state, scheduler: s }),
+                getState: () => this.state.scheduler,
+                execute: this.execute.bind(this),
+            },
+            event
+        );
+    }
+
+    tick() {
+        if (this.state.attributes?.visible.value === true)
+            renderLive(this.canvas, this.state.attributes, this.state.layout);
+    }
 }

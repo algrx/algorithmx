@@ -1,139 +1,170 @@
-import { ICanvasAttr } from './attributes/definitions/canvas'
-import { RenderAttr } from './render/process'
-import { IClientState, ClientListener } from './client'
-import { RenderBehavior } from './render/canvas/behavior'
-import * as events from './types/events'
-import * as pipeline from './pipeline/pipeline'
-import * as renderElement from './render/element'
-import * as renderCanvas from './render/canvas/render'
-import * as renderCanvasBehavior from './render/canvas/behavior'
-import * as renderCanvasListeners from './render/canvas/listeners'
-import * as renderCanvasLive from './render/canvas/live'
-import * as renderCanvasMisc from './render/canvas/misc'
-import * as layout from './layout/layout'
+import {
+    CanvasSpec,
+    canvasSpec,
+    createCanvasDefaults,
+    evalCanvasChanges,
+} from './attributes/components/canvas';
+import { AnimSpec, animSpec } from './attributes/components/animation';
+import {
+    InputAttr,
+    FullAttr,
+    PartialAttr,
+    PartialEvalAttr,
+    FullEvalAttr,
+} from './attributes/derived';
+import { preprocess } from './attributes/preprocess';
+import { AttrType } from './attributes/spec';
+import { CanvasElement, ClientState, ReceiveEvent, DispatchEvent } from './types';
+import {
+    adjustEdgeIds,
+    applyDefaults,
+    mergeChanges,
+    fillStarKeys,
+    addVisible,
+    mergeExprs,
+    removeEdgesWithNodes,
+    checkInvalidEdges,
+} from './attributes/transform';
+import { updateCanvasLayout, resetLayout } from './layout/canvas';
+import { renderCanvas } from './render/canvas';
 
-export interface ExecuteContext {
-  readonly state: IClientState,
-  readonly listener: ClientListener,
-  readonly tick: () => void
+export interface EventContext {
+    readonly state: ClientState;
+    readonly canvasEl: CanvasElement;
+    readonly receive: (event: ReceiveEvent) => void;
+    readonly tick: () => void;
 }
 
-export const dispatchError = (message: string, type: events.EnumErrorType): events.IReceiveError =>
-  ({ type: events.EnumReceiveType.error, data: { message: message, type: type } })
+type TransformFn = (
+    p: FullAttr<CanvasSpec> | undefined,
+    c: PartialAttr<CanvasSpec>
+) => PartialAttr<CanvasSpec>;
 
-const dispatchClick = (nodeId: string): events.IReceiveClick =>
-  ({ type: events.EnumReceiveType.click, data: { id: nodeId } })
+// after preprocess, before defaults
+const preTransformFns: ReadonlyArray<TransformFn> = [
+    (p, c) => fillStarKeys(canvasSpec, p, c),
+    adjustEdgeIds,
+    (p, c) => addVisible(canvasSpec, p, c),
+];
 
-const dispatchHover = (nodeId: string, entered: boolean): events.IReceiveHover =>
-  ({ type: events.EnumReceiveType.hover, data: { id: nodeId, entered: entered } })
+// after defaults, before evaluation
+const postTransformFns: ReadonlyArray<TransformFn> = [removeEdgesWithNodes];
 
-const executeReset = (context: ExecuteContext, event: events.IDispatchUpdate): IClientState => {
-  const state = context.state
-  if (state.attributes === undefined) return state
+const updateAttrs = (
+    context: EventContext,
+    inputChanges: InputAttr<CanvasSpec>,
+    inputDefaults?: InputAttr<AnimSpec>
+): ClientState => {
+    const state = context.state;
+    const prevAttrs = state.attributes;
 
-  const processed = pipeline.processReset(state.attributes, event.data)
-  if (processed instanceof Error) {
-    context.listener(dispatchError(processed.message, events.EnumErrorType.attribute))
-    return state
-  }
+    // preprocess the attribute changes changes
+    const preprocChanges = preprocess(
+        canvasSpec,
+        { path: [['canvas', AttrType.Record]], validVars: [] },
+        inputChanges
+    );
+    if (preprocChanges instanceof Error) {
+        context.receive({ error: { type: 'attribute', message: preprocChanges.message } });
+        return state;
+    }
 
-  const renderData = pipeline.getRenderData(processed)
-  renderCanvas.renderCanvas(state.canvas, renderData)
+    // preprocess the attribute animation defaults
+    const animation = preprocess(
+        animSpec,
+        { path: [['animation', AttrType.Record]], validVars: [] },
+        inputDefaults ?? {}
+    );
+    if (animation instanceof Error) {
+        context.receive({ error: { type: 'attribute', message: animation.message } });
+        return state;
+    }
 
-  return {...state,
-    expressions: undefined,
-    attributes: undefined,
-    layout: layout.reset(state.layout),
-    renderBehavior: undefined
-  }
-}
+    // apply transformations
+    const preTransformedChanges = preTransformFns.reduce(
+        (acc, fn) => fn(prevAttrs, acc),
+        preprocChanges
+    );
 
-const render = (canvas: events.Canvas, renderData: RenderAttr<ICanvasAttr>,
-                tick: () => void, layoutState: layout.ILayoutState): void => {
-  renderCanvas.renderCanvas(canvas, renderData)
-  if (renderData.attr.visible === false) return
+    // apply defaults
+    const changesWithDefaults = applyDefaults(canvasSpec, prevAttrs, preTransformedChanges, [
+        createCanvasDefaults(prevAttrs, preTransformedChanges),
+        animation,
+    ]);
 
-  renderCanvasMisc.renderWithLayout(canvas, renderData, layoutState)
+    // apply more transformations
+    const postTransformedChanges = postTransformFns.reduce(
+        (acc, fn) => fn(prevAttrs, acc),
+        changesWithDefaults
+    );
 
-  renderCanvasMisc.renderWithTick(canvas, renderData, tick)
-  renderCanvasLive.updateCanvas(canvas, renderData.attr, layoutState)
-}
+    // validate the changes
+    const validationError = checkInvalidEdges(prevAttrs, changesWithDefaults);
+    if (validationError !== undefined) {
+        context.receive({ error: { type: 'validation', message: validationError.message } });
+        return state;
+    }
 
-const renderBehavior = (canvas: events.Canvas, renderData: RenderAttr<ICanvasAttr>,
-                        behavior: RenderBehavior): RenderBehavior => {
-  if (renderData.attr.visible === false) return behavior
+    // evaluate expressions
+    const changesWithoutSelfRef = evalCanvasChanges({
+        prevAttrs,
+        prevExprs: state.expressions,
+        changes: postTransformedChanges,
+        selfRefOnly: true,
+        parentVars: {},
+    });
+    const fullChanges = evalCanvasChanges({
+        prevAttrs,
+        prevExprs: state.expressions,
+        changes: changesWithoutSelfRef,
+        selfRefOnly: false,
+        parentVars: {},
+    }) as PartialEvalAttr<CanvasSpec>;
 
-  const newBehavior = renderCanvasBehavior.update(canvas, renderData, behavior)
-  renderCanvasBehavior.render(canvas, renderData, newBehavior)
+    // merge all changes with previous attributes
+    const newAttrs = mergeChanges(canvasSpec, prevAttrs, fullChanges) as
+        | FullEvalAttr<CanvasSpec>
+        | undefined;
+    const newExprs =
+        mergeExprs(canvasSpec, state.expressions, changesWithoutSelfRef) ??
+        ({} as PartialEvalAttr<CanvasSpec>);
 
-  return newBehavior
-}
+    // update layout
+    const newLayout = newAttrs
+        ? updateCanvasLayout(state.layout, newAttrs, fullChanges)
+        : resetLayout(state.layout);
 
-const executeUpdate = (context: ExecuteContext, event: events.IDispatchUpdate): IClientState => {
-  const state = context.state
-  if (event.data.attributes === null) return executeReset(context, event)
+    // render the canvas
+    const newRenderState = renderCanvas(
+        context.canvasEl,
+        {
+            state: state.render,
+            layout: newLayout,
+            receive: context.receive,
+            tick: context.tick,
+        },
+        newAttrs,
+        fullChanges
+    );
 
-  const processed = pipeline.processUpdate(state.canvas, state.attributes, state.expressions, event.data)
-  if (processed instanceof Error) {
-    context.listener(dispatchError(processed.message, events.EnumErrorType.attribute))
-    return state
-  }
+    return {
+        ...state,
+        attributes: newAttrs,
+        expressions: newExprs,
+        layout: newLayout,
+        render: newRenderState,
+    };
+};
 
-  const renderData = renderElement.preprocess(pipeline.getRenderData(processed))
-  const layoutState = layout.update(state.layout, processed.attributes, processed.changes)
+export const executeEvent = (context: EventContext, event: DispatchEvent): ClientState => {
+    if (event.message !== undefined) {
+        context.receive({ message: event.message });
+    }
 
-  render(state.canvas, renderData, context.tick, layoutState)
-  const newBehavior = renderBehavior(state.canvas, renderData, state.renderBehavior)
+    const attrState =
+        event.attrs !== undefined
+            ? updateAttrs(context, event.attrs, event.animation)
+            : context.state;
 
-  if (processed.attributes.visible) {
-    const clickFn = (n: string) => context.listener(dispatchClick(n))
-    const hoverFn = (n: string, h: boolean) => context.listener(dispatchHover(n, h))
-    renderCanvasListeners.registerNodeClick(state.canvas, renderData, clickFn)
-    renderCanvasListeners.registerNodeHover(state.canvas, renderData, hoverFn)
-  }
-
-  return {...state,
-    expressions: processed.expressions,
-    attributes: processed.attributes,
-    layout: layoutState,
-    renderBehavior: newBehavior
-  }
-}
-
-const executeHighlight = (context: ExecuteContext, event: events.IDispatchHighlight): void => {
-  const state = context.state
-  const processed = pipeline.processHighlight(state.attributes, state.expressions, event.data)
-  if (processed instanceof Error) {
-    context.listener(dispatchError(processed.message, events.EnumErrorType.attribute))
-    return
-  }
-
-  const renderDataInit: RenderAttr<ICanvasAttr> = {
-    name: 'canvas',
-    attr: state.attributes,
-    animation: processed.animation,
-    highlight: processed.changes
-  }
-  const renderData = renderElement.preprocess(renderDataInit)
-
-  render(state.canvas, renderData, context.tick, state.layout)
-  renderBehavior(state.canvas, renderData, state.renderBehavior)
-}
-
-export const executeEvent = (context: ExecuteContext, event: events.DispatchEvent): IClientState => {
-  if (event.type === events.EnumDispatchType.broadcast) {
-    context.listener({
-      type: events.EnumReceiveType.broadcast,
-      data: { message: event.data.message }
-    })
-    return context.state
-
-  } else if (event.type === events.EnumDispatchType.update) {
-    return executeUpdate(context, event)
-
-  } else if (event.type === events.EnumDispatchType.highlight) {
-    executeHighlight(context, event)
-    return context.state
-
-  } else return context.state
-}
+    return attrState;
+};

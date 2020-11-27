@@ -1,122 +1,159 @@
-import { AttrType, AttrDef, IAttrDefRecord, IAttrDefLookup, IAttrDefArray } from './definitions'
-import { AttrPrimitive, Attr, PartialAttr, AttrRecord, AttrLookup, VarSymbol, AttrArray } from './types'
-import * as expressions from './expressions'
-import * as attrUtils from './utils'
-import * as utils from '../utils'
+import {
+    AttrType,
+    PrimitiveSpec,
+    StringSpec,
+    AttrSpec,
+    AttrKey,
+    EntrySpec,
+    AnyRecordSpec,
+    AnyDictSpec,
+    ExactStringSpec,
+} from './spec';
+import { InputAttr, PartialAttr } from './derived';
+import { parseExprStr, parseExprObj } from './expression';
+import { getEntrySpec, getAttrEntry, mapAttr } from './utils';
+import { mapDict, dictFromArray, isObj } from '../utils';
 
-interface PreProcessInfo {
-  readonly variables: ReadonlyArray<VarSymbol>
-  readonly path: ReadonlyArray<[string, AttrType]>
+interface PreprocessInfo {
+    readonly validVars: ReadonlyArray<string>;
+    readonly path: ReadonlyArray<[string, AttrType]>;
 }
 
-export const initInfo = (): PreProcessInfo => ({
-  variables: [],
-  path: [['canvas', AttrType.Record]]
-})
+const formatPath = (path: PreprocessInfo['path']): string => {
+    return path.reduce((result: string, [name], i) => {
+        if (i > 0) {
+            const prevType = path[i - 1][1];
+            return (
+                result +
+                (prevType === AttrType.Array || prevType === AttrType.Tuple
+                    ? `[${name}]`
+                    : `.${name}`)
+            );
+        } else return name;
+    }, '');
+};
 
-const formatPath = (path: PreProcessInfo['path']): string => {
-  return path.reduce((result: string, [name, type], i) => {
-    if (i > 0) {
-      const prevType = path[i - 1][1]
-      return result + (prevType === AttrType.Array ? `${[name]}` : `.${name}`)
-    } else return name
-  }, '')
-}
+const defaultValue = <T extends AttrSpec>(spec: T): PartialAttr<T> | undefined => {
+    if (spec.type === AttrType.String) return '' as PartialAttr<T>;
+    if (spec.type === AttrType.Record) return {} as PartialAttr<T>;
+    return undefined;
+};
 
-export const preprocess = <T extends Attr>(attr: unknown, definition: AttrDef<T>,
-                                           info?: PreProcessInfo): PartialAttr<T> | Error => {
-  const newInfo = info || initInfo()
-  const fullInfo: PreProcessInfo = {...newInfo,
-    variables: newInfo.variables.concat(definition.validVars || [])
-  }
+const preprocessCompound = <T extends AttrSpec>(
+    spec: T,
+    info: PreprocessInfo,
+    attr: InputAttr<T>
+): PartialAttr<T> | Error => {
+    const newAttr = mapAttr(spec, attr as PartialAttr<T>, (childAttr, childKey, childSpec) => {
+        const newInfo = {
+            ...info,
+            path: info.path.concat([[String(childKey), childSpec.type]]),
+        };
+        return preprocess(childSpec, newInfo, childAttr as InputAttr<EntrySpec<T>>) as PartialAttr<
+            EntrySpec<T>
+        >;
+    });
 
-  if (attrUtils.isDefPrimitive(definition))
-    return preprocessPrimitive(attr, definition as AttrDef<AttrPrimitive>, fullInfo) as PartialAttr<T> | Error
+    const error = Object.values(newAttr).find((v) => v instanceof Error);
+    if (error !== undefined) return error;
 
-  else if (attrUtils.isDefRecord(definition))
-    return preprocessRecord(attr, definition as IAttrDefRecord<T>, fullInfo)
+    return newAttr;
+};
 
-  else if (attrUtils.isDefLookup(definition))
-    return preprocessLookup(attr, definition as IAttrDefLookup<Attr>, fullInfo) as PartialAttr<T> | Error
-
-  else if (attrUtils.isDefArray(definition))
-      return preprocessArray(attr, definition as IAttrDefArray<Attr>, fullInfo) as PartialAttr<T> | Error
-
-  else return new Error()
-}
-
-const preprocessPrimitive = (attr: unknown, def: AttrDef<AttrPrimitive>,
-                             info: PreProcessInfo): AttrPrimitive | Error => {
-  if (def.validValues && !def.validValues.includes(attr as AttrPrimitive)) {
-    return new Error(`attribute '${formatPath(info.path)}' has invalid value '${attr}'`
-      + ` (valid values are [${def.validValues}])`)
-  } else {
-    switch (def.type) {
-      case AttrType.Number:
-        if (typeof attr === 'number') return attr
-        else if (typeof attr === 'string') return expressions.parseExpr(attr, info.variables)
-        else if (utils.isDict(attr)) return expressions.parseExprObj(attr, info.variables)
-        else return new Error(`attribute '${formatPath(info.path)}' must be a number`)
-
-      case AttrType.String:
-        if (typeof attr === 'string') return attr
-        else if (typeof attr === 'number') return String(attr)
-        else return new Error(`attribute '${formatPath(info.path)}' must be a string`)
-
-      case AttrType.Boolean:
-        if (typeof attr === 'boolean') return attr
-        else return new Error(`attribute '${formatPath(info.path)}' must be a boolean`)
-
-      default:
-        return new Error()
+export const preprocess = <T extends AttrSpec>(
+    spec: T,
+    info: PreprocessInfo,
+    attr: InputAttr<T>
+): PartialAttr<T> | Error => {
+    // === boolean ===
+    if (spec.type === AttrType.Boolean) {
+        if (typeof attr === 'boolean') return attr as PartialAttr<T>;
+        return new Error(`attribute '${formatPath(info.path)}' must be a boolean`);
     }
-  }
-}
 
-const preprocessRecord = <T extends AttrRecord>(attr: unknown, definition: IAttrDefRecord<T>,
-                                                info: PreProcessInfo): PartialAttr<T> | Error => {
-  // allow arrays and single values instead of dictionaries
-  if (Array.isArray(attr) && attr.length > definition.keyOrder.length)
-    return new Error(`attribute '${formatPath(info.path)}' has too many entries to match [${definition.keyOrder}]`)
-  const record = valueOrArrayOrDict(attr, definition.keyOrder)
-
-  const invalidEntries = Object.keys(record).filter(k => !definition.entries.hasOwnProperty(k))
-  if (invalidEntries.length > 0)
-    return new Error(`attribute '${formatPath(info.path)}' has unknown entry '${invalidEntries[0]}'`)
-
-  return utils.filterError(definition.keyOrder.reduce((result: PartialAttr<T>, k) => {
-    const def: AttrDef<T[keyof T]> = definition.entries[k]
-    if (!record.hasOwnProperty(k))
-      return result
-    else {
-      const newInfo: PreProcessInfo = {...info, path: info.path.concat([[k, def.type]]) }
-      return {...result, [k]: preprocess(record[k as string], def, newInfo) }
+    // === number ===
+    if (spec.type === AttrType.Number) {
+        if (typeof attr === 'number') return attr as PartialAttr<T>;
+        else if (typeof attr === 'string')
+            return parseExprStr(attr, info.validVars) as PartialAttr<T>;
+        else if (typeof attr === 'object')
+            return parseExprObj(attr as {}, info.validVars) as PartialAttr<T>;
+        return new Error(`attribute '${formatPath(info.path)}' must be a number`);
     }
-  }, {}) as PartialAttr<T>)
-}
 
-const valueOrArrayOrDict = (attr: unknown, keys: ReadonlyArray<string>): object => {
-  if (Array.isArray(attr)) return attr.reduce((result, v, i) => ({...result, [keys[i]]: v }), {})
-  else if (utils.isDict(attr)) return attr as object
-  else return { [keys[0]]: attr }
-}
+    // === string ===
+    if (spec.type === AttrType.String) {
+        const exactStringSpec = spec as ExactStringSpec<string>;
+        if (exactStringSpec.validValues && !exactStringSpec.validValues.includes(attr as string)) {
+            return new Error(
+                `attribute '${formatPath(info.path)}' has invalid value '${attr}'` +
+                    ` (valid values are [${exactStringSpec.validValues}])`
+            );
+        }
+        if (typeof attr === 'string') return attr as PartialAttr<T>;
+        else if (typeof attr === 'number') return String(attr) as PartialAttr<T>;
+        return new Error(`attribute '${formatPath(info.path)}' must be a string`);
+    }
 
-const preprocessLookup = <T extends Attr>(attr: unknown, definition: IAttrDefLookup<T>,
-                                          info: PreProcessInfo): PartialAttr<AttrLookup<T>> | Error => {
-  if (utils.isDict(attr)) {
-    return utils.filterError(attrUtils.map(attr as AttrLookup<T>, definition, (k, v, def) => {
-      const newInfo: PreProcessInfo = {...info, path: info.path.concat([[k as string, def.type]]) }
-      return v === null ? v : preprocess(v, def, newInfo) as T
-    })) as Error | PartialAttr<AttrLookup<T>>
-  } else return new Error(`attribute '${formatPath(info.path)}' must be a dictionary`)
-}
+    // === tuple ===
+    if (spec.type === AttrType.Tuple) {
+        // single values will automatically be repeated twice
+        if (!Array.isArray(attr))
+            return preprocess(spec, info, ([attr, attr] as unknown) as InputAttr<T>);
 
-const preprocessArray = <T extends Attr>(attr: unknown, definition: IAttrDefArray<T>,
-                                         info: PreProcessInfo): PartialAttr<AttrArray<T>> | Error => {
-  if (Array.isArray(attr)) {
-    return utils.filterError(attrUtils.map(attr as AttrArray<T>, definition, (k, v, def) => {
-      const newInfo: PreProcessInfo = {...info, path: info.path.concat([[String(k), def.type]]) }
-      return preprocess(v, def, newInfo) as T
-    })) as Error | PartialAttr<AttrArray<T>>
-  } else return new Error(`attribute '${formatPath(info.path)}' must be an array`)
-}
+        if (attr.length !== 2)
+            return new Error(
+                `attribute '${formatPath(info.path)}' must be a tuple with exactly 2 items`
+            );
+
+        return preprocessCompound(spec, info, attr);
+    }
+
+    // === record ===
+    if (spec.type === AttrType.Record) {
+        if (!isObj(attr)) {
+            if ('value' in (spec as AnyRecordSpec).entries) {
+                // endpionts can be provided as a single value, or a { value, ... } object
+                return preprocessCompound(spec, info, ({ value: attr } as unknown) as InputAttr<T>);
+            } else return new Error(`attribute '${formatPath(info.path)}' must be an object`);
+        }
+
+        const invalidKey = Object.keys(attr).find((k) => !(k in (spec as AnyRecordSpec).entries));
+        if (invalidKey)
+            return new Error(
+                `attribute '${formatPath(info.path)}' has invalid key '${invalidKey}'`
+            );
+
+        const newInfo = {
+            ...info,
+            validVars: (spec as AnyRecordSpec).validVars ?? info.validVars,
+        };
+        return preprocessCompound(spec, newInfo, attr);
+    }
+
+    // === array ===
+    if (spec.type === AttrType.Array) {
+        if (!Array.isArray(attr))
+            return new Error(`attribute '${formatPath(info.path)}' must be an array`);
+
+        return preprocessCompound(spec, info, attr);
+    }
+
+    // === dict ===
+    if (spec.type === AttrType.Dict) {
+        // allow dicts to be given as arrays, when just the keys are needed
+        if (Array.isArray(attr)) {
+            const dict = dictFromArray(attr, (k) =>
+                defaultValue((spec as AnyDictSpec).entry)
+            ) as InputAttr<T>;
+            return preprocess(spec, info, dict);
+        }
+
+        if (typeof attr !== 'object')
+            return new Error(`attribute '${formatPath(info.path)}' must be an object`);
+
+        return preprocessCompound(spec, info, attr);
+    }
+
+    return new Error();
+};

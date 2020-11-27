@@ -1,34 +1,46 @@
-import { Lookup } from '../utils'
-import { IEdgeAttr } from '../attributes/definitions/edge'
-import { AttrEval, AttrEvalPartial, AttrLookup } from '../attributes/types'
-import { NodeLayout } from './node'
-import * as webcola from 'webcola'
-import * as utils from '../utils'
+import * as webcola from 'webcola';
 
-export type EdgeLayout = webcola.Link<string>
+import { LayoutState } from './canvas';
+import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
+import { CanvasSpec } from '../attributes/components/canvas';
+import { EdgeSpec } from '../attributes/components/edge';
+import { DictSpec } from '../attributes/spec';
+import { Dict, mapDict } from '../utils';
 
-const fromAttr = (attr: AttrEval<IEdgeAttr>): EdgeLayout => {
-  return {
-    source: attr.source,
-    target: attr.target,
-    length: attr.length
-  }
-}
+export const didUpdateEdges = (changes: PartialEvalAttr<DictSpec<EdgeSpec>>): boolean => {
+    return Object.values(changes).some(
+        (e) =>
+            e.source !== undefined ||
+            e.target !== undefined ||
+            e.length !== undefined ||
+            e.remove === true
+    );
+};
 
-export const didUpdateLayout = (changes: AttrEvalPartial<IEdgeAttr>): boolean => {
-  return changes.source !== undefined || changes.target !== undefined || changes.length !== undefined
-}
+export const updateEdgeLayout = (
+    layoutState: LayoutState,
+    attrs: FullEvalAttr<CanvasSpec>,
+    changes: PartialEvalAttr<CanvasSpec>
+): LayoutState => {
+    // check for updates
+    if (
+        !didUpdateEdges(changes.edges ?? {}) &&
+        !changes.edgelayout &&
+        !(changes.edgelength === undefined)
+    )
+        return layoutState;
 
-export const createLookup = (attr: AttrEval<AttrLookup<IEdgeAttr>>): Lookup<EdgeLayout> => {
-  return utils.mapDict(attr, (k, v) => fromAttr(v))
-}
+    // re-add all edges
+    const layoutEdges = Object.values(attrs.edges)
+        .filter((e) => e.source in layoutState.nodes && e.target in layoutState.nodes)
+        .map((e) => ({
+            source: layoutState.nodes[e.source],
+            target: layoutState.nodes[e.target],
+            length: e.length,
+        }));
 
-export const updateCola = (cola: webcola.Layout, nodes: Lookup<NodeLayout>,
-                           edges: Lookup<EdgeLayout>): void => {
-  // cola doesn't work when you call .nodes() with a new array
-  const newEdges = utils.mapDict(edges, (k, edge) => ({...edge,
-    source: nodes[edge.source],
-    target: nodes[edge.target]
-  }))
-  cola.links().splice(0, cola.links().length, ...Object.values(newEdges))
-}
+    // cola doesn't work when you call .links() with a new array
+    const layoutEdgeArray = layoutState.cola.links();
+    layoutEdgeArray.splice(0, layoutEdgeArray.length, ...layoutEdges);
+    return layoutState;
+};

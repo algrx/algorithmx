@@ -1,97 +1,127 @@
-import { InputElementAttr, InputCanvasAttr, InputCanvasAnimAttr } from '../client/attributes/definitions/types'
-import { ISelContext } from './Selection'
-import { Omit, isDict, isDictEmpty } from '../client/utils'
-import { ElementArg, ElementFn } from './types/types'
-import { IAnimation } from '../client/attributes/definitions/animation'
-import * as events from '../client/types/events'
+import { AnimSpec } from '../client/attributes/components/animation';
+import { InputAttr } from '../client/attributes/derived';
+import { ReceiveEvent, DispatchEvent } from '../client/types';
+import { ElementFn, ElementArg } from './types';
 
-export type ClassBuilder<T, C> = (context: C, self: () => T, construct: (args: C) => T) => T
-
-export function build<T, C> (builder: ClassBuilder<T, C>, context: C): T {
-  const construct = (args: C) => build(builder, args)
-  const instance = builder(context, () => instance, construct)
-  return instance
+export interface ElementCallbacks {
+    readonly click?: () => void;
+    readonly hoverin?: () => void;
+    readonly hoverout?: () => void;
 }
 
-export function inherit<T extends P, P extends object> (obj: Omit<T, keyof P>, parent: P): T {
-  return Object.setPrototypeOf(obj, parent)
+export interface EventCallbacks {
+    dispatch?: (event: DispatchEvent) => void;
+    receive?: (event: ReceiveEvent) => void;
+    messages?: {
+        readonly [k: string]: () => void;
+    } & {
+        readonly '*': (message: string) => void;
+    };
+    nodes?: {
+        readonly [k: string]: ElementCallbacks;
+    };
 }
 
-type AttrFromArgFn<T extends InputElementAttr, A> = ((d: A) => T)
-type AttrFromArg<T extends InputElementAttr, A> = T | AttrFromArgFn<T, A>
+export interface Client {}
 
-const getAttrEntry = <T extends InputElementAttr, A>
-  (sel: ISelContext<T>, arg: ElementArg<A>, attr: AttrFromArg<T, A>, index: number): T => {
-
-  if (typeof attr === 'function') {
-    const evalArg = typeof arg === 'function'
-      ? ((arg as ElementFn<A>)(sel.data[index], index))
-      : arg
-    return (attr as AttrFromArgFn<T, A>)(evalArg)
-  } else return attr
+export interface ElementContext<D> {
+    readonly ids: ReadonlyArray<string>;
+    readonly data?: ReadonlyArray<D>;
+    readonly withQ?: string | null;
+    readonly animation?: InputAttr<AnimSpec>;
+    readonly parentkey?: string;
+    readonly parent?: ElementContext<D | unknown>;
+    readonly callbacks: EventCallbacks;
 }
 
-const createParentAttr = <T extends InputElementAttr, P extends InputElementAttr, A>
-  (sel: ISelContext<T>, arg: ElementArg<A>, attr: AttrFromArg<T, A>): AttrFromArg<P, A> => {
+export type ElementObjArg<T, D> =
+    | ElementArg<T, D>
+    | { readonly [k in keyof T]: ElementArg<T[k], D> };
 
-  if (typeof attr === 'function' && sel.data === null) {
-    return ((a: A) => ({
-      [sel.name]: sel.ids.reduce((result, id) =>
-        ({...result, [id]: (attr as AttrFromArgFn<T, A>)(a) }), {})
-    })) as AttrFromArgFn<P, A>
+export const isElementFn = <V, D>(v: ElementArg<V, D>): v is ElementFn<V, D> =>
+    typeof v === 'function';
 
-  } else {
-    return {
-      [sel.name]: sel.ids.reduce((result, id, i) =>
-        ({...result, [id]: getAttrEntry(sel, arg, attr, i) }), {})
-    } as P
-  }
-}
+export const evalElementValue = <T, D>(value: ElementArg<T, D>, data: D, index: number): T => {
+    if (isElementFn(value)) return value(data, index);
+    else return value;
+};
 
-export const createFullAttr = <T extends InputElementAttr, A, R extends InputElementAttr>
-  (sel: ISelContext<T>, arg: ElementArg<A>, attr: AttrFromArg<T, A>): R => {
+export const evalElementDict = <T, D>(dict: ElementObjArg<T, D>, data: D, index: number): T => {
+    // evaluate the entire object as a function
+    if (isElementFn(dict)) return dict(data, index);
+    else {
+        if (Object.keys(dict).every((k) => !isElementFn(dict[k as keyof T]))) {
+            // simply return the object if it has no function keys
+            return dict as T;
+        }
 
-  if (sel.parent === undefined) return getAttrEntry(sel, arg, attr, 0) as unknown as R
-  else return createFullAttr(sel.parent, arg, createParentAttr(sel, arg, attr))
-}
+        // evaluate each key which has a function
+        let newDict = {} as T;
+        Object.keys(dict).forEach((k) => {
+            newDict[k as keyof T] = evalElementValue(
+                dict[k as keyof T] as ElementArg<T[keyof T], D>,
+                data,
+                index
+            );
+        });
+        return newDict;
+    }
+};
 
-export const attrEvent = <T extends InputElementAttr, A>
-  (sel: ISelContext<T>, arg: ElementArg<A>, attr: (a: A) => T): events.IDispatchUpdate | events.IDispatchHighlight => {
+export const applyAttrs = <T extends {}, D>(
+    context: ElementContext<D>,
+    attrFn: (data: D, dataIndex: number, elementIndex: number) => T
+) => {
+    if (!context.parent) {
+        if (context.data !== undefined && context.callbacks.dispatch) {
+            // dispatch attributes
+            const attrs = attrFn(context.data[0], 0, 0);
+            context.callbacks.dispatch({
+                attrs: attrs,
+                ...(context.animation !== undefined ? { animation: context.animation } : {}),
+                ...(context.withQ !== undefined ? { withQ: context.withQ } : {}),
+            });
+        }
+        return;
+    }
 
-  const eventData = {
-    attributes: createFullAttr<T, A, InputCanvasAttr>(sel, arg, attr),
-    animation: sel.animation
-  }
-  if (sel.highlight) return { type: 'highlight', queue: sel.queue, data: eventData }
-  else return { type: 'update', queue: sel.queue, data: eventData }
-}
+    const parentAttrFn = (data: D, dataIndex: number) => {
+        let dict: { [k: string]: T } = {};
+        context.ids.forEach((k, i) => {
+            dict[k] =
+                context.data !== undefined
+                    ? attrFn(context.data[i], i, i) // use current data
+                    : attrFn(data, dataIndex, i); // use parent data
+        });
+        return { [context.parentkey!]: dict };
+    };
 
-export const queueEvent = <T extends InputElementAttr>(sel: ISelContext<T>,
-                                                       type: events.IDispatchQueueUpdate['type'],
-                                                       queue: unknown | null): events.IDispatchQueueUpdate => {
-  const queues = queue === null ? null : [String(queue)]
-  return {
-    type: type,
-    queue: sel.queue,
-    data: { queues: queues }
-  }
-}
+    // apply attributes on the parent
+    applyAttrs(
+        {
+            ...(context.parent as ElementContext<D>),
+            withQ: context.withQ,
+            animation: context.animation,
+        },
+        parentAttrFn
+    );
+};
 
-export const mergeDictRec = (a: object, b: object): object => {
-  const merged = Object.keys(a).reduce((res, k) =>
-    ({...res, [k]: isDict(a[k]) && isDict(b[k]) ? mergeDictRec(a[k], b[k]) : b[k] !== undefined ? b[k] : a[k] }), {})
-  return {...b, ...merged }
-}
+export const addElementCallback = <D>(
+    context: ElementContext<D>, // with the canvas as its parent
+    eventType: keyof ElementCallbacks,
+    fn: ElementFn<void, D>
+) => {
+    const cbs = context.parent!.callbacks;
+    const elementKey = context.parentkey! as 'nodes';
 
-export const updateAnimation = <T extends InputElementAttr, A>
-  (sel: ISelContext<T>, arg: ElementArg<A>, attr: (a: A) => Partial<IAnimation>): InputCanvasAnimAttr => {
+    const elementCbDict = { ...cbs[elementKey] };
+    context.ids.forEach((k, i) => {
+        elementCbDict[k] = {
+            ...elementCbDict[k],
+            [eventType]: () => evalElementValue(fn, context.data![i], i),
+        };
+    });
 
-  if ((isDictEmpty(sel.animation) || Object.keys(sel.animation).length === 1 && sel.animation['**'] !== undefined)
-    && typeof arg !== 'function')
-    // optimization to minimize the amount of transmitted data
-    return mergeDictRec(sel.animation, { '**': attr(arg) })
-  else {
-    const animationAttr = createFullAttr(sel, arg, (a: A) => ({ '**': attr(a) }) as unknown as T) as InputCanvasAnimAttr
-    return mergeDictRec(sel.animation, animationAttr)
-  }
-}
+    context.parent!.callbacks[elementKey] = elementCbDict;
+};

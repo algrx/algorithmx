@@ -1,45 +1,54 @@
-import { INodeAttr } from '../attributes/definitions/node'
-import { Lookup } from '../utils'
-import { AttrEval, AttrEvalPartial, AttrLookup } from '../attributes/types'
-import * as utils from '../utils'
-import * as webcola from 'webcola'
+import * as webcola from 'webcola';
 
-export type NodeLayout = webcola.Node
+import { LayoutState } from './canvas';
+import { DictSpec } from '../attributes/spec';
+import { PartialEvalAttr, FullEvalAttr } from '../attributes/derived';
+import { NodeSpec } from '../attributes/components/node';
+import { Dict, mapDict } from '../utils';
 
-const fromAttrChanges = (attr: AttrEval<INodeAttr>, changes: AttrEvalPartial<INodeAttr>): Partial<NodeLayout> => {
-  const height = attr.shape === 'circle' ? attr.size.width * 2 : attr.size.height * 2
-  const changedHeight = changes.size && (
-    attr.shape === 'circle' ? changes.size.width !== undefined
-    : changes.size.height !== undefined)
+export const didUpdateNodes = (changes: PartialEvalAttr<DictSpec<NodeSpec>>): boolean => {
+    return Object.values(changes).some(
+        (n) =>
+            n.size !== undefined ||
+            n.pos !== undefined ||
+            n.fixed !== undefined ||
+            n.remove === true
+    );
+};
 
-  return {
-    ...(changes.size && changes.size.width !== undefined ? { width: attr.size.width * 2 } : {}),
-    ...(changedHeight ? { height: height } : {}),
-    ...(changes.pos && changes.pos.x !== undefined ? { x: attr.pos.x } : {}),
-    ...(changes.pos && changes.pos.y !== undefined ? { y: attr.pos.y } : {}),
-    ...(changes.fixed !== undefined ? { fixed: attr.fixed ? 1 : 0 } : {})
-  }
-}
+export const updateNodeLayout = (
+    layoutState: LayoutState,
+    attrs: FullEvalAttr<DictSpec<NodeSpec>>,
+    changes: PartialEvalAttr<DictSpec<NodeSpec>>
+): LayoutState => {
+    // check for updates
+    if (!didUpdateNodes(changes)) return layoutState;
 
-export const didUpdateLayout = (attr: AttrEval<INodeAttr>, changes: AttrEvalPartial<INodeAttr>): boolean => {
-  return !utils.isDictEmpty(fromAttrChanges(attr, changes))
-}
+    // create a node layout diff
+    const layoutNodesDiff = mapDict(attrs, (n, k) => {
+        const nodeChanges = changes[k] ?? {};
+        const nodeDiff: Partial<webcola.Node> = {
+            ...(nodeChanges.size
+                ? { width: n.size.value[0] * 2, height: n.size.value[1] * 2 }
+                : {}),
+            ...(nodeChanges.pos ? { x: n.pos.value[0], y: n.pos.value[1] } : {}),
+            ...(nodeChanges.fixed ? { fixed: n.fixed ? 1 : 0 } : {}),
+        };
+        return nodeDiff;
+    });
 
-export const mergeLookup = (nodes: Lookup<NodeLayout>, attr: AttrEval<AttrLookup<INodeAttr>>,
-                            changes: AttrEvalPartial<AttrLookup<INodeAttr>>): Lookup<NodeLayout> => {
-  // merge changes with previous nodes so as to preserve positions and references
-  const nodeChanges: Lookup<Partial<NodeLayout> | null> = utils.mapDict(changes, (k, v) =>
-    v === null ? null : fromAttrChanges(attr[k], v))
+    // merge diff with previous layout to preserve node positions and references
+    const layoutNodes = mapDict(layoutNodesDiff, (nodeDiff, k) =>
+        !(k in layoutState.nodes)
+            ? (nodeDiff as webcola.Node)
+            : Object.assign(layoutState.nodes[k], nodeDiff)
+    );
 
-  return Object.keys(nodes).concat(Object.keys(changes)).reduce((result, k) =>
-    nodeChanges[k] === null ? result // remove node
-    : nodes[k] === undefined ? {...result, [k]: nodeChanges[k] as NodeLayout } // add node
-    : nodeChanges[k] === undefined ? {...result, [k]: nodes[k] } // unchanged
-    : {...result, [k]: {...nodes[k], ...nodeChanges[k] } } // changed
-  , {} as Lookup<NodeLayout>)
-}
-
-export const updateCola = (cola: webcola.Layout, nodes: Lookup<NodeLayout>): void => {
-  // cola doesn't work when you call .nodes() with a new array
-  cola.nodes().splice(0, cola.nodes().length, ...Object.values(nodes))
-}
+    // cola doesn't work when you call .nodes() with a new array
+    const layoutNodeArray = layoutState.cola.nodes();
+    layoutNodeArray.splice(0, layoutNodeArray.length, ...Object.values(layoutNodes));
+    return {
+        ...layoutState,
+        nodes: layoutNodes,
+    };
+};
