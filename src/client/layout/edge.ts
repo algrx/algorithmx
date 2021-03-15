@@ -32,7 +32,12 @@ export const updateEdgeLayout = (
 
     // re-add all edges
     const layoutEdges = Object.values(attrs.edges)
-        .filter((e) => e.source in layoutState.nodes && e.target in layoutState.nodes)
+        .filter(
+            (e) =>
+                e.source in layoutState.nodes &&
+                e.target in layoutState.nodes &&
+                e.source !== e.target
+        )
         .map((e) => ({
             source: layoutState.nodes[e.source],
             target: layoutState.nodes[e.target],
