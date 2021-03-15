@@ -22,3 +22,9 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   DEPLOY_GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
               run: ./scripts/deploy-docs.sh
+
+            - name: Deploy to NPM
+              if: startsWith(github.ref, 'refs/tags/v')
+              uses: JS-DevTools/npm-publish@v1
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
