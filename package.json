@@ -45,7 +45,7 @@
     },
     "homepage": "https://github.com/algrx/algorithmx",
     "dependencies": {
-        "d3-color": "^2.0.0",
+        "d3-color": "^3.1.0",
         "d3-dispatch": "^2.0.0",
         "d3-drag": "^2.0.0",
         "d3-ease": "^2.0.0",
